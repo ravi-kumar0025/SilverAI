@@ -1,0 +1,67 @@
+{
+  "feature_names": [
+    "return_1",
+    "return_3",
+    "return_6",
+    "volatility_5",
+    "volatility_20",
+    "volatility_50",
+    "sma_distance_20",
+    "sma_distance_50",
+    "candle_return",
+    "candle_range_pct",
+    "upper_wick_ratio",
+    "lower_wick_ratio",
+    "relative_volume",
+    "volume_change",
+    "hour_sin",
+    "hour_cos",
+    "day_of_week"
+  ],
+  "feature_count": 17,
+  "classification_target": "classification_target",
+  "source_classification_target": "target_direction_15m",
+  "regression_target": "future_return_15m",
+  "prediction_horizon_minutes": 15,
+  "threshold_value_pct": 0.0776397515528126,
+  "selected_classifier": "hist_gradient_boosting_classifier",
+  "selected_regressor": "linear_regression",
+  "clean_rows": 160573,
+  "split_metadata": {
+    "train_boundary_raw_index": 112401,
+    "validation_boundary_raw_index": 136487,
+    "split_fractions_nominal": {
+      "train": 0.7,
+      "validation": 0.15,
+      "test": 0.15000000000000005
+    },
+    "purge_rows_at_boundaries": 3,
+    "partitions": [
+      {
+        "partition": "train",
+        "rows": 112398,
+        "start": "2023-11-01 07:00:00-04:00",
+        "end": "2025-11-28 12:05:00-05:00"
+      },
+      {
+        "partition": "validation",
+        "rows": 24083,
+        "start": "2025-11-28 12:25:00-05:00",
+        "end": "2026-05-06 08:15:00-04:00"
+      },
+      {
+        "partition": "test",
+        "rows": 24086,
+        "start": "2026-05-06 08:35:00-04:00",
+        "end": "2026-11-03 01:45:00-05:00"
+      }
+    ]
+  },
+  "test_used_for_selection": false,
+  "evaluation_selection": {
+    "selected_classifier": "hist_gradient_boosting_classifier",
+    "selected_regressor": "linear_regression",
+    "selection_basis": "Training validation macro F1 and RMSE; test results not used for selection",
+    "test_evaluated": true
+  }
+}
