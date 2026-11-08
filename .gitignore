@@ -1,0 +1,90 @@
+# ==========================================
+# SilverAI - Git Ignore
+# ==========================================
+
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Virtual environments
+venv/
+.venv/
+env/
+ENV/
+
+# Python tools
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+.ipynb_checkpoints/
+
+# Jupyter
+.profile/
+.jupyter/
+
+# Environment variables and secrets
+.env
+.env.*
+!.env.example
+
+# Logs
+logs/
+*.log
+
+# Generated ML models and artifacts
+saved_models/
+*.pkl
+*.pickle
+*.joblib
+*.h5
+*.keras
+*.onnx
+*.pt
+*.pth
+
+# Datasets
+data/*
+!data/.gitkeep
+
+# Generated reports and figures
+reports/model_comparison/*
+reports/figures/*
+!reports/model_comparison/.gitkeep
+!reports/figures/.gitkeep
+
+# Node.js
+node_modules/
+frontend/node_modules/
+backend/node_modules/
+
+# Frontend build outputs
+dist/
+build/
+frontend/dist/
+frontend/build/
+
+# Package manager and tool caches
+.npm/
+.eslintcache/
+.vite/
+.turbo/
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# Temporary files
+*.tmp
+*.temp
+*.bak
+
+# OS files
+desktop.ini
