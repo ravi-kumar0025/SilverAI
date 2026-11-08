@@ -1,176 +1,54 @@
-import React, { useEffect, useMemo, useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { createRoot } from 'react-dom/client'
 import { api, API_BASE_URL } from './services/api'
 import './styles.css'
 
-const directionCopy = {
-  UP: { label: 'UPWARD BIAS', tone: 'positive', icon: '↗' },
-  DOWN: { label: 'DOWNWARD BIAS', tone: 'negative', icon: '↘' },
-  NEUTRAL: { label: 'NEUTRAL BIAS', tone: 'neutral', icon: '→' },
-}
+const navItems = [['overview', 'Overview'], ['predictions', 'Predictions'], ['analysis', 'Analysis'], ['history', 'History'], ['about', 'About']]
+const directionMeta = { UP: { tone: 'up', icon: '↗' }, DOWN: { tone: 'down', icon: '↘' }, NEUTRAL: { tone: 'neutral', icon: '→' } }
 
-function formatPercent(value, digits = 2) {
-  if (value === null || value === undefined || Number.isNaN(Number(value))) return '—'
-  return `${(Number(value) * 100).toFixed(digits)}%`
+function Icon({ name, size = 17 }) {
+  const paths = { search: <><circle cx="11" cy="11" r="6.5" /><path d="m16 16 4.5 4.5" /></>, sun: <><circle cx="12" cy="12" r="4" /><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4" /></>, moon: <path d="M20.5 14.5A8.5 8.5 0 0 1 9.5 3.5 8.5 8.5 0 1 0 20.5 14.5Z" />, refresh: <><path d="M20 11a8 8 0 0 0-14.9-3L3 11" /><path d="M3 5v6h6M4 13a8 8 0 0 0 14.9 3L21 13" /><path d="M21 19v-6h-6" /></>, chart: <><path d="M3 3v18h18" /><path d="m6 16 4-5 3 2 5-7" /></>, info: <><circle cx="12" cy="12" r="9" /><path d="M12 11v5M12 8h.01" /></>, chevron: <path d="m9 18 6-6-6-6" /> }
+  return <svg className="icon" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">{paths[name]}</svg>
 }
-
-function formatDate(value) {
-  if (!value) return 'Awaiting prediction'
-  const date = new Date(value)
-  return Number.isNaN(date.getTime()) ? String(value) : date.toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' })
-}
-
-function StatusDot({ active = false }) {
-  return <span className={`status-dot ${active ? 'active' : ''}`} aria-hidden="true" />
-}
-
-function Skeleton({ className = '' }) {
-  return <div className={`skeleton ${className}`} aria-hidden="true" />
-}
+function formatPercent(value, digits = 2) { if (value === null || value === undefined || Number.isNaN(Number(value))) return '—'; return `${(Number(value) * 100).toFixed(digits)}%` }
+function formatDate(value) { if (!value) return 'No prediction recorded'; const date = new Date(value); return Number.isNaN(date.getTime()) ? String(value) : date.toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' }) }
 
 function App() {
-  const [health, setHealth] = useState(null)
-  const [models, setModels] = useState(null)
-  const [prediction, setPrediction] = useState(null)
-  const [loading, setLoading] = useState(true)
-  const [refreshing, setRefreshing] = useState(false)
-  const [error, setError] = useState('')
-  const [theme, setTheme] = useState(() => localStorage.getItem('silverai-theme') || 'dark')
-
-  const loadDashboard = async (isRefresh = false) => {
-    setError('')
-    isRefresh ? setRefreshing(true) : setLoading(true)
-    const results = await Promise.allSettled([api.health(), api.models(), api.latest()])
-    const [healthResult, modelsResult, latestResult] = results
-    if (healthResult.status === 'fulfilled') setHealth(healthResult.value)
-    if (modelsResult.status === 'fulfilled') setModels(modelsResult.value)
-    if (latestResult.status === 'fulfilled') setPrediction(latestResult.value)
-    if (latestResult.status === 'rejected' && latestResult.reason?.message !== 'No prediction available.') {
-      setError(latestResult.reason?.message || 'Unable to load the latest prediction.')
-    }
-    if (healthResult.status === 'rejected' && modelsResult.status === 'rejected') {
-      setError('The prediction backend is unavailable. Check that the API is running and try again.')
-    }
-    isRefresh ? setRefreshing(false) : setLoading(false)
-  }
-
-  useEffect(() => { loadDashboard() }, [])
-  useEffect(() => {
-    document.documentElement.dataset.theme = theme
-    localStorage.setItem('silverai-theme', theme)
-  }, [theme])
-
-  const latest = prediction?.predictions?.at(-1) || prediction
-  const signal = latest?.signal
-  const scenarios = latest?.scenarios || {}
-  const direction = directionCopy[latest?.predicted_direction_name] || directionCopy.NEUTRAL
-  const probabilities = latest?.class_probabilities || {}
-  const reliability = latest?.reliability
-  const scenarioList = useMemo(() => [
-    ['BULLISH', scenarios.Bullish],
-    ['BEARISH', scenarios.Bearish],
-    ['NEUTRAL', scenarios.Neutral],
-  ], [scenarios])
-
-  return (
-    <div className="app-shell">
-      <header className="topbar">
-        <div className="brand-lockup">
-          <div className="brand-mark">S</div>
-          <div><div className="brand-name">SilverAI</div><div className="brand-subtitle">MARKET INTELLIGENCE</div></div>
-        </div>
-        <div className="topbar-actions">
-          <div className="api-status"><StatusDot active={health?.models_available} /> <span>{health?.models_available ? 'Models online' : 'Checking API'}</span></div>
-          <button className="icon-button" onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')} aria-label="Toggle theme">{theme === 'dark' ? '☼' : '☾'}</button>
-          <button className="refresh-button" onClick={() => loadDashboard(true)} disabled={refreshing}>{refreshing ? 'Refreshing…' : 'Refresh latest'} <span>↻</span></button>
-        </div>
-      </header>
-
-      <main className="dashboard">
-        <section className="page-heading">
-          <div>
-            <div className="eyebrow">COMEX · SI FUTURES</div>
-            <h1>Silver market command center</h1>
-            <p>Short-horizon intelligence for the next 15 minutes, built from the selected SilverAI models.</p>
-          </div>
-          <div className="last-updated"><span className="eyebrow">LAST PREDICTION</span><strong>{formatDate(latest?.prediction_timestamp)}</strong></div>
-        </section>
-
-        {error && <div className="alert error"><span>!</span>{error}<button onClick={() => loadDashboard(true)}>Retry</button></div>}
-
-        <section className="overview-grid">
-          <article className="card instrument-card">
-            <div className="card-heading"><span className="eyebrow">INSTRUMENT</span><span className="exchange-tag">COMEX</span></div>
-            <div className="instrument-title"><span className="metal-orb">Ag</span><div><h2>Silver Futures</h2><p>SI · 15-minute forecast horizon</p></div></div>
-            <div className="unavailable-metric"><span className="metric-value">—</span><span>Live price unavailable</span></div>
-            <div className="card-footnote">Price data is not supplied by the current prediction API.</div>
-          </article>
-          <article className="card forecast-card">
-            <div className="card-heading"><span className="eyebrow">MODEL FORECAST</span><span className={`pill ${direction.tone}`}>{direction.icon} {direction.label}</span></div>
-            {loading ? <><Skeleton className="forecast-skeleton" /><Skeleton className="small-skeleton" /></> : latest ? <><div className={`forecast-value ${direction.tone}`}>{latest.predicted_direction_name || '—'}</div><div className="forecast-return">{formatPercent(latest.predicted_return_15m)} <span>predicted return</span></div></> : <EmptyState compact title="No prediction loaded" detail="Submit engineered features to the prediction API, then refresh this view." />}
-          </article>
-          <article className="card status-card">
-            <div className="card-heading"><span className="eyebrow">SYSTEM STATUS</span><StatusDot active={health?.models_available} /></div>
-            <div className="status-line"><span>Backend</span><strong className={health?.status === 'ok' ? 'text-positive' : ''}>{health?.status === 'ok' ? 'Operational' : health?.status || 'Checking'}</strong></div>
-            <div className="status-line"><span>Selected models</span><strong>{health?.models_available ? '2 loaded' : 'Unavailable'}</strong></div>
-            <div className="status-line"><span>API endpoint</span><strong className="mono">{API_BASE_URL}</strong></div>
-          </article>
-        </section>
-
-        <div className="section-label"><span>01</span><h2>Prediction overview</h2><div /></div>
-        <section className="content-grid">
-          <article className="card probability-card">
-            <div className="card-heading"><div><span className="eyebrow">CLASS PROBABILITIES</span><h3>Directional conviction</h3></div><span className="data-label">CLASSIFIER OUTPUT</span></div>
-            {latest ? <ProbabilityBars probabilities={probabilities} /> : <EmptyState title="Probability data unavailable" detail="Probabilities will appear when a prediction has been generated." />}
-            <div className="legend-note">Probabilities describe this prediction only; they are not historical model reliability.</div>
-          </article>
-          <article className="card signal-card">
-            <div className="card-heading"><div><span className="eyebrow">ANALYTICAL SIGNAL</span><h3>Decision context</h3></div><span className={`signal-badge ${signal?.signal?.toLowerCase() || 'empty'}`}>{signal?.signal || 'AWAITING DATA'}</span></div>
-            {signal ? <><p className="signal-explanation">{signal.explanation || 'No explanation supplied.'}</p><EvidenceList title="Supporting evidence" items={signal.supporting_evidence} tone="positive" /><EvidenceList title="Conflicting evidence" items={signal.conflicting_evidence} tone="negative" /></> : <EmptyState title="No signal yet" detail="The signal is derived after the selected classifier and regressor run." />}
-          </article>
-        </section>
-
-        <div className="section-label"><span>02</span><h2>Scenario analysis</h2><div /></div>
-        <section className="scenario-grid">
-          {scenarioList.map(([name, scenario]) => <ScenarioCard key={name} name={name} scenario={scenario} />)}
-        </section>
-
-        <div className="section-label"><span>03</span><h2>Reliability & model context</h2><div /></div>
-        <section className="content-grid reliability-grid">
-          <article className="card reliability-card">
-            <div className="card-heading"><div><span className="eyebrow">RELIABILITY ASSESSMENT</span><h3>What the model knows</h3></div><span className={`pill ${reliability?.status === 'available' ? 'positive' : 'neutral'}`}>{reliability?.status || 'unavailable'}</span></div>
-            {reliability ? <><div className="reliability-stats"><div><strong>{reliability.probabilities_available ? 'Available' : 'Unavailable'}</strong><span>Probability quality</span></div><div><strong>{reliability.models_agree ? 'Aligned' : 'Mixed'}</strong><span>Model agreement</span></div></div><EvidenceList title="Limitations" items={reliability.limitations} tone="neutral" /></> : <EmptyState title="Reliability unavailable" detail="No prediction has been returned yet." />}
-          </article>
-          <article className="card metadata-card">
-            <div className="card-heading"><div><span className="eyebrow">MODEL METADATA</span><h3>Selected production artifacts</h3></div></div>
-            <MetadataRow label="Classifier" value={models?.classifier_name} /><MetadataRow label="Regressor" value={models?.regressor_name} /><MetadataRow label="Horizon" value={models ? `${models.prediction_horizon_minutes} minutes / ${models.prediction_horizon_bars} bars` : null} /><MetadataRow label="Regression target" value={models?.regression_target} />
-          </article>
-        </section>
-
-        <div className="section-label"><span>04</span><h2>Historical analysis</h2><div /></div>
-        <section className="card historical-card"><div className="empty-chart"><div className="chart-grid-lines" /><div className="chart-empty-icon">⌁</div><h3>Historical series not available</h3><p>The current API exposes the latest prediction only. Forecast-versus-actual charts will appear when historical prediction records are persisted.</p></div></section>
-        <footer><span>SilverAI / Analytical interface</span><span>Data and forecasts are informational only.</span></footer>
-      </main>
-    </div>
-  )
+  const [health, setHealth] = useState(null), [models, setModels] = useState(null), [prediction, setPrediction] = useState(null)
+  const [loading, setLoading] = useState(true), [refreshing, setRefreshing] = useState(false), [error, setError] = useState('')
+  const [theme, setTheme] = useState(() => localStorage.getItem('silverai-theme') || 'light')
+  const [route, setRoute] = useState(window.location.hash.replace('#', '') || 'overview')
+  const loadDashboard = async (refresh = false) => { setError(''); refresh ? setRefreshing(true) : setLoading(true); const results = await Promise.allSettled([api.health(), api.models(), api.latest()]); if (results[0].status === 'fulfilled') setHealth(results[0].value); if (results[1].status === 'fulfilled') setModels(results[1].value); if (results[2].status === 'fulfilled') setPrediction(results[2].value); if (results[2].status === 'rejected' && results[2].reason?.message !== 'No prediction available.') setError(results[2].reason?.message || 'Unable to load the latest prediction.'); if (results[0].status === 'rejected' && results[1].status === 'rejected') setError('The prediction backend is unavailable. Check the API and try again.'); refresh ? setRefreshing(false) : setLoading(false) }
+  useEffect(() => { loadDashboard(); const onHash = () => setRoute(window.location.hash.replace('#', '') || 'overview'); window.addEventListener('hashchange', onHash); return () => window.removeEventListener('hashchange', onHash) }, [])
+  useEffect(() => { document.documentElement.dataset.theme = theme; localStorage.setItem('silverai-theme', theme) }, [theme])
+  const latest = prediction?.predictions?.at(-1) || prediction, direction = directionMeta[latest?.predicted_direction_name] || directionMeta.NEUTRAL
+  return <div className="app-shell"><header className="topbar"><a className="brand" href="#overview"><span className="brand-mark">S</span><span><strong>SilverAI</strong><small>MARKET INTELLIGENCE</small></span></a><nav className="main-nav">{navItems.map(([id, label]) => <a key={id} className={route === id ? 'active' : ''} href={`#${id}`}>{label}</a>)}</nav><div className="top-actions"><div className="connection"><i className={health?.models_available ? 'online' : ''} />{health?.models_available ? 'Connected' : 'Checking'}</div><button className="icon-button" onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')} aria-label="Toggle theme"><Icon name={theme === 'dark' ? 'sun' : 'moon'} /></button><button className="refresh" onClick={() => loadDashboard(true)} disabled={refreshing}><Icon name="refresh" size={15} /> <span>{refreshing ? 'Refreshing' : 'Refresh'}</span></button></div></header><main className="content">{error && <div className="alert"><Icon name="info" size={15} /><span>{error}</span><button onClick={() => loadDashboard(true)}>Retry</button></div>}{route === 'overview' && <Overview latest={latest} health={health} models={models} loading={loading} direction={direction} />}{route === 'predictions' && <Predictions latest={latest} models={models} loading={loading} direction={direction} />}{route === 'analysis' && <Analysis models={models} />}{route === 'history' && <History />}{route === 'about' && <About />}<footer><span>SilverAI <em>·</em> Research terminal</span><span>Informational analysis · Not investment advice</span></footer></main></div>
 }
 
-function ProbabilityBars({ probabilities }) {
-  const rows = [['UP', probabilities.up, 'positive'], ['NEUTRAL', probabilities.neutral, 'neutral'], ['DOWN', probabilities.down, 'negative']]
-  return <div className="probability-list">{rows.map(([label, value, tone]) => <div className="probability-row" key={label}><div className="probability-label"><span className={`direction-dot ${tone}`} />{label}<strong>{formatPercent(value, 1)}</strong></div><div className="bar-track"><div className={`bar-fill ${tone}`} style={{ width: `${Math.max(0, Math.min(100, Number(value || 0) * 100))}%` }} /></div></div>)}</div>
-}
+function PageIntro({ eyebrow, title, description, meta }) { return <section className="page-intro"><div><span className="eyebrow">{eyebrow}</span><h1>{title}</h1><p>{description}</p></div>{meta && <div className="intro-meta">{meta}</div>}</section> }
+function SectionTitle({ eyebrow, title, note }) { return <div className="section-title"><div><span className="eyebrow">{eyebrow}</span><h2>{title}</h2></div>{note && <span>{note}</span>}</div> }
+function Status({ health }) { return <span className="data-status"><i className={health?.models_available ? 'online' : ''} /> {health?.models_available ? 'Model service online' : 'Model service unavailable'}</span> }
+function Metric({ label, value, note }) { return <div className="metric"><span>{label}</span><strong>{value}</strong><small>{note}</small></div> }
+function Row({ label, value }) { return <div className="row"><span>{label}</span><strong>{value || '—'}</strong></div> }
 
-function ScenarioCard({ name, scenario }) {
-  const tone = name === 'BULLISH' ? 'positive' : name === 'BEARISH' ? 'negative' : 'neutral'
-  return <article className={`card scenario-card ${tone}`}><div className="scenario-top"><span className="scenario-icon">{name === 'BULLISH' ? '↗' : name === 'BEARISH' ? '↘' : '→'}</span><div><span className="eyebrow">SCENARIO</span><h3>{name}</h3></div><span className="scenario-probability">{formatPercent(scenario?.probability, 1)}</span></div>{scenario ? <><p className="scenario-summary">{scenario.expected_direction_name || scenario.expected_direction || 'Direction not specified.'}</p><EvidenceList title="Supporting" items={scenario.supporting_evidence} tone="positive" /><EvidenceList title="Contradicting" items={scenario.contradicting_evidence} tone="negative" />{scenario.reliability_limitations?.length > 0 && <div className="limitation">{scenario.reliability_limitations[0]}</div>}</> : <EmptyState compact title="Awaiting scenario" detail="Scenario evidence is returned with the latest prediction." />}</article>
+function Overview({ latest, health, models, loading, direction }) {
+  const probs = latest?.class_probabilities || {}
+  return <><PageIntro eyebrow="COMEX / SI · MARKET OVERVIEW" title="Silver futures outlook" description="Market context and model-backed direction for the next 15 minutes." meta={<><span className="eyebrow">LATEST OBSERVATION</span><strong>{formatDate(latest?.prediction_timestamp)}</strong><Status health={health} /></>} /><section className="instrument-bar"><div className="instrument"><span className="metal-orb">Ag</span><div><strong>COMEX Silver Futures</strong><span>SI · Futures</span></div></div><div className="instrument-divider" /><Metric label="Latest price" value="—" note="OHLC feed unavailable" /><Metric label="Session" value="—" note="Market session unavailable" /><Metric label="Forecast horizon" value={`${models?.prediction_horizon_minutes || 15} min`} note={`${models?.prediction_horizon_bars || 3} × 5-minute candles`} /></section><section className="chart-panel"><div className="panel-header"><div><span className="eyebrow">PRICE ACTION</span><h2>COMEX Silver Futures <span>SI</span></h2></div><span className="unavailable-tag">OHLC DATA UNAVAILABLE</span></div><ChartControls /><div className="chart-empty"><div className="grid-lines" /><div className="empty-chart-message"><span className="chart-icon"><Icon name="chart" size={24} /></span><strong>Historical price chart unavailable</strong><p>The current API exposes model outputs only. Connect an OHLC time-series source to enable candles, volume, and prediction overlays.</p></div></div><div className="chart-foot"><span>Observed prices and forecasts are kept separate by design.</span><span>Source: SilverAI API</span></div></section><section className="overview-grid"><Forecast latest={latest} loading={loading} direction={direction} /><Probability latest={latest} probabilities={probs} /></section><section className="section"><SectionTitle eyebrow="MARKET INTELLIGENCE" title="Forecast context" note="Latest model output · 15-minute horizon" /><div className="context-grid"><ScenarioSummary latest={latest} /><ModelSnapshot health={health} models={models} /></div></section></>
 }
+function ChartControls() { const [type, setType] = useState('Candles'), [range, setRange] = useState('1D'); return <div className="chart-controls"><div className="control-group"><span className="control-label">Timeframe</span>{['5m', '15m', '1h', '1D'].map(x => <button key={x} className={x === '15m' ? 'selected' : ''} disabled>{x}</button>)}</div><div className="control-group"><span className="control-label">Range</span>{['1D', '1W', '1M', '3M'].map(x => <button key={x} className={range === x ? 'selected' : ''} onClick={() => setRange(x)}>{x}</button>)}</div><div className="control-group chart-types"><span className="control-label">Chart</span>{['Candles', 'Line', 'Area'].map(x => <button key={x} className={type === x ? 'selected' : ''} onClick={() => setType(x)}>{x}</button>)}<button className="volume-control" disabled>Volume unavailable</button></div></div> }
+function Forecast({ latest, loading, direction }) { return <article className={`forecast-card ${direction.tone}`}><div className="card-top"><span className="eyebrow">LATEST PREDICTION</span><span className="pill"><i /> 15 MIN HORIZON</span></div>{loading ? <div className="loading-block" /> : latest ? <><div className="forecast-main"><div><span className="label">Predicted direction</span><strong>{latest.predicted_direction_name || 'NEUTRAL'}</strong></div><span className="direction-symbol">{direction.icon}</span></div><div className="return-row"><strong>{formatPercent(latest.predicted_return_15m)}</strong><span>expected return</span></div><div className="card-bottom"><span>Forecast timestamp</span><strong>{formatDate(latest.prediction_timestamp)}</strong></div></> : <Empty title="No prediction loaded" detail="Generate a prediction through the API to populate this view." />}</article> }
+function Probability({ latest, probabilities }) { const rows = [['UP', probabilities.up, 'up'], ['NEUTRAL', probabilities.neutral, 'neutral'], ['DOWN', probabilities.down, 'down']]; return <article className="probability-card"><div className="card-top"><span className="eyebrow">CLASS PROBABILITIES</span><span className="muted-label">CLASSIFIER OUTPUT</span></div><h2>Directional distribution</h2>{latest ? <div className="probability-list">{rows.map(([label, value, tone]) => <div className="prob-row" key={label}><div><span className={`dot ${tone}`} />{label}<strong>{formatPercent(value, 1)}</strong></div><div className="bar"><i className={tone} style={{ width: `${Math.max(0, Math.min(100, Number(value || 0) * 100))}%` }} /></div></div>)}</div> : <Empty title="No probability data" detail="Classifier output appears with the latest prediction." />}<p className="note"><Icon name="info" size={13} /> Probabilities describe this forecast, not historical reliability.</p></article> }
+function ScenarioSummary({ latest }) { const signal = latest?.signal, scenarios = latest?.scenarios || {}; return <article className="surface-card"><div className="card-top"><span className="eyebrow">SCENARIO SIGNAL</span><span className="signal-tag">{signal?.signal || 'UNAVAILABLE'}</span></div><h3>{signal?.signal === 'MIXED' ? 'Models are not aligned' : 'Model evidence is available'}</h3><p className="card-copy">Scenarios are derived from the classifier and regression outputs. Review the dedicated Predictions page for supporting and contradicting evidence.</p><a className="text-link" href="#predictions">Open prediction research <Icon name="chevron" size={14} /></a><div className="scenario-mini"><span>Bullish <strong>{formatPercent(scenarios.Bullish?.probability, 1)}</strong></span><span>Bearish <strong>{formatPercent(scenarios.Bearish?.probability, 1)}</strong></span><span>Neutral <strong>{formatPercent(scenarios.Neutral?.probability, 1)}</strong></span></div></article> }
+function ModelSnapshot({ health, models }) { return <article className="surface-card"><div className="card-top"><span className="eyebrow">MODEL SNAPSHOT</span><Status health={health} /></div><div className="snapshot-rows"><Row label="Classifier" value={models?.classifier_name} /><Row label="Regressor" value={models?.regressor_name} /><Row label="Target" value={models?.classification_target} /><Row label="Input cadence" value="5-minute candles" /></div></article> }
 
-function EvidenceList({ title, items, tone }) {
-  const list = Array.isArray(items) ? items.filter(Boolean) : []
-  return <div className="evidence"><span className="evidence-title">{title}</span>{list.length ? <ul>{list.slice(0, 3).map((item, index) => <li className={tone} key={`${item}-${index}`}>{item}</li>)}</ul> : <p className="muted">None supplied</p>}</div>
-}
+function Predictions({ latest, models, loading, direction }) { const scenarios = latest?.scenarios || {}, reliability = latest?.reliability; return <><PageIntro eyebrow="MODEL RESEARCH / FORECAST" title="Prediction workspace" description="A transparent view of the latest directional forecast, its probabilities, and the evidence supplied by the pipeline." meta={<><span className="eyebrow">HORIZON</span><strong>{models?.prediction_horizon_minutes || 15} minutes</strong></>} /><section className="prediction-layout"><Forecast latest={latest} loading={loading} direction={direction} /><Probability latest={latest} probabilities={latest?.class_probabilities || {}} /></section><section className="section"><SectionTitle eyebrow="SCENARIO ANALYSIS" title="Three possible paths" note="Evidence returned by the prediction pipeline" /><div className="scenario-grid">{[['Bullish', 'up'], ['Bearish', 'down'], ['Neutral', 'neutral']].map(([name, tone]) => <ScenarioCard key={name} name={name} tone={tone} scenario={scenarios[name]} />)}</div></section><section className="section"><SectionTitle eyebrow="RELIABILITY" title="Model boundaries" note="Reliability is not a single confidence score" /><div className="reliability-card"><div className="reliability-status"><span className="eyebrow">ASSESSMENT</span><strong>{reliability?.status || 'Unavailable'}</strong><p>{reliability?.limitations?.[0] || 'The API did not return a reliability assessment for this prediction.'}</p></div><div className="reliability-details"><Row label="Probability output" value={reliability?.probabilities_available ? 'Available' : 'Unavailable'} /><Row label="Model agreement" value={reliability ? (reliability.models_agree ? 'Aligned' : 'Mixed') : '—'} /><Row label="Model version" value={models?.classifier_name} /></div></div></section></> }
+function ScenarioCard({ name, tone, scenario }) { return <article className={`scenario-card ${tone}`}><div className="scenario-card-head"><span className="scenario-icon">{tone === 'up' ? '↗' : tone === 'down' ? '↘' : '→'}</span><div><span className="eyebrow">SCENARIO</span><h3>{name}</h3></div><strong>{formatPercent(scenario?.probability, 1)}</strong></div>{scenario ? <><p className="scenario-direction">{scenario.expected_direction_name || scenario.expected_direction || 'Direction not specified.'}</p><Evidence title="Supporting" items={scenario.supporting_evidence} tone="up" /><Evidence title="Contradicting" items={scenario.contradicting_evidence} tone="down" /></> : <Empty title="Awaiting scenario" detail="Evidence is returned with the latest prediction." compact />}</article> }
+function Evidence({ title, items, tone }) { const list = Array.isArray(items) ? items.filter(Boolean).slice(0, 3) : []; return <div className="evidence"><span>{title}</span>{list.length ? <ul>{list.map((x, i) => <li className={tone} key={`${x}-${i}`}>{x}</li>)}</ul> : <p>None supplied</p>}</div> }
 
-function MetadataRow({ label, value }) { return <div className="metadata-row"><span>{label}</span><strong className={value?.includes?.('_') ? 'mono' : ''}>{value || '—'}</strong></div> }
-function EmptyState({ title, detail, compact = false }) { return <div className={`empty-state ${compact ? 'compact' : ''}`}><div className="empty-mark">—</div><div><strong>{title}</strong><p>{detail}</p></div></div> }
+function Analysis({ models }) { const featureNames = models?.feature_names || []; return <><PageIntro eyebrow="FEATURES / TECHNICAL CONTEXT" title="Technical analysis" description="The analysis surface mirrors the feature pipeline without claiming indicators that are not computed by SilverAI." meta={<span className="data-status"><i /> Pipeline-defined features</span>} /><section className="analysis-banner"><span className="chart-icon"><Icon name="chart" size={21} /></span><div><strong>Chart-linked indicators are unavailable</strong><p>No OHLC time-series endpoint is currently connected. Feature names below come from the selected model metadata.</p></div></section><section className="section"><SectionTitle eyebrow="FEATURE PIPELINE" title="Model inputs" note={`${featureNames.length || 0} metadata fields returned`} /><div className="feature-grid">{featureNames.length ? featureNames.map(name => <div className="feature" key={name}><span>{name}</span><Icon name="chevron" size={14} /></div>) : <Empty title="Feature metadata unavailable" detail="Load the model service to inspect the exact input order." />}</div></section><section className="section"><SectionTitle eyebrow="METHOD NOTES" title="Interpretation guardrails" /><div className="notes-grid"><Note title="Momentum" body="Use only when the corresponding return features are present in the model metadata." /><Note title="Volatility" body="Short-horizon volatility features describe the input window; they are not a live risk score." /><Note title="Volume" body="Volume-derived features are available only when supplied by the source dataset." /></div></section></> }
+function Note({ title, body }) { return <article className="surface-card note-card"><span className="eyebrow">{title}</span><p>{body}</p></article> }
+function History() { return <><PageIntro eyebrow="EVALUATION / OUTCOMES" title="Historical analysis" description="Compare predictions with subsequent market outcomes when prediction records are persisted." meta={<span className="data-status"><i /> Awaiting history endpoint</span>} /><section className="history-empty"><div className="history-visual"><span /><span /><span /><span /><span /></div><div><span className="eyebrow">NO PERSISTED RECORDS</span><h2>Historical series not available</h2><p>The current service keeps only the latest prediction in memory. Accuracy, error analysis, and backtesting will appear here once historical records are exposed by the backend.</p></div></section><div className="empty-panels"><Note title="What will appear here" body="Directional accuracy, prediction correctness, performance over time, and forecast error analysis." /><Note title="Data integrity" body="No historical records or market outcomes are generated in the frontend." /></div></> }
+function About() { return <><PageIntro eyebrow="SILVERAI / PLATFORM" title="Market intelligence, with clear boundaries" description="SilverAI is a research prototype for short-horizon COMEX silver futures movement." meta={<span className="data-status"><i className="online" /> API-aware interface</span>} /><section className="about-grid"><article className="surface-card about-card"><span className="eyebrow">PRODUCT PRINCIPLE</span><h2>Useful signal, honest context.</h2><p>SilverAI separates observed market data, model forecasts, and unavailable dependencies so a research interface never implies more certainty than the pipeline supports.</p></article><article className="surface-card"><span className="eyebrow">CURRENT SCOPE</span><div className="scope-list"><Row label="Instrument" value="COMEX Silver Futures" /><Row label="Forecast horizon" value="15 minutes" /><Row label="Input cadence" value="3 × 5-minute candles" /><Row label="API base" value={API_BASE_URL} /></div></article></section></> }
+function Empty({ title, detail, compact = false }) { return <div className={`empty ${compact ? 'compact' : ''}`}><Icon name="info" size={15} /><div><strong>{title}</strong><p>{detail}</p></div></div> }
 
 createRoot(document.getElementById('root')).render(<React.StrictMode><App /></React.StrictMode>)
