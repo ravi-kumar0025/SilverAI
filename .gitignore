@@ -5,8 +5,8 @@
 # Python cache
 __pycache__/
 *.py[cod]
-*$py.class
 *.so
+*$py.class
 
 # Virtual environments
 venv/
@@ -20,11 +20,9 @@ ENV/
 .ruff_cache/
 .coverage
 htmlcov/
-.ipynb_checkpoints/
 
 # Jupyter
-.profile/
-.jupyter/
+.ipynb_checkpoints/
 
 # Environment variables and secrets
 .env
@@ -35,7 +33,7 @@ htmlcov/
 logs/
 *.log
 
-# Generated ML models and artifacts
+# Trained models and ML artifacts
 saved_models/
 *.pkl
 *.pickle
@@ -46,17 +44,11 @@ saved_models/
 *.pt
 *.pth
 
-# Datasets
+# Datasets - keep directory, ignore its contents
 data/*
 !data/.gitkeep
 
-# Generated reports and figures
-reports/model_comparison/*
-reports/figures/*
-!reports/model_comparison/.gitkeep
-!reports/figures/.gitkeep
-
-# Node.js
+# Node.js dependencies
 node_modules/
 frontend/node_modules/
 backend/node_modules/
@@ -67,7 +59,7 @@ build/
 frontend/dist/
 frontend/build/
 
-# Package manager and tool caches
+# Node.js caches
 .npm/
 .eslintcache/
 .vite/
@@ -77,14 +69,20 @@ frontend/build/
 .vscode/
 .idea/
 *.swp
-*.swo
+*.swo/
+
+# Operating system files
 .DS_Store
 Thumbs.db
+desktop.ini
 
 # Temporary files
 *.tmp
 *.temp
 *.bak
 
-# OS files
-desktop.ini
+# Reports
+# Keep research reports, evaluation results, figures and final documentation.
+# Ignore only temporary/log files.
+reports/**/*.tmp
+reports/**/*.log
