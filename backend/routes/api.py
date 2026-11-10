@@ -185,6 +185,11 @@ def market_status(request: Request) -> dict[str, Any]:
     return _service(request).market_status()
 
 
+@router.get("/provider/health")
+def provider_health(request: Request) -> dict[str, Any]:
+    return _service(request).market_status()
+
+
 @router.get("/predictions")
 def prediction_history(request: Request, outcome_status: str | None = None, limit: int = 100) -> dict[str, Any]:
     if limit < 1 or limit > 1000:
@@ -205,3 +210,26 @@ def evaluate_predictions(request: Request) -> dict[str, Any]:
         return {"evaluated": _service(request).evaluate_predictions(frame)}
     except (FileNotFoundError, OSError, ValueError) as exc:
         raise HTTPException(status_code=503, detail="Market data is unavailable for evaluation.") from exc
+
+
+@router.get("/evaluation/metrics")
+def evaluation_metrics(request: Request) -> dict[str, Any]:
+    return _service(request).evaluation_metrics()
+
+
+@router.get("/diagnostics")
+def diagnostics(request: Request) -> dict[str, Any]:
+    return _service(request).diagnostics()
+
+
+@router.get("/evaluation/frozen")
+def frozen_evaluation(request: Request) -> dict[str, Any]:
+    return _service(request).frozen_evaluation()
+
+
+@router.post("/evaluation/frozen")
+def freeze_evaluation(request: Request) -> dict[str, Any]:
+    try:
+        return _service(request).freeze_evaluation()
+    except RuntimeError as exc:
+        raise HTTPException(status_code=409, detail=str(exc)) from exc

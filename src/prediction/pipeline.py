@@ -18,6 +18,8 @@ from src.models.predict import (
 )
 from src.prediction.scenarios import generate_scenarios
 from src.prediction.signals import interpret_signal
+from src.config import CONFIG
+from src.evaluation.frozen_mode import configuration_version
 
 
 def _json_safe(value: Any) -> Any:
@@ -40,11 +42,13 @@ def _model_metadata(artifacts: dict[str, Any]) -> dict[str, Any]:
         "classifier_name": artifacts.get("classifier_name"),
         "regressor_name": artifacts.get("regressor_name"),
         "feature_names": metadata.get("feature_names"),
-        "prediction_horizon_minutes": metadata.get("prediction_horizon_minutes", 15),
-        "prediction_horizon_bars": metadata.get("prediction_horizon_bars", 3),
+        "prediction_horizon_minutes": metadata.get("prediction_horizon_minutes", CONFIG.forecast_horizon_minutes),
+        "prediction_horizon_bars": metadata.get("prediction_horizon_bars", CONFIG.forecast_horizon_bars),
         "classification_target": metadata.get("classification_target"),
         "regression_target": metadata.get("regression_target"),
         "threshold_value_pct": metadata.get("threshold_value_pct"),
+        "configuration_version": configuration_version(metadata),
+        "probability_calibration_status": "available" if artifacts.get("calibrator") is not None else "unavailable",
     }
 
 
@@ -60,6 +64,22 @@ def _probabilities(row: Mapping[str, Any]) -> dict[str, float] | None:
         except (TypeError, ValueError):
             return None
         if not np.isfinite(numeric):
+            return None
+        values[name] = numeric
+    return values if np.isclose(sum(values.values()), 1.0, atol=1e-6) else None
+
+
+def _calibrated_probabilities(row: Mapping[str, Any]) -> dict[str, float] | None:
+    values: dict[str, float] = {}
+    for name in ("down", "neutral", "up"):
+        value = row.get(f"calibrated_probability_{name}")
+        if value is None:
+            return None
+        try:
+            numeric = float(value)
+        except (TypeError, ValueError):
+            return None
+        if not np.isfinite(numeric) or not 0 <= numeric <= 1:
             return None
         values[name] = numeric
     return values if np.isclose(sum(values.values()), 1.0, atol=1e-6) else None
@@ -119,11 +139,12 @@ def _row_response(
         warnings.append("Final analytical signal is unavailable because required evidence is incomplete.")
     return {
         "prediction_timestamp": scenarios.get("timestamp"),
-        "forecast_horizon_minutes": row_mapping.get("prediction_horizon_minutes", 15),
+        "forecast_horizon_minutes": row_mapping.get("prediction_horizon_minutes", CONFIG.forecast_horizon_minutes),
         "predicted_direction": row_mapping.get("predicted_direction"),
         "predicted_direction_name": row_mapping.get("predicted_direction_name"),
         "predicted_return_15m": row_mapping.get("predicted_return_15m"),
         "class_probabilities": _probabilities(row_mapping),
+        "calibrated_probabilities": _calibrated_probabilities(row_mapping),
         "reliability": reliability,
         "scenarios": scenarios["scenarios"],
         "signal": signal,

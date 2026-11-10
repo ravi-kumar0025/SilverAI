@@ -26,6 +26,8 @@ export const api = {
   marketStatus: () => request('/api/market/status'),
   predictionHistory: () => request('/api/predictions?limit=100'),
   paperTrading: () => request('/api/paper-trading'),
+  evaluationMetrics: () => request('/api/evaluation/metrics'),
+  diagnostics: () => request('/api/diagnostics'),
   predict: (features) => request('/api/predict', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },

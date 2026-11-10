@@ -1,5 +1,7 @@
 # Live COMEX SI provider setup
 
+SilverAI follows Option B in `ps.pdf`: the Python model runs behind its own live chart web app. For silver, the official live test lasts five trading days, and the submitted indicator must not be changed during the test.
+
 ## Provider decision
 
 The repository does not silently select a live provider. Two practical candidates were reviewed:

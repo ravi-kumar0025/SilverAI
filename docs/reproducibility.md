@@ -8,14 +8,14 @@
 - The five CSV datasets in `data/`.
 - Saved models under `saved_models/` and selection metadata under `reports/model_comparison/` for prediction/API execution.
 
-The backend dependency file is `backend/requirements.txt`. The frontend dependency lockfile is `frontend/package-lock.json`.
+The complete Python dependency file is `requirements.txt`; `backend/requirements.txt` is the smaller runtime subset. The frontend dependency lockfile is `frontend/package-lock.json`.
 
 ## Install
 
 From the project root:
 
 ```powershell
-python -m pip install -r backend/requirements.txt
+python -m pip install -r requirements.txt
 ```
 
 Install the scientific stack used by the source modules if it is not already present. A typical environment is:

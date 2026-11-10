@@ -198,7 +198,7 @@ def build_classification_models() -> dict[str, Any]:
             n_estimators=150, random_state=SEED, n_jobs=-1
         ),
         "hist_gradient_boosting_classifier": HistGradientBoostingClassifier(
-            max_iter=100, random_state=SEED
+            max_iter=100, random_state=SEED, early_stopping=False
         ),
     }
 
@@ -214,7 +214,7 @@ def build_regression_models() -> dict[str, Any]:
             n_estimators=150, random_state=SEED, n_jobs=-1
         ),
         "hist_gradient_boosting_regressor": HistGradientBoostingRegressor(
-            max_iter=100, random_state=SEED
+            max_iter=100, random_state=SEED, early_stopping=False
         ),
     }
 

@@ -11,9 +11,11 @@ import numpy as np
 import pandas as pd
 
 from src.features.technical_indicators import FEATURE_COLUMNS
+from src.config import CONFIG
+from src.models.calibration import ChronologicalProbabilityCalibrator
 
 
-PREDICTION_HORIZON_MINUTES = 15
+PREDICTION_HORIZON_MINUTES = CONFIG.forecast_horizon_minutes
 DEFAULT_MODEL_ROOT = Path(__file__).resolve().parents[2] / "saved_models"
 DEFAULT_SELECTION_PATH = (
     Path(__file__).resolve().parents[2]
@@ -102,6 +104,13 @@ def load_model_artifacts(
     except (OSError, ValueError, EOFError) as exc:
         raise ValueError(f"Could not load selected model artifacts: {exc}") from exc
 
+    calibration_path = metadata.get("calibration_path")
+    calibrator = None
+    if isinstance(calibration_path, str):
+        resolved = _resolve_model_path(calibration_path, root)
+        if resolved.is_file():
+            calibrator = ChronologicalProbabilityCalibrator.load(str(resolved))
+
     return {
         "classifier": classifier,
         "regressor": regressor,
@@ -111,6 +120,7 @@ def load_model_artifacts(
         "classifier_path": classifier_path,
         "regressor_path": regressor_path,
         "metadata_path": metadata_path,
+        "calibrator": calibrator,
     }
 
 
@@ -191,6 +201,14 @@ def predict_classification(
             if label not in CLASS_LABEL_NAMES:
                 raise ValueError("Classifier classes contain labels outside {-1, 0, 1}.")
             result[f"probability_{CLASS_LABEL_NAMES[label].lower()}"] = probabilities[:, column]
+        calibrator = loaded.get("calibrator")
+        if calibrator is not None:
+            calibrated = calibrator.transform(
+                result[["probability_down", "probability_neutral", "probability_up"]].to_numpy()
+            )
+            result["calibrated_probability_down"] = calibrated[:, 0]
+            result["calibrated_probability_neutral"] = calibrated[:, 1]
+            result["calibrated_probability_up"] = calibrated[:, 2]
     return result
 
 

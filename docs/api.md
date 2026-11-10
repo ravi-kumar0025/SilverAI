@@ -94,7 +94,7 @@ Accepts one closed candle timestamp, its close price, and the existing feature o
 
 ### `GET /api/predictions/latest`
 
-Returns the latest in-memory prediction result. It returns HTTP 404 until a prediction has been generated after the current backend process started.
+Returns the latest durable prediction result. It returns HTTP 404 only when the journal is empty, including after a backend restart.
 
 ### `GET /api/market/candles?limit=288`
 
@@ -103,6 +103,10 @@ Returns validated historical five-minute OHLCV candles from `silver_5m.csv`. The
 ### `GET /api/market/status`
 
 Reports the configured market-data provider and whether it is genuinely live. The current default response is `{"provider":"silver_5m.csv","is_live":false,"status":"historical"}`.
+
+### `GET /api/provider/health`
+
+Returns the provider-only status view. The checked-in CSV is always reported as historical.
 
 ### `GET /api/predictions`
 
@@ -115,6 +119,16 @@ Returns deterministic paper-only P&L over evaluated predictions, including gross
 ### `POST /api/predictions/evaluate`
 
 Replays the configured historical candles and settles only predictions whose full horizon is available. It never changes the stored forecast fields.
+
+### `GET /api/evaluation/metrics`
+
+Returns durable prediction and outcome counts plus directional accuracy for completed historical outcomes.
+
+### `GET /api/diagnostics`
+
+Returns non-secret persistence diagnostics collected by the backend.
+
+`GET /api/evaluation/frozen` reports whether the submitted Option B evaluation manifest exists. `POST /api/evaluation/frozen` creates it only when the configured provider reports `is_live=true`; a historical provider is rejected.
 
 ## Errors
 

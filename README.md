@@ -1,6 +1,6 @@
 # SilverAI
 
-SilverAI is a research and prototype prediction system for short-horizon COMEX silver futures movement. It consumes five-minute OHLCV data, creates a compact set of causal market features, trains chronological baseline models, and exposes selected predictions through a FastAPI backend and React dashboard.
+SilverAI is an Option B live-web-app implementation of the project brief in `ps.pdf`: a research and prototype prediction system for one declared asset, COMEX silver futures. It currently consumes five-minute OHLCV data, creates causal features, trains chronological baseline models, and exposes predictions through a FastAPI backend and React dashboard.
 
 The project is analytical research software, not a trading system or a claim of profitable prediction. The current untouched-test results show modest classification performance and regression performance approximately equal to a zero-return baseline.
 
@@ -95,7 +95,7 @@ These figures are descriptive results from the available artifacts, not evidence
 
 Scenario probabilities are copied from valid classifier probabilities only. The scenario module reports supporting evidence, contradicting evidence, forecast information, and model disagreement. `signals.py` emits `BULLISH`, `BEARISH`, `NEUTRAL`, `MIXED`, or `INSUFFICIENT_DATA`.
 
-There is currently no `src/prediction/confidence.py` implementation or calibrated reliability model. The pipeline therefore reports limited reliability when no confidence assessment is supplied.
+`src/models/calibration.py` provides an optional chronological train-suffix calibrator. The current checked-in model artifacts do not include a calibrator, so the runtime reports calibrated probabilities as unavailable rather than treating raw probabilities as confidence.
 
 ## Backend and frontend
 
@@ -106,9 +106,9 @@ The FastAPI backend is organized as:
 - `backend/services/prediction_service.py` — lazy, cached model access;
 - `backend/core/config.py` — environment-driven paths and CORS.
 
-Available routes are documented in [`docs/api.md`](docs/api.md). The latest prediction is kept in memory for the dashboard, while confirmed predictions can also be persisted in SQLite through the confirmed-candle route and prediction journal.
+Available routes are documented in [`docs/api.md`](docs/api.md). Confirmed predictions are persisted in SQLite through the confirmed-candle route and prediction journal; the dashboard can recover the latest durable record after restart.
 
-The React/Vite frontend in `frontend/` consumes the backend health, model, and latest-prediction endpoints. It does not fabricate live prices or historical records; those areas display explicit unavailable states until corresponding data sources exist.
+The React/Vite frontend in `frontend/` consumes backend health, model, journal, evaluation, and latest-prediction endpoints. Historical CSV data remains explicitly labeled historical; it is never presented as live data.
 
 ## Installation and execution
 
@@ -117,7 +117,7 @@ Prerequisites: Python 3.10+ with the project scientific dependencies available, 
 From the repository root:
 
 ```powershell
-python -m pip install -r backend/requirements.txt
+python -m pip install -r requirements.txt
 pytest -q
 ```
 
@@ -158,8 +158,8 @@ The notebook workflow is described in [`docs/reproducibility.md`](docs/reproduci
 - The target-creation workflow remains notebook-based rather than a reusable source module.
 - Regression test performance is effectively at the zero-return baseline.
 - Confidence calibration and authenticated live-provider integration are not implemented.
-- A SQLite prediction journal and cost/slippage-aware paper evaluator now exist for recorded evaluated signals; they are not a live trading system.
-- Live price data, contract-roll provenance, closed-candle orchestration, and five-day continuous testing remain outside the verified scope.
+- A SQLite prediction journal, closed-candle orchestrator, frozen evaluation manifest, and cost/slippage-aware paper evaluator exist; they are not a live trading system.
+- Authenticated live data, contract-roll verification, and the PDF's five-trading-day continuous test remain outside the verified scope until a genuine live feed is configured.
 - Research papers justify hypotheses and validation practices; they do not establish SilverAI feature superiority or predictive novelty.
 
 The existing literature rationale and four-paper review are in [`reports/feature_research_analysis.md`](reports/feature_research_analysis.md).

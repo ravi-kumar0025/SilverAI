@@ -9,7 +9,7 @@ The default application uses the checked-in `silver_5m.csv` file. The dashboard 
 From the repository root:
 
 ```powershell
-python -m pip install -r backend/requirements.txt
+python -m pip install -r requirements.txt
 python -m uvicorn backend.main:app --reload --host 0.0.0.0 --port 8000
 ```
 

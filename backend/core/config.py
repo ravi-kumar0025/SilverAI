@@ -17,6 +17,9 @@ SELECTION_PATH = Path(
 PREDICTION_DB_PATH = Path(
     os.getenv("SILVERAI_PREDICTION_DB_PATH", PROJECT_ROOT / "data" / "silverai_predictions.sqlite3")
 )
+FROZEN_EVALUATION_PATH = Path(
+    os.getenv("SILVERAI_FROZEN_EVALUATION_PATH", PROJECT_ROOT / "reports" / "frozen_evaluation.json")
+)
 _cors_value = os.getenv(
     "SILVERAI_CORS_ORIGINS", "http://localhost:3000,http://localhost:5173"
 )
