@@ -112,3 +112,17 @@ def test_backend_hides_model_loading_failure(monkeypatch):
     assert response.status_code == 503
     assert response.json()["detail"] == "Prediction models are unavailable."
     assert "private model path" not in response.text
+
+
+def test_confirmed_candle_endpoint_preserves_closed_candle_boundary(monkeypatch):
+    fake = FakePredictionService()
+    monkeypatch.setattr(app.state, "prediction_service", fake)
+    payload = {
+        "datetime_et": "2026-01-01T09:30:00-05:00",
+        "close": 50.0,
+        "features": FEATURES,
+    }
+    response = TestClient(app).post("/api/predict/confirmed", json=payload)
+    assert response.status_code == 200
+    assert fake.last["batch"] is False
+    assert fake.last["predictions"][0]["close"] == 50.0

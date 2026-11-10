@@ -88,9 +88,33 @@ The displayed example omitted the full scenario and warning payload for readabil
 
 Runs the same pipeline for multiple observations and returns `predictions`, aggregate warnings, and model metadata. Input order is preserved.
 
+### `POST /api/predict/confirmed`
+
+Accepts one closed candle timestamp, its close price, and the existing feature observation. It runs the unchanged ML pipeline and persists the prediction with the confirmed candle close for later outcome evaluation. This route is the intended boundary for a future live provider adapter.
+
 ### `GET /api/predictions/latest`
 
 Returns the latest in-memory prediction result. It returns HTTP 404 until a prediction has been generated after the current backend process started.
+
+### `GET /api/market/candles?limit=288`
+
+Returns validated historical five-minute OHLCV candles from `silver_5m.csv`. The response includes `data_status: historical`, source, timezone, timestamps, and session statistics. It is not a live feed.
+
+### `GET /api/market/status`
+
+Reports the configured market-data provider and whether it is genuinely live. The current default response is `{"provider":"silver_5m.csv","is_live":false,"status":"historical"}`.
+
+### `GET /api/predictions`
+
+Returns the durable SQLite prediction journal. Use `outcome_status=pending` or `outcome_status=evaluated` to filter records.
+
+### `GET /api/paper-trading`
+
+Returns deterministic paper-only P&L over evaluated predictions, including gross P&L, costs, slippage, net P&L, and trade count. It never submits real orders.
+
+### `POST /api/predictions/evaluate`
+
+Replays the configured historical candles and settles only predictions whose full horizon is available. It never changes the stored forecast fields.
 
 ## Errors
 

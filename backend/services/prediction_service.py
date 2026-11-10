@@ -8,7 +8,10 @@ from typing import Any
 
 import pandas as pd
 
-from backend.core.config import MODEL_ROOT, SELECTION_PATH
+from backend.core.config import MODEL_ROOT, PREDICTION_DB_PATH, SELECTION_PATH
+from src.data.market_data import HistoricalCsvProvider, provider_status
+from src.prediction.store import PredictionStore
+from src.evaluation.paper_trading import evaluate_paper_trades
 from src.models.predict import load_model_artifacts
 from src.prediction.pipeline import generate_prediction
 
@@ -28,6 +31,8 @@ class PredictionService:
         self.selection_path = selection_path
         self._artifacts: dict[str, Any] | None = None
         self._latest: dict[str, Any] | None = None
+        self.store = PredictionStore(PREDICTION_DB_PATH)
+        self.market_provider = HistoricalCsvProvider()
 
     def _get_artifacts(self) -> dict[str, Any]:
         if self._artifacts is None:
@@ -70,7 +75,28 @@ class PredictionService:
             artifacts=self._get_artifacts(),
         )
         self._latest = result["predictions"][-1]
+        for observation, prediction in zip(observations, result["predictions"]):
+            if prediction.get("prediction_timestamp"):
+                record = {**prediction, "features": observation}
+                if "close" in observation:
+                    record["close_price"] = observation["close"]
+                try:
+                    self.store.record(record)
+                except (TypeError, ValueError):
+                    logger.warning("Prediction was returned but could not be persisted", exc_info=True)
         return result
 
     def latest(self) -> dict[str, Any] | None:
         return self._latest
+
+    def prediction_history(self, status: str | None = None, limit: int = 100) -> list[dict[str, Any]]:
+        return self.store.list(status=status, limit=limit)
+
+    def evaluate_predictions(self, candles: pd.DataFrame) -> int:
+        return self.store.evaluate(candles)
+
+    def market_status(self) -> dict[str, Any]:
+        return provider_status(self.market_provider)
+
+    def paper_trading(self) -> dict[str, Any]:
+        return evaluate_paper_trades(self.store.list(status="evaluated"))

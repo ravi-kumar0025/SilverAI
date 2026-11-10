@@ -1,7 +1,0 @@
-{
-  "selected_classifier": "hist_gradient_boosting_classifier",
-  "selected_regressor": "linear_regression",
-  "selection_basis": "Notebook 07 validation performance; test results not used for selection",
-  "threshold_pct": 0.0776397515528126,
-  "test_rows": 24086
-}

@@ -22,6 +22,10 @@ export const api = {
   health: () => request('/api/health'),
   models: () => request('/api/models'),
   latest: () => request('/api/predictions/latest'),
+  candles: (limit = 288) => request(`/api/market/candles?limit=${limit}`),
+  marketStatus: () => request('/api/market/status'),
+  predictionHistory: () => request('/api/predictions?limit=100'),
+  paperTrading: () => request('/api/paper-trading'),
   predict: (features) => request('/api/predict', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },

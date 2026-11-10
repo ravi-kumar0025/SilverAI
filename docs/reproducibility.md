@@ -73,7 +73,7 @@ Run the automated tests:
 pytest -q
 ```
 
-The verified workspace result was `21 passed`. The tests cover model metrics, prediction pipeline behavior, scenarios, signals, and backend endpoint contracts.
+The verified workspace result is `27 passed` with one dependency deprecation warning. The tests cover model metrics, prediction pipeline behavior, scenarios, signals, backend endpoint contracts, candle validation, prediction persistence, no-repaint behavior, baselines, and paper-trading calculations.
 
 Run the production frontend build:
 
@@ -125,4 +125,4 @@ python -c "import pandas as pd; from backend.services.prediction_service import 
 
 ## Reproducibility caveats
 
-Model artifacts are binary files and dataset contents are not committed by the repository ignore policy. Exact results require the same CSV data, saved metadata, library versions, and model artifacts. The backend's latest prediction store is in memory and is cleared on restart. No confidence calibration, live market-price feed, or historical prediction database is currently included.
+Model artifacts are binary files and dataset contents are not committed by the repository ignore policy. Exact results require the same CSV data, saved metadata, library versions, and model artifacts. Predictions are persisted in the SQLite path configured by `SILVERAI_PREDICTION_DB_PATH` (default `data/silverai_predictions.sqlite3`). No confidence calibration or verified live market-price feed is currently included. Historical CSV data is never reported as live.

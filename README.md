@@ -106,7 +106,7 @@ The FastAPI backend is organized as:
 - `backend/services/prediction_service.py` — lazy, cached model access;
 - `backend/core/config.py` — environment-driven paths and CORS.
 
-Available routes are documented in [`docs/api.md`](docs/api.md). The service keeps the latest prediction in memory; there is no database or historical persistence yet.
+Available routes are documented in [`docs/api.md`](docs/api.md). The latest prediction is kept in memory for the dashboard, while confirmed predictions can also be persisted in SQLite through the confirmed-candle route and prediction journal.
 
 The React/Vite frontend in `frontend/` consumes the backend health, model, and latest-prediction endpoints. It does not fabricate live prices or historical records; those areas display explicit unavailable states until corresponding data sources exist.
 
@@ -157,8 +157,9 @@ The notebook workflow is described in [`docs/reproducibility.md`](docs/reproduci
 - The data acquisition provenance is not encoded in the repository.
 - The target-creation workflow remains notebook-based rather than a reusable source module.
 - Regression test performance is effectively at the zero-return baseline.
-- Confidence calibration and historical prediction persistence are not implemented.
-- Live price data, transaction costs, slippage, and trading backtests are outside the current scope.
+- Confidence calibration and authenticated live-provider integration are not implemented.
+- A SQLite prediction journal and cost/slippage-aware paper evaluator now exist for recorded evaluated signals; they are not a live trading system.
+- Live price data, contract-roll provenance, closed-candle orchestration, and five-day continuous testing remain outside the verified scope.
 - Research papers justify hypotheses and validation practices; they do not establish SilverAI feature superiority or predictive novelty.
 
 The existing literature rationale and four-paper review are in [`reports/feature_research_analysis.md`](reports/feature_research_analysis.md).
