@@ -109,6 +109,7 @@ def interpret_signal(
     timestamp = scenarios.get("timestamp", row.get("datetime_et", row.get("timestamp")))
     base = {
         "signal": "INSUFFICIENT_DATA",
+        "actionable_signal": "NO_CLEAR_SIGNAL",
         "directional_interpretation": "No reliable directional interpretation is available.",
         "supporting_evidence": [],
         "conflicting_evidence": [],
@@ -171,6 +172,7 @@ def interpret_signal(
             "supporting_evidence": _unique(list(supporting)),
             "conflicting_evidence": _unique(list(conflicting)),
             "explanation": explanation,
+            "actionable_signal": "UP" if signal == "BULLISH" else "DOWN" if signal == "BEARISH" else "NO_CLEAR_SIGNAL",
         }
     )
     return base

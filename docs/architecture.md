@@ -54,7 +54,7 @@ The daily roll-adjusted dataset remains separate from the intraday feature/model
 
 ## State and persistence
 
-Model artifacts are read-only at prediction time. The backend caches loaded artifacts and stores only the latest result in memory. Restarting the API clears the latest result. A database or historical prediction store is intentionally not part of the current architecture.
+Model artifacts are read-only at prediction time. The backend caches loaded artifacts and stores confirmed-candle predictions in the SQLite journal configured by `SILVERAI_PREDICTION_DB_PATH`; the latest response is also cached in memory. Forecast fields and finalized signal fields are immutable, while outcome fields may be added only after the stored horizon is complete. Historical chart markers are derived from persisted records with `candle_finalized=1`.
 
 ## Configuration
 

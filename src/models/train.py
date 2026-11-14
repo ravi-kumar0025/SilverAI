@@ -9,6 +9,7 @@ from typing import Any
 import joblib
 import numpy as np
 import pandas as pd
+from sklearn.base import clone
 from sklearn.ensemble import (
     HistGradientBoostingClassifier,
     HistGradientBoostingRegressor,
@@ -33,18 +34,20 @@ from sklearn.preprocessing import StandardScaler
 from src.data.loader import load_modeling_data
 from src.data.preprocessing import prepare_intraday_data
 from src.features.technical_indicators import FEATURE_COLUMNS
+from src.config import CONFIG
+from src.models.calibration import ChronologicalProbabilityCalibrator, calibration_metrics, sha256_file, stable_feature_schema_hash
 
 
-SEED = 42
-HORIZON_MINUTES = 15
-HORIZON_BARS = 3
+SEED = CONFIG.random_seed
+HORIZON_MINUTES = CONFIG.forecast_horizon_minutes
+HORIZON_BARS = CONFIG.forecast_horizon_bars
 PURGE_ROWS = 3
 TRAIN_FRACTION = 0.70
 VALIDATION_FRACTION = 0.15
 TEST_FRACTION = 0.15
-TRAIN_NEUTRAL_QUANTILE = 0.40
-REGRESSION_TARGET = "future_return_15m"
-SAVED_CLASSIFICATION_TARGET = "target_direction_15m"
+TRAIN_NEUTRAL_QUANTILE = CONFIG.neutral_quantile
+REGRESSION_TARGET = CONFIG.regression_target
+SAVED_CLASSIFICATION_TARGET = CONFIG.classification_target
 CLASSIFICATION_TARGET = "classification_target"
 LABELS = (-1, 0, 1)
 DEFAULT_MODEL_ROOT = Path(__file__).resolve().parents[2] / "saved_models"
@@ -336,6 +339,7 @@ def save_models_and_metadata(
     regression_models: dict[str, Any],
     metadata: dict[str, Any],
     model_root: str | Path = DEFAULT_MODEL_ROOT,
+    calibrator: ChronologicalProbabilityCalibrator | None = None,
 ) -> dict[str, str]:
     """Save fitted models and JSON metadata under the approved directories."""
 
@@ -356,12 +360,27 @@ def save_models_and_metadata(
         joblib.dump(model, path)
         saved_paths[f"regressor:{name}"] = str(path)
 
+    if calibrator is not None and calibrator.status.startswith("available"):
+        selected_name = str(metadata.get("best_validation_classification_model", ""))
+        selected_path = classifier_path / f"{selected_name}.joblib"
+        calibrator.classifier_name = selected_name
+        calibrator.classifier_sha256 = sha256_file(str(selected_path))
+        calibrator.feature_schema_hash = stable_feature_schema_hash(FEATURE_COLUMNS)
+        calibrator.configuration_version = CONFIG.version
+        calibration_path = metadata_path / "classification_calibrator.joblib"
+        calibrator.save(str(calibration_path))
+        saved_paths["calibration"] = str(calibration_path)
+
     metadata = dict(metadata)
     metadata_file = metadata_path / "training_metadata.json"
     metadata["saved_model_paths"] = {
         **saved_paths,
         "metadata": str(metadata_file),
     }
+    if "calibration" in saved_paths:
+        metadata["calibration_path"] = saved_paths["calibration"]
+        metadata["calibration_method"] = calibrator.method if calibrator is not None else None
+        metadata["calibration_status"] = calibrator.status if calibrator is not None else "unavailable"
     metadata_file.write_text(json.dumps(metadata, indent=2, default=str), encoding="utf-8")
     saved_paths["metadata"] = str(metadata_file)
     return saved_paths
@@ -393,6 +412,38 @@ def run_training(
     )
     best_classification = str(classification_metrics.iloc[0]["model"])
     best_regression = str(regression_metrics.iloc[0]["model"])
+    selected_classifier = classification_models[best_classification]
+    calibration_cut = max(10, int(len(train_df) * (1 - CONFIG.calibration_fraction)))
+    calibration_prefix = train_df.iloc[:calibration_cut]
+    calibration_suffix = train_df.iloc[calibration_cut:]
+    calibrator_candidates: dict[str, ChronologicalProbabilityCalibrator] = {}
+    validation_calibration_metrics: dict[str, Any] = {}
+    if len(calibration_suffix) >= 10 and len(calibration_prefix) >= 10:
+        calibration_model = clone(selected_classifier)
+        calibration_model.fit(select_features(calibration_prefix), prepare_targets(calibration_prefix, threshold_pct)[1])
+        suffix_probabilities = calibration_model.predict_proba(select_features(calibration_suffix))
+        suffix_labels = prepare_targets(calibration_suffix, threshold_pct)[1]
+        validation_probabilities = selected_classifier.predict_proba(select_features(validation_df))
+        validation_labels = prepare_targets(validation_df, threshold_pct)[1]
+        for method in ("sigmoid", "isotonic"):
+            candidate = ChronologicalProbabilityCalibrator().fit(
+                suffix_probabilities, suffix_labels.to_numpy(),
+                calibration_fraction=1.0 - 1e-12, method=method,
+            )
+            if candidate.status.startswith("available"):
+                calibrator_candidates[method] = candidate
+                validation_calibration_metrics[method] = calibration_metrics(
+                    candidate.transform(validation_probabilities), validation_labels.to_numpy()
+                )
+        raw_validation_metrics = calibration_metrics(validation_probabilities, validation_labels.to_numpy())
+    else:
+        raw_validation_metrics = {}
+    selected_calibration_method = min(
+        validation_calibration_metrics,
+        key=lambda method: validation_calibration_metrics[method]["multiclass_log_loss"],
+        default=None,
+    )
+    selected_calibrator = calibrator_candidates.get(selected_calibration_method) if selected_calibration_method else None
     metadata: dict[str, Any] = {
         "feature_names": list(FEATURE_COLUMNS),
         "feature_count": len(FEATURE_COLUMNS),
@@ -422,10 +473,15 @@ def run_training(
         },
         "split_metadata": splits["metadata"],
         "test_evaluated": False,
+        "configuration_version": CONFIG.version,
+        "calibration_protocol": "out-of-sample train suffix; method selected by validation multiclass log loss",
+        "calibration_raw_validation_metrics": raw_validation_metrics,
+        "calibration_validation_metrics": validation_calibration_metrics,
     }
     saved_paths = (
         save_models_and_metadata(
-            classification_models, regression_models, metadata, model_root=model_root
+            classification_models, regression_models, metadata, model_root=model_root,
+            calibrator=selected_calibrator,
         )
         if save_artifacts
         else {}

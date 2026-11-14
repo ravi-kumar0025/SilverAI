@@ -18,6 +18,14 @@ SilverAI remains committed to COMEX Silver Futures (SI). The retained research s
 - Validation: chronological train/validation/test design with purged boundaries.
 - Known research limitation: regression performance is approximately equal to the zero-return baseline, and the current artifacts do not include calibrated probabilities.
 
+The test-set baseline results are: always-UP accuracy 0.353815 / macro-F1
+0.174231; always-DOWN accuracy 0.376152 / macro-F1 0.182224; majority-class
+accuracy 0.376152 / macro-F1 0.182224; RSI-14 accuracy 0.306402 / macro-F1
+0.269801. The selected classifier's recorded test macro-F1 is 0.37312. The
+zero-return regression baseline has MAE 0.220179, RMSE 0.319404, and R2
+-0.000103, so the selected regression model is not treated as evidence of a
+useful continuous forecasting edge.
+
 ## Implemented live-testing foundations
 
 `src/data/market_data.py` defines a provider-neutral candle contract and an explicit historical provider. `src/prediction/store.py` provides append-only SQLite prediction persistence, duplicate prevention, and full-horizon outcome evaluation. `src/evaluation/paper_trading.py` computes paper-only gross/net P&L with transaction costs and slippage. `POST /api/predict/confirmed` is the closed-candle inference boundary intended for a future live adapter. `GET /api/market/status`, `GET /api/predictions`, `POST /api/predictions/evaluate`, and `GET /api/paper-trading` expose the validation state.

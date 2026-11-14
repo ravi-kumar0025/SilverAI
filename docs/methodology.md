@@ -60,7 +60,9 @@ The regression result is effectively baseline-level and should not be presented 
 
 Classifier probabilities are accepted only when all three class probabilities are finite, in range, and sum to one. Regression direction uses the saved neutral threshold when supplied. Scenarios are descriptive, not additional models. If classifier and regression directions disagree, the final signal is `MIXED`; if inputs or historical reliability are insufficient, it is `INSUFFICIENT_DATA`.
 
-The project currently has no calibrated confidence module. `pipeline.py` therefore reports this limitation rather than fabricating reliability.
+The default checked-in model artifacts currently have no compatible calibration artifact. The training code supports leakage-safe sigmoid/isotonic calibration, but the default runtime therefore reports calibration as unavailable rather than fabricating reliability. A separate calibration experiment is recorded under `saved_models/experiments/calibration_20261114_v1`.
+
+The frozen historical holdout evaluation of that separate classifier/calibrator pair is recorded under `reports/final_holdout_20261114`. It evaluates the untouched chronological test partition only; it is not the official five-trading-day genuine live-market evaluation required by `ps.pdf`. Calibration quality is reported using log loss, Brier scores, and ECE separately from directional accuracy and does not establish profitability.
 
 ## Research justification
 

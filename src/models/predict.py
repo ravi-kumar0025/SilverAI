@@ -12,7 +12,7 @@ import pandas as pd
 
 from src.features.technical_indicators import FEATURE_COLUMNS
 from src.config import CONFIG
-from src.models.calibration import ChronologicalProbabilityCalibrator
+from src.models.calibration import ChronologicalProbabilityCalibrator, sha256_file, stable_feature_schema_hash
 
 
 PREDICTION_HORIZON_MINUTES = CONFIG.forecast_horizon_minutes
@@ -54,6 +54,9 @@ def _selected_name(
     name = selection.get(key)
     if name is None:
         name = metadata.get(f"best_validation_{kind}_model")
+    if name is None:
+        legacy_kind = "classification" if kind == "classifier" else "regression"
+        name = metadata.get(f"best_validation_{legacy_kind}_model")
     if not isinstance(name, str) or not name:
         raise ValueError(f"No selected {kind} name is present in model metadata.")
     return name
@@ -106,10 +109,26 @@ def load_model_artifacts(
 
     calibration_path = metadata.get("calibration_path")
     calibrator = None
+    calibration_error = None
     if isinstance(calibration_path, str):
         resolved = _resolve_model_path(calibration_path, root)
         if resolved.is_file():
-            calibrator = ChronologicalProbabilityCalibrator.load(str(resolved))
+            try:
+                calibrator = ChronologicalProbabilityCalibrator.load(str(resolved))
+                classifier_hash = sha256_file(str(classifier_path))
+                feature_hash = stable_feature_schema_hash(FEATURE_COLUMNS)
+                if not calibrator.is_compatible(
+                    classifier_name=classifier_name,
+                    classifier_sha256=classifier_hash,
+                    feature_schema_hash=feature_hash,
+                    configuration_version=str(metadata.get("configuration_version", CONFIG.version)),
+                ):
+                    calibrator = None
+                    calibration_error = "Calibration artifact is incompatible with the selected classifier or feature contract."
+            except (OSError, ValueError, EOFError, AttributeError, ModuleNotFoundError) as exc:
+                calibration_error = f"Calibration artifact could not be loaded: {type(exc).__name__}."
+        else:
+            calibration_error = "Calibration artifact is missing."
 
     return {
         "classifier": classifier,
@@ -121,6 +140,8 @@ def load_model_artifacts(
         "regressor_path": regressor_path,
         "metadata_path": metadata_path,
         "calibrator": calibrator,
+        "calibration_path": str(calibration_path) if isinstance(calibration_path, str) and calibrator is not None else None,
+        "calibration_error": calibration_error,
     }
 
 

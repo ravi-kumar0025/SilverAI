@@ -1,5 +1,26 @@
 # SilverAI user guide
 
+## Application modes
+
+SilverAI opens in historical mode without credentials. The Dashboard displays
+the real `data/silver_5m.csv` OHLCV candles, with timeframe aggregation,
+volume, crosshair, zoom, pan, and immutable persisted prediction markers.
+Historical mode is not live trading.
+
+The navigation provides Dashboard, Predictions, Analysis, Evaluation, Paper
+Trading, Model Information, Data & Diagnostics, and Settings. Pages display
+backend state and show unavailable messages when report artifacts or model
+outputs are missing.
+
+## Live configuration
+
+Copy the root `.env.example` to the environment used by the backend. Historical
+mode requires no key. Live mode requires an authorized provider and the
+following variables: `SILVERAI_DATA_MODE`, `SILVERAI_LIVE_PROVIDER`,
+`SILVERAI_LIVE_API_KEY`, `SILVERAI_LIVE_WS_URL`, and `SILVERAI_LIVE_SYMBOL`.
+Do not commit secrets. A configured but unconnected provider is shown as
+disconnected; it is never presented as live.
+
 ## Current operating mode
 
 The default application uses the checked-in `silver_5m.csv` file. The dashboard labels this source as **historical**. It is not a live market feed and must not be used as evidence of live connectivity.

@@ -16,10 +16,11 @@ The selected provider must be approved based on licensing, account access, symbo
 The future adapter should use environment variables, never committed secrets:
 
 ```text
-SILVERAI_MARKET_DATA_PROVIDER=cme|databento
-SILVERAI_MARKET_DATA_API_KEY=...
-SILVERAI_MARKET_DATA_SYMBOL=SI
-SILVERAI_MARKET_DATA_ENVIRONMENT=certification|production
+SILVERAI_DATA_MODE=live
+SILVERAI_LIVE_PROVIDER=cme|databento|authorized-vendor
+SILVERAI_LIVE_API_KEY=...
+SILVERAI_LIVE_WS_URL=wss://authorized-provider.example/stream
+SILVERAI_LIVE_SYMBOL=SI
 ```
 
-The current default remains `HistoricalCsvProvider`, which reports `is_live=false` and `status=historical`. A provider adapter must only report `is_live=true` after authentication, subscription, symbol resolution, timestamp validation, candle-close confirmation, reconnect handling, and a real end-to-end event have been tested.
+The current default is historical mode. It reports `is_live=false` and `status=historical`. Setting `SILVERAI_DATA_MODE=live` exposes a credential-gated live status, but the provider remains disconnected until an authorized vendor transport adapter authenticates, subscribes, validates the SI contract, confirms closed candles, handles reconnects, and receives a real end-to-end event.

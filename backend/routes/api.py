@@ -9,6 +9,8 @@ from typing import Any
 from fastapi import APIRouter, HTTPException, Request, status
 from pydantic import BaseModel, ConfigDict, Field
 from src.data.loader import load_5m_data
+from src.config import CONFIG
+from src.experiments.timeframe_horizon import resample_ohlcv
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api")
@@ -121,7 +123,7 @@ def predict_confirmed(payload: ConfirmedCandlePrediction, request: Request) -> d
         observation = payload.features.model_dump(exclude_none=True)
         observation["datetime_et"] = payload.datetime_et
         observation["close"] = payload.close
-        return _service(request).predict([observation])
+        return _service(request).predict([observation], finalized=True)
     except Exception as exc:
         raise _prediction_error(exc) from exc
 
@@ -135,12 +137,16 @@ def latest(request: Request) -> dict[str, Any]:
 
 
 @router.get("/market/candles")
-def market_candles(limit: int = 288) -> dict[str, Any]:
-    """Return the latest real five-minute OHLCV observations from the CSV dataset."""
+def market_candles(limit: int = 288, timeframe_minutes: int = CONFIG.candle_minutes) -> dict[str, Any]:
+    """Return real historical OHLCV observations, optionally resampled."""
     if limit < 24 or limit > 2500:
         raise HTTPException(status_code=422, detail="limit must be between 24 and 2500.")
+    if timeframe_minutes not in {5, 10, 15, 30}:
+        raise HTTPException(status_code=422, detail="timeframe_minutes must be one of 5, 10, 15, or 30.")
     try:
-        frame = _market_frame().tail(limit)
+        source_frame = _market_frame()
+        frame = source_frame if timeframe_minutes == 5 else resample_ohlcv(source_frame, timeframe_minutes)
+        frame = frame.tail(limit)
     except (FileNotFoundError, OSError, ValueError) as exc:
         raise HTTPException(status_code=503, detail="Historical market data is unavailable.") from exc
     candles = [
@@ -157,11 +163,12 @@ def market_candles(limit: int = 288) -> dict[str, Any]:
     ]
     last = candles[-1]
     previous = candles[-2] if len(candles) > 1 else last
-    session = _market_frame()[_market_frame().datetime_et.dt.date == frame.iloc[-1].datetime_et.date()]
+    session = frame[frame.datetime_et.dt.date == frame.iloc[-1].datetime_et.date()]
     return {
         "instrument": "COMEX Silver Futures",
         "symbol": "SI",
-        "source": "silver_5m.csv",
+        "source": "silver_5m.csv" if timeframe_minutes == 5 else f"silver_5m.csv resampled to {timeframe_minutes}m",
+        "timeframe_minutes": timeframe_minutes,
         "data_status": "historical",
         "timezone": "America/New_York",
         "timestamp": last["time"],

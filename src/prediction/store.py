@@ -13,6 +13,23 @@ import pandas as pd
 from src.config import CONFIG
 
 
+FINAL_SIGNAL_NAMES = frozenset({"BULLISH", "BEARISH", "NEUTRAL"})
+
+
+def is_finalized_signal_record(record: dict[str, Any]) -> bool:
+    """Return whether a persisted row is safe to expose as a final signal."""
+
+    if not bool(record.get("candle_finalized")):
+        return False
+    if str(record.get("final_signal") or "").upper() not in FINAL_SIGNAL_NAMES:
+        return False
+    try:
+        pd.to_datetime(record.get("candle_timestamp"), utc=True, errors="raise")
+    except (TypeError, ValueError, OverflowError):
+        return False
+    return True
+
+
 class PredictionStore:
     """SQLite-backed append-only prediction journal.
 
@@ -56,6 +73,7 @@ class PredictionStore:
                     model_version TEXT,
                     configuration_version TEXT,
                     final_signal TEXT,
+                    candle_finalized INTEGER NOT NULL DEFAULT 0,
                     scenario_payload TEXT,
                     candle_data_ref TEXT,
                     horizon_minutes INTEGER NOT NULL,
@@ -65,6 +83,7 @@ class PredictionStore:
                     actual_return REAL,
                     actual_direction TEXT,
                     outcome_status TEXT NOT NULL DEFAULT 'pending',
+                    outcome_timestamp TEXT,
                     outcome_evaluated_at TEXT,
                     UNIQUE(instrument, contract, candle_timestamp, model_version)
                 )"""
@@ -73,11 +92,38 @@ class PredictionStore:
             migrations = {
                 "raw_probability_down": "REAL", "raw_probability_neutral": "REAL", "raw_probability_up": "REAL",
                 "calibrated_probability_down": "REAL", "calibrated_probability_neutral": "REAL", "calibrated_probability_up": "REAL",
-                "configuration_version": "TEXT", "final_signal": "TEXT", "scenario_payload": "TEXT", "candle_data_ref": "TEXT",
+                "configuration_version": "TEXT", "final_signal": "TEXT", "candle_finalized": "INTEGER NOT NULL DEFAULT 0", "scenario_payload": "TEXT", "candle_data_ref": "TEXT",
+                "outcome_timestamp": "TEXT",
             }
             for column, kind in migrations.items():
                 if column not in columns:
                     db.execute(f"ALTER TABLE predictions ADD COLUMN {column} {kind}")
+            db.execute(
+                """CREATE TRIGGER IF NOT EXISTS prevent_prediction_forecast_update
+                BEFORE UPDATE OF instrument, contract, candle_timestamp, created_at,
+                    close_price, predicted_direction, probability_down, probability_neutral,
+                    probability_up, predicted_return, raw_probability_down,
+                    raw_probability_neutral, raw_probability_up, calibrated_probability_down,
+                    calibrated_probability_neutral, calibrated_probability_up, confidence,
+                    confidence_kind, model_version, configuration_version, final_signal,
+                    candle_finalized, scenario_payload, candle_data_ref, horizon_minutes, horizon_bars,
+                    feature_payload ON predictions
+                WHEN OLD.instrument IS NOT NEW.instrument OR OLD.contract IS NOT NEW.contract
+                    OR OLD.candle_timestamp IS NOT NEW.candle_timestamp OR OLD.created_at IS NOT NEW.created_at
+                    OR OLD.close_price IS NOT NEW.close_price OR OLD.predicted_direction IS NOT NEW.predicted_direction
+                    OR OLD.probability_down IS NOT NEW.probability_down OR OLD.probability_neutral IS NOT NEW.probability_neutral
+                    OR OLD.probability_up IS NOT NEW.probability_up OR OLD.predicted_return IS NOT NEW.predicted_return
+                    OR OLD.raw_probability_down IS NOT NEW.raw_probability_down OR OLD.raw_probability_neutral IS NOT NEW.raw_probability_neutral
+                    OR OLD.raw_probability_up IS NOT NEW.raw_probability_up OR OLD.calibrated_probability_down IS NOT NEW.calibrated_probability_down
+                    OR OLD.calibrated_probability_neutral IS NOT NEW.calibrated_probability_neutral OR OLD.calibrated_probability_up IS NOT NEW.calibrated_probability_up
+                    OR OLD.confidence IS NOT NEW.confidence OR OLD.confidence_kind IS NOT NEW.confidence_kind
+                    OR OLD.model_version IS NOT NEW.model_version OR OLD.configuration_version IS NOT NEW.configuration_version
+                    OR OLD.final_signal IS NOT NEW.final_signal OR OLD.scenario_payload IS NOT NEW.scenario_payload
+                    OR OLD.candle_finalized IS NOT NEW.candle_finalized
+                    OR OLD.candle_data_ref IS NOT NEW.candle_data_ref OR OLD.horizon_minutes IS NOT NEW.horizon_minutes
+                    OR OLD.horizon_bars IS NOT NEW.horizon_bars OR OLD.feature_payload IS NOT NEW.feature_payload
+                BEGIN SELECT RAISE(ABORT, 'prediction forecast fields are immutable'); END"""
+            )
 
     def record(self, prediction: dict[str, Any]) -> dict[str, Any]:
         prediction_id = str(prediction.get("prediction_id") or uuid.uuid4())
@@ -109,6 +155,7 @@ class PredictionStore:
             "model_version": prediction.get("model_version") or model.get("classifier_name", "unknown"),
             "configuration_version": prediction.get("configuration_version") or model.get("configuration_version"),
             "final_signal": (prediction.get("signal") or {}).get("signal"),
+            "candle_finalized": 1 if prediction.get("candle_finalized") is True else 0,
             "scenario_payload": json.dumps(prediction.get("scenarios"), default=str),
             "candle_data_ref": prediction.get("candle_data_ref"),
             "horizon_minutes": horizon_minutes,
@@ -126,14 +173,14 @@ class PredictionStore:
                  horizon_minutes, horizon_bars, feature_payload, raw_probability_down,
                  raw_probability_neutral, raw_probability_up, calibrated_probability_down,
                  calibrated_probability_neutral, calibrated_probability_up, configuration_version,
-                 final_signal, scenario_payload, candle_data_ref)
+                 final_signal, candle_finalized, scenario_payload, candle_data_ref)
                 VALUES (:prediction_id, :instrument, :contract, :candle_timestamp, :created_at,
                  :close_price, :predicted_direction, :probability_down, :probability_neutral,
                  :probability_up, :predicted_return, :confidence, :confidence_kind, :model_version,
                  :horizon_minutes, :horizon_bars, :feature_payload, :raw_probability_down,
                  :raw_probability_neutral, :raw_probability_up, :calibrated_probability_down,
                  :calibrated_probability_neutral, :calibrated_probability_up, :configuration_version,
-                 :final_signal, :scenario_payload, :candle_data_ref)""",
+                 :final_signal, :candle_finalized, :scenario_payload, :candle_data_ref)""",
                 row,
             )
             saved = db.execute(
@@ -152,6 +199,15 @@ class PredictionStore:
         args.append(limit)
         with self._connect() as db:
             return [dict(row) for row in db.execute(query, args).fetchall()]
+
+    def list_finalized_signals(self, limit: int = 100) -> list[dict[str, Any]]:
+        """Return only valid final analytical signals from closed candles."""
+
+        placeholders = ",".join("?" for _ in FINAL_SIGNAL_NAMES)
+        query = f"SELECT * FROM predictions WHERE candle_finalized=1 AND final_signal IN ({placeholders}) ORDER BY candle_timestamp DESC"
+        with self._connect() as db:
+            rows = [dict(row) for row in db.execute(query, tuple(FINAL_SIGNAL_NAMES)).fetchall()]
+        return [row for row in rows if is_finalized_signal_record(row)][:limit]
 
     def evaluate(self, candles: pd.DataFrame) -> int:
         """Evaluate only complete, contiguous future windows.
@@ -191,11 +247,11 @@ class PredictionStore:
                 actual_return = (future_price - float(row["close_price"])) / float(row["close_price"])
                 actual_direction = "UP" if actual_return > 0 else "DOWN" if actual_return < 0 else "NEUTRAL"
                 db.execute(
-                    "UPDATE predictions SET actual_price=?, actual_return=?, actual_direction=?, outcome_status='evaluated', outcome_evaluated_at=? WHERE prediction_id=? AND outcome_status='pending'",
-                    (future_price, actual_return, actual_direction, datetime.now(timezone.utc).isoformat(), row["prediction_id"]),
+                    "UPDATE predictions SET actual_price=?, actual_return=?, actual_direction=?, outcome_status='evaluated', outcome_timestamp=?, outcome_evaluated_at=? WHERE prediction_id=? AND outcome_status='pending'",
+                    (future_price, actual_return, actual_direction, future_timestamp.isoformat(), datetime.now(timezone.utc).isoformat(), row["prediction_id"]),
                 )
                 updated += 1
         return updated
 
 
-__all__ = ["PredictionStore"]
+__all__ = ["FINAL_SIGNAL_NAMES", "PredictionStore", "is_finalized_signal_record"]

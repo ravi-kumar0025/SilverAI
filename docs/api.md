@@ -94,7 +94,7 @@ Accepts one closed candle timestamp, its close price, and the existing feature o
 
 ### `GET /api/predictions/latest`
 
-Returns the latest durable prediction result. It returns HTTP 404 only when the journal is empty, including after a backend restart.
+Returns the latest durable finalized analytical signal. Unfinalized rows, rows without `BULLISH`, `BEARISH`, or `NEUTRAL` final signals, and rows with invalid timestamps are excluded. It returns HTTP 404 when no eligible finalized signal exists, including after a backend restart.
 
 ### `GET /api/market/candles?limit=288`
 

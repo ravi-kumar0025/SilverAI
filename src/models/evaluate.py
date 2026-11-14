@@ -40,6 +40,8 @@ from src.models.train import (
     select_features,
     split_chronologically,
 )
+from src.config import CONFIG
+from src.evaluation.baselines import rsi_direction
 
 
 LABELS = (-1, 0, 1)
@@ -75,6 +77,9 @@ def evaluate_classification(
         "macro_f1": float(f1_score(y_true, predictions, average="macro")),
         "confusion_matrix": confusion_matrix(y_true, predictions, labels=list(LABELS)).tolist(),
         "classification_report": report,
+        "signal_frequency": float(np.mean(np.asarray(predictions) != 0)),
+        "neutral_coverage": float(np.mean(np.asarray(predictions) == 0)),
+        "prediction_distribution": {str(label): int(np.sum(np.asarray(predictions) == label)) for label in LABELS},
     }
     for label in LABELS:
         values = report[LABEL_NAMES[str(label)]]
@@ -292,6 +297,15 @@ def evaluate_saved_models(
                 evaluate_classification(labels, model.predict(features), name, dataset_name)
             )
         classification_results.append(majority_class_baseline(train_labels, labels, dataset_name))
+        classification_results.append(
+            evaluate_classification(labels, np.ones(len(labels), dtype=int), "always_up_baseline", dataset_name)
+        )
+        classification_results.append(
+            evaluate_classification(labels, np.full(len(labels), -1, dtype=int), "always_down_baseline", dataset_name)
+        )
+        classification_results.append(
+            evaluate_classification(labels, rsi_direction(partition["close"]).fillna(0).astype(int).to_numpy(), "rsi_14_baseline", dataset_name)
+        )
         targets = partition[REGRESSION_TARGET].astype(float)
         for name, model in regressor_models.items():
             regression_results.append(
@@ -306,7 +320,7 @@ def evaluate_saved_models(
         row for row in regression_results if row["dataset"] == "validation"
     ]
     ranked_classification = sorted(
-        (row for row in validation_classification if row["model"] != "majority_class_baseline"),
+        (row for row in validation_classification if not row["model"].endswith("_baseline")),
         key=lambda row: row["macro_f1"], reverse=True,
     )
     ranked_regression = sorted(
@@ -324,7 +338,7 @@ def evaluate_saved_models(
         "classification_target": CLASSIFICATION_TARGET,
         "source_classification_target": SAVED_CLASSIFICATION_TARGET,
         "regression_target": REGRESSION_TARGET,
-        "prediction_horizon_minutes": metadata.get("prediction_horizon_minutes", 15),
+        "prediction_horizon_minutes": metadata.get("prediction_horizon_minutes", CONFIG.forecast_horizon_minutes),
         "threshold_value_pct": threshold,
         "selected_classifier": artifacts["classifier_name"],
         "selected_regressor": artifacts["regressor_name"],

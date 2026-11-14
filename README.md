@@ -95,7 +95,7 @@ These figures are descriptive results from the available artifacts, not evidence
 
 Scenario probabilities are copied from valid classifier probabilities only. The scenario module reports supporting evidence, contradicting evidence, forecast information, and model disagreement. `signals.py` emits `BULLISH`, `BEARISH`, `NEUTRAL`, `MIXED`, or `INSUFFICIENT_DATA`.
 
-`src/models/calibration.py` provides an optional chronological train-suffix calibrator. The current checked-in model artifacts do not include a calibrator, so the runtime reports calibrated probabilities as unavailable rather than treating raw probabilities as confidence.
+`src/models/calibration.py` provides leakage-safe sigmoid and isotonic train-suffix calibration, validation-only method selection, multiclass Brier/log-loss/ECE metrics, and safe artifact loading. The current checked-in model artifacts do not include a calibrator, so the runtime reports calibrated probabilities as unavailable rather than treating raw probabilities as confidence. Regenerated artifacts may include `saved_models/metadata/classification_calibrator.joblib` and its metadata contract.
 
 ## Backend and frontend
 
@@ -157,7 +157,7 @@ The notebook workflow is described in [`docs/reproducibility.md`](docs/reproduci
 - The data acquisition provenance is not encoded in the repository.
 - The target-creation workflow remains notebook-based rather than a reusable source module.
 - Regression test performance is effectively at the zero-return baseline.
-- Confidence calibration and authenticated live-provider integration are not implemented.
+- The calibration training path is implemented, but the checked-in model artifacts have no calibration artifact; regenerate and evaluate artifacts before making calibrated-confidence claims.
 - A SQLite prediction journal, closed-candle orchestrator, frozen evaluation manifest, and cost/slippage-aware paper evaluator exist; they are not a live trading system.
 - Authenticated live data, contract-roll verification, and the PDF's five-trading-day continuous test remain outside the verified scope until a genuine live feed is configured.
 - Research papers justify hypotheses and validation practices; they do not establish SilverAI feature superiority or predictive novelty.

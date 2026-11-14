@@ -61,6 +61,7 @@ The reusable source modules can be used instead of notebook cells for the implem
 ```powershell
 python -c "from src.models.train import run_training; run_training()"
 python -c "from src.models.evaluate import evaluate_saved_models; evaluate_saved_models()"
+python -c "from src.data.loader import load_5m_data; from src.experiments.timeframe_horizon import run_timeframe_horizon_experiment, save_experiment_report; save_experiment_report(run_timeframe_horizon_experiment(load_5m_data(), [(5,10),(5,15),(5,30),(10,20),(10,30),(15,15),(15,30),(30,30)]), 'reports/timeframe_horizon_experiment')"
 ```
 
 Target creation is currently still implemented in notebook 06, so that notebook must run before training unless an existing `silver_modeling_data.csv` is supplied.
@@ -73,7 +74,7 @@ Run the automated tests:
 pytest -q
 ```
 
-The verified workspace result is `27 passed` with one dependency deprecation warning. The tests cover model metrics, prediction pipeline behavior, scenarios, signals, backend endpoint contracts, candle validation, prediction persistence, no-repaint behavior, baselines, and paper-trading calculations.
+The verified workspace result is `36 passed` with two warnings. The tests cover model metrics, prediction pipeline behavior, scenarios, signals, backend endpoint contracts, candle validation, timestamp-aware targets, prediction persistence and immutability, frozen manifests, calibration, baselines, and paper-trading calculations.
 
 Run the production frontend build:
 
@@ -125,4 +126,12 @@ python -c "import pandas as pd; from backend.services.prediction_service import 
 
 ## Reproducibility caveats
 
-Model artifacts are binary files and dataset contents are not committed by the repository ignore policy. Exact results require the same CSV data, saved metadata, library versions, and model artifacts. Predictions are persisted in the SQLite path configured by `SILVERAI_PREDICTION_DB_PATH` (default `data/silverai_predictions.sqlite3`). No confidence calibration or verified live market-price feed is currently included. Historical CSV data is never reported as live.
+Model artifacts are binary files and dataset contents are not committed by the repository ignore policy. Exact results require the same CSV data, saved metadata, library versions, and model artifacts. Predictions are persisted in the SQLite path configured by `SILVERAI_PREDICTION_DB_PATH` (default `data/silverai_predictions.sqlite3`). Calibration support includes leakage-safe sigmoid/isotonic candidates, validation-only selection, multiclass Brier/log-loss/ECE metrics, and an optional persisted artifact. The current checked-in artifacts do not include a calibrator, so historical raw probabilities remain explicitly uncalibrated. Historical CSV data is never reported as live.
+
+The non-destructive final holdout command is:
+
+```powershell
+python -c "from src.experiments.final_holdout_evaluation import run_final_holdout_evaluation; run_final_holdout_evaluation('saved_models/experiments/calibration_20261114_v1', 'reports/final_holdout_20261114')"
+```
+
+It writes a versioned report and metrics file without changing the default production artifacts. The holdout report is historical evidence only and must not be presented as the official live-market test.

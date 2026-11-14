@@ -49,12 +49,15 @@ class FakePredictionService:
             "prediction_horizon_minutes": 15,
         }
 
-    def predict(self, observations):
-        self.last = {"batch": len(observations) > 1, "predictions": observations}
+    def predict(self, observations, *, finalized=False):
+        self.last = {"batch": len(observations) > 1, "predictions": observations, "finalized": finalized}
         return self.last
 
     def latest(self):
         return self.last
+
+    def prediction_history(self, status=None, limit=100):
+        return [{"prediction_id": "final-1", "final_signal": "BULLISH", "candle_timestamp": "2026-01-01T09:30:00-05:00", "candle_finalized": 1}]
 
 
 def test_backend_endpoints_and_latest(monkeypatch):
@@ -89,6 +92,14 @@ def test_backend_rejects_missing_and_extra_features(monkeypatch):
 
     extra = dict(FEATURES, unexpected=1.0)
     assert client.post("/api/predict", json=extra).status_code == 422
+
+
+def test_prediction_history_returns_persisted_final_signal_fields(monkeypatch):
+    monkeypatch.setattr(app.state, "prediction_service", FakePredictionService())
+    response = TestClient(app).get("/api/predictions?limit=10")
+    assert response.status_code == 200
+    assert response.json()["predictions"][0]["final_signal"] == "BULLISH"
+    assert response.json()["predictions"][0]["candle_finalized"] == 1
 
 
 def test_backend_cors_and_schema_contract(monkeypatch):
@@ -126,3 +137,4 @@ def test_confirmed_candle_endpoint_preserves_closed_candle_boundary(monkeypatch)
     assert response.status_code == 200
     assert fake.last["batch"] is False
     assert fake.last["predictions"][0]["close"] == 50.0
+    assert fake.last["finalized"] is True

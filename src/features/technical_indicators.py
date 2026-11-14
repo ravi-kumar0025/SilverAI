@@ -6,27 +6,10 @@ import numpy as np
 import pandas as pd
 
 from src.data.preprocessing import prepare_intraday_data
+from src.config import CONFIG
 
 
-FEATURE_COLUMNS = (
-    "return_1",
-    "return_3",
-    "return_6",
-    "volatility_5",
-    "volatility_20",
-    "volatility_50",
-    "sma_distance_20",
-    "sma_distance_50",
-    "candle_return",
-    "candle_range_pct",
-    "upper_wick_ratio",
-    "lower_wick_ratio",
-    "relative_volume",
-    "volume_change",
-    "hour_sin",
-    "hour_cos",
-    "day_of_week",
-)
+FEATURE_COLUMNS = CONFIG.feature_names
 
 _OHLCV_COLUMNS = ("open", "high", "low", "close", "volume")
 

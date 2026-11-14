@@ -24,3 +24,4 @@ _cors_value = os.getenv(
     "SILVERAI_CORS_ORIGINS", "http://localhost:3000,http://localhost:5173"
 )
 CORS_ORIGINS = [origin.strip() for origin in _cors_value.split(",") if origin.strip()]
+DATA_MODE = os.getenv("SILVERAI_DATA_MODE", "historical").strip().lower()

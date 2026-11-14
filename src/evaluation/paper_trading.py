@@ -25,7 +25,12 @@ def evaluate_paper_trades(
     equity = float(initial_capital)
     last_exit = None
     for prediction in sorted(predictions, key=lambda item: str(item.get("candle_timestamp", ""))):
-        direction = prediction.get("predicted_direction")
+        analytical_signal = str(prediction.get("final_signal") or "").upper()
+        direction = {"BULLISH": "UP", "BEARISH": "DOWN", "UP": "UP", "DOWN": "DOWN"}.get(analytical_signal)
+        if direction is None and not prediction.get("final_signal"):
+            # Legacy rows predate final_signal; preserve their historical result
+            # but never override a present non-actionable analytical state.
+            direction = prediction.get("predicted_direction")
         entry = prediction.get("close_price")
         exit_price = prediction.get("actual_price")
         if prediction.get("outcome_status") != "evaluated" or direction not in {"UP", "DOWN"}:
@@ -44,7 +49,7 @@ def evaluate_paper_trades(
         trades.append({
             "prediction_id": prediction.get("prediction_id"),
             "entry_timestamp": timestamp,
-            "exit_timestamp": prediction.get("outcome_evaluated_at"),
+            "exit_timestamp": prediction.get("outcome_timestamp") or prediction.get("outcome_evaluated_at"),
             "direction": direction,
             "entry_price": float(entry),
             "exit_price": float(exit_price),
@@ -69,4 +74,20 @@ def evaluate_paper_trades(
     }
 
 
-__all__ = ["evaluate_paper_trades"]
+def paper_cost_sensitivity(
+    predictions: Iterable[dict[str, Any]],
+    assumptions: Iterable[tuple[float, float]] = ((0.0, 0.0), (2.0, 1.0), (5.0, 3.0), (10.0, 5.0)),
+) -> list[dict[str, Any]]:
+    """Run the same historical signals under several cost assumptions."""
+
+    return [
+        evaluate_paper_trades(
+            predictions,
+            transaction_cost_bps=transaction_cost_bps,
+            slippage_bps=slippage_bps,
+        )
+        for transaction_cost_bps, slippage_bps in assumptions
+    ]
+
+
+__all__ = ["evaluate_paper_trades", "paper_cost_sensitivity"]
