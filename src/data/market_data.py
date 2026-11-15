@@ -14,9 +14,19 @@ from typing import Any, Iterable, Protocol
 
 import pandas as pd
 
-from src.data.loader import load_5m_data
-from src.data.preprocessing import validate_ohlcv
+from src.data.spot_data import load_candles
 from src.config import CONFIG
+
+
+def validate_ohlcv(frame: pd.DataFrame) -> pd.DataFrame:
+    """Validate spot OHLC rows without requiring or fabricating volume."""
+    numeric = frame[["open", "high", "low", "close"]].apply(pd.to_numeric, errors="coerce")
+    valid = numeric.notna().all(axis=1)
+    valid &= numeric["high"] >= numeric[["open", "close"]].max(axis=1)
+    valid &= numeric["low"] <= numeric[["open", "close"]].min(axis=1)
+    valid &= numeric["high"] >= numeric["low"]
+    valid &= numeric[["open", "high", "low", "close"]].gt(0).all(axis=1)
+    return pd.DataFrame({"valid": valid}, index=frame.index)
 
 
 @dataclass(frozen=True)
@@ -113,14 +123,18 @@ def validate_candles(frame: pd.DataFrame) -> pd.DataFrame:
 
 
 class HistoricalCsvProvider:
-    name = "silver_5m.csv"
+    name = "Dukascopy xagusd_1m.csv"
     is_live = False
 
     def __init__(self, data_dir: str | Path | None = None):
         self.data_dir = data_dir
 
     def frame(self) -> pd.DataFrame:
-        return validate_candles(load_5m_data(self.data_dir))
+        frame, _ = load_candles("xagusd", CONFIG.candle_minutes)
+        frame = frame.rename(columns={"timestamp": "datetime_et"})
+        if "volume" not in frame.columns:
+            frame["volume"] = 0.0
+        return validate_candles(frame)
 
     def candles(self, limit: int = 288) -> list[Candle]:
         if limit < 1:

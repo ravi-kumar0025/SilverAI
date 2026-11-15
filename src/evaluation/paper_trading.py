@@ -4,6 +4,8 @@ from __future__ import annotations
 
 from typing import Any, Iterable
 
+import pandas as pd
+
 
 def evaluate_paper_trades(
     predictions: Iterable[dict[str, Any]],
@@ -38,7 +40,19 @@ def evaluate_paper_trades(
         if entry is None or exit_price is None or entry <= 0:
             continue
         timestamp = prediction.get("candle_timestamp")
-        if last_exit is not None and timestamp <= last_exit:
+        outcome_timestamp = prediction.get("outcome_timestamp")
+        if not timestamp or not outcome_timestamp:
+            # outcome_evaluated_at records processing time, not the hypothetical
+            # market exit and must never define trade overlap or P&L boundaries.
+            continue
+        try:
+            entry_timestamp = pd.Timestamp(timestamp)
+            exit_timestamp = pd.Timestamp(outcome_timestamp)
+        except (TypeError, ValueError):
+            continue
+        if exit_timestamp <= entry_timestamp:
+            continue
+        if last_exit is not None and entry_timestamp < last_exit:
             continue
         raw_return = (float(exit_price) - float(entry)) / float(entry)
         directional_return = raw_return if direction == "UP" else -raw_return
@@ -48,8 +62,8 @@ def evaluate_paper_trades(
         equity += net_pnl
         trades.append({
             "prediction_id": prediction.get("prediction_id"),
-            "entry_timestamp": timestamp,
-            "exit_timestamp": prediction.get("outcome_timestamp") or prediction.get("outcome_evaluated_at"),
+            "entry_timestamp": entry_timestamp.isoformat(),
+            "exit_timestamp": exit_timestamp.isoformat(),
             "direction": direction,
             "entry_price": float(entry),
             "exit_price": float(exit_price),
@@ -57,7 +71,7 @@ def evaluate_paper_trades(
             "costs": costs,
             "net_pnl": net_pnl,
         })
-        last_exit = prediction.get("outcome_evaluated_at") or timestamp
+        last_exit = exit_timestamp
     net = equity - initial_capital
     return {
         "paper_only": True,

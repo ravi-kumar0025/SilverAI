@@ -116,6 +116,8 @@ def interpret_signal(
         "reliability_limitations": _unique(scenario_limitations + reliability_limitations),
         "timestamp": timestamp,
         "explanation": "Required prediction, scenario, or reliability inputs are incomplete.",
+        "trade_decision": "WAIT",
+        "decision_reason": "A directional forecast is not sufficient evidence for a trade decision.",
     }
     if not valid_scenarios:
         return base
@@ -175,6 +177,32 @@ def interpret_signal(
             "actionable_signal": "UP" if signal == "BULLISH" else "DOWN" if signal == "BEARISH" else "NO_CLEAR_SIGNAL",
         }
     )
+    probabilities = []
+    for name in ("probability_down", "probability_neutral", "probability_up"):
+        try:
+            probabilities.append(float(row.get(name)))
+        except (TypeError, ValueError):
+            probabilities = []
+            break
+    margin = None
+    if len(probabilities) == 3 and all(np.isfinite(probabilities)):
+        ordered = sorted(probabilities, reverse=True)
+        margin = ordered[0] - ordered[1]
+    threshold = confidence.get("threshold_pct") if isinstance(confidence, Mapping) else None
+    try:
+        threshold = abs(float(threshold))
+    except (TypeError, ValueError):
+        threshold = 0.0776397515528126
+    return_margin = margin is not None and margin >= 0.05
+    return_size = abs(float(predicted_return)) >= threshold
+    if signal in {"BULLISH", "BEARISH"} and not scenarios.get("model_disagreement") and return_margin and return_size:
+        base["trade_decision"] = "ACTIONABLE_LONG" if signal == "BULLISH" else "ACTIONABLE_SHORT"
+        base["decision_reason"] = "Classifier and regression agree, the probability margin is at least 5 points, and the forecast clears the neutral band."
+    else:
+        base["trade_decision"] = "WAIT"
+        base["decision_reason"] = "Wait: require model agreement, a 5-point probability margin, and a forecast beyond the neutral band."
+    base["probability_margin"] = margin
+    base["coverage_policy"] = "selective_actionable_signals"
     return base
 
 

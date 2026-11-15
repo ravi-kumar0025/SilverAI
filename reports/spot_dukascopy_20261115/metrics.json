@@ -1,0 +1,3973 @@
+{
+  "instrument": "XAGUSD_SPOT",
+  "symbol": "XAG/USD",
+  "source": "Dukascopy",
+  "price_side": "bid",
+  "dataset_id": "4be8732dbab3aaa6",
+  "feature_set_version": "xagusd_spot_34_v1",
+  "model_version": "xagusd_5m_60m_atr_binary_lgbm_v1",
+  "raw_data_quality": {
+    "xagusd": {
+      "instrument": "xagusd",
+      "source_files": 1,
+      "rows": 1334781,
+      "rows_before_deduplication": 1334781,
+      "duplicates_removed": 0,
+      "start": "2023-11-01 00:00:00+00:00",
+      "end": "2026-11-13 21:59:00+00:00",
+      "volume_available": false,
+      "median_gap_minutes": 1.0,
+      "max_gap_hours": 51.03333333333333,
+      "gaps_over_5m": 163
+    },
+    "xauusd": {
+      "instrument": "xauusd",
+      "source_files": 1,
+      "rows": 1334790,
+      "rows_before_deduplication": 1334790,
+      "duplicates_removed": 0,
+      "start": "2023-11-01 00:00:00+00:00",
+      "end": "2026-11-13 21:59:00+00:00",
+      "volume_available": false,
+      "median_gap_minutes": 1.0,
+      "max_gap_hours": 51.03333333333333,
+      "gaps_over_5m": 163
+    },
+    "eurusd": {
+      "instrument": "eurusd",
+      "source_files": 1,
+      "rows": 1342487,
+      "rows_before_deduplication": 1342487,
+      "duplicates_removed": 0,
+      "start": "2023-11-01 00:00:00+00:00",
+      "end": "2026-11-13 21:59:00+00:00",
+      "volume_available": false,
+      "median_gap_minutes": 1.0,
+      "max_gap_hours": 50.016666666666666,
+      "gaps_over_5m": 160
+    }
+  },
+  "alignment": {
+    "xagusd": {
+      "instrument": "xagusd",
+      "source_files": 1,
+      "rows": 1334781,
+      "rows_before_deduplication": 1334781,
+      "duplicates_removed": 0,
+      "start": "2023-11-01 00:00:00+00:00",
+      "end": "2026-11-13 21:59:00+00:00",
+      "volume_available": false,
+      "median_gap_minutes": 1.0,
+      "max_gap_hours": 51.03333333333333,
+      "gaps_over_5m": 163,
+      "candle_minutes": 5,
+      "complete_candles": 266937,
+      "candle_start": "2023-11-01 00:00:00+00:00",
+      "candle_end": "2026-11-13 21:55:00+00:00"
+    },
+    "xauusd": {
+      "instrument": "xauusd",
+      "source_files": 1,
+      "rows": 1334790,
+      "rows_before_deduplication": 1334790,
+      "duplicates_removed": 0,
+      "start": "2023-11-01 00:00:00+00:00",
+      "end": "2026-11-13 21:59:00+00:00",
+      "volume_available": false,
+      "median_gap_minutes": 1.0,
+      "max_gap_hours": 51.03333333333333,
+      "gaps_over_5m": 163,
+      "candle_minutes": 5,
+      "complete_candles": 266941,
+      "candle_start": "2023-11-01 00:00:00+00:00",
+      "candle_end": "2026-11-13 21:55:00+00:00"
+    },
+    "eurusd": {
+      "instrument": "eurusd",
+      "source_files": 1,
+      "rows": 1342487,
+      "rows_before_deduplication": 1342487,
+      "duplicates_removed": 0,
+      "start": "2023-11-01 00:00:00+00:00",
+      "end": "2026-11-13 21:59:00+00:00",
+      "volume_available": false,
+      "median_gap_minutes": 1.0,
+      "max_gap_hours": 50.016666666666666,
+      "gaps_over_5m": 160,
+      "candle_minutes": 5,
+      "complete_candles": 268489,
+      "candle_start": "2023-11-01 00:00:00+00:00",
+      "candle_end": "2026-11-13 21:55:00+00:00"
+    },
+    "aligned": {
+      "rows": 266937,
+      "cross_market_complete_rows": 266937,
+      "coverage_ratio": 1.0
+    }
+  },
+  "feature_count": 34,
+  "features": [
+    "ret_1",
+    "ret_5",
+    "ret_15",
+    "ret_60",
+    "range_pct",
+    "body_ratio",
+    "upper_wick",
+    "lower_wick",
+    "atr_14_pct",
+    "rv_20",
+    "vol_ratio",
+    "parkinson_20",
+    "rsi_14",
+    "macd_hist_c",
+    "bb_pctb",
+    "ema_dist_21",
+    "ema_dist_50",
+    "ema_dist_200",
+    "zscore_60",
+    "gold_ret_1",
+    "gold_ret_5",
+    "gold_ret_15",
+    "gsr",
+    "gsr_z",
+    "gsr_chg_5",
+    "eur_ret_5",
+    "lead_lag",
+    "corr_gold_50",
+    "hour_sin",
+    "hour_cos",
+    "dow_sin",
+    "dow_cos",
+    "is_overlap",
+    "mins_since_open"
+  ],
+  "core_features": [
+    "ret_1",
+    "ret_5",
+    "ret_15",
+    "ret_60",
+    "range_pct",
+    "body_ratio",
+    "upper_wick",
+    "lower_wick",
+    "atr_14_pct",
+    "rv_20",
+    "vol_ratio",
+    "parkinson_20",
+    "rsi_14",
+    "macd_hist_c",
+    "bb_pctb",
+    "ema_dist_21",
+    "ema_dist_50",
+    "ema_dist_200",
+    "zscore_60",
+    "hour_sin",
+    "hour_cos",
+    "dow_sin",
+    "dow_cos",
+    "is_overlap",
+    "mins_since_open"
+  ],
+  "cross_market_features": [
+    "gold_ret_1",
+    "gold_ret_5",
+    "gold_ret_15",
+    "gsr",
+    "gsr_z",
+    "gsr_chg_5",
+    "eur_ret_5",
+    "lead_lag",
+    "corr_gold_50"
+  ],
+  "candidate_results": {
+    "h3_k0.2": {
+      "labels": {
+        "horizon_bars": 3,
+        "horizon_minutes": 15,
+        "k": 0.2,
+        "rows_before": 266937,
+        "rows_dropped_no_move_or_warmup": 85959,
+        "rows_kept": 180978,
+        "up_fraction": 0.5124600780205328
+      },
+      "rows_after_alignment": 180978,
+      "rows_before_final_holdout": 173500,
+      "core": {
+        "features": [
+          "ret_1",
+          "ret_5",
+          "ret_15",
+          "ret_60",
+          "range_pct",
+          "body_ratio",
+          "upper_wick",
+          "lower_wick",
+          "atr_14_pct",
+          "rv_20",
+          "vol_ratio",
+          "parkinson_20",
+          "rsi_14",
+          "macd_hist_c",
+          "bb_pctb",
+          "ema_dist_21",
+          "ema_dist_50",
+          "ema_dist_200",
+          "zscore_60",
+          "hour_sin",
+          "hour_cos",
+          "dow_sin",
+          "dow_cos",
+          "is_overlap",
+          "mins_since_open"
+        ],
+        "feature_count": 25,
+        "folds": [
+          {
+            "raw": {
+              "n": 26022,
+              "accuracy": 0.525478441318884,
+              "balanced_accuracy": 0.5171014050113579,
+              "auc": 0.5265216828898103,
+              "log_loss": 0.691168174291361,
+              "brier": 0.24900251126799489,
+              "macro_f1": 0.5141821615639057,
+              "up_rate": 0.6159787871800784
+            },
+            "calibrated": {
+              "n": 26022,
+              "accuracy": 0.5353162708477442,
+              "balanced_accuracy": 0.5124077062103326,
+              "auc": 0.5265216828898103,
+              "log_loss": 0.689725975946131,
+              "brier": 0.2482835423181243,
+              "macro_f1": 0.4699527310627102,
+              "up_rate": 0.8146568288371379
+            },
+            "flip_test": {
+              "accuracy": 0.47452155868111595
+            },
+            "shuffled_label_test": {
+              "n": 26022,
+              "accuracy": 0.5262085927292292,
+              "balanced_accuracy": 0.5054261572151367,
+              "auc": 0.5042927928245468,
+              "log_loss": 0.6920493212079981,
+              "brier": 0.24945069479319318,
+              "macro_f1": 0.47157755514133326,
+              "up_rate": 0.7850280531857659
+            },
+            "baselines": {
+              "always_up": {
+                "accuracy": 0.5365075705172546
+              },
+              "always_down": {
+                "accuracy": 0.4634924294827454
+              },
+              "majority": {
+                "accuracy": 0.5365075705172546
+              },
+              "rsi_rule": {
+                "signals": 6501,
+                "coverage": 0.24982706940281302,
+                "accuracy": 0.5119212428857098
+              }
+            },
+            "train_rows": 86744,
+            "calibration_rows": 17347,
+            "validation_rows": 26022
+          },
+          {
+            "raw": {
+              "n": 26022,
+              "accuracy": 0.517792636999462,
+              "balanced_accuracy": 0.5119859206465502,
+              "auc": 0.5223436660216435,
+              "log_loss": 0.6925317317497433,
+              "brier": 0.24969581126023488,
+              "macro_f1": 0.48693182632402376,
+              "up_rate": 0.7327645838136961
+            },
+            "calibrated": {
+              "n": 26022,
+              "accuracy": 0.5122972869110752,
+              "balanced_accuracy": 0.49997390361120586,
+              "auc": 0.5223436660216435,
+              "log_loss": 0.6938546140502858,
+              "brier": 0.25035617619973927,
+              "macro_f1": 0.3445954240902815,
+              "up_rate": 0.9933517792637
+            },
+            "flip_test": {
+              "accuracy": 0.482207363000538
+            },
+            "shuffled_label_test": {
+              "n": 26022,
+              "accuracy": 0.5031127507493659,
+              "balanced_accuracy": 0.4941886504458528,
+              "auc": 0.49806519659334725,
+              "log_loss": 0.6936418791581757,
+              "brier": 0.25024714193590747,
+              "macro_f1": 0.4244915012105941,
+              "up_rate": 0.8571208977019446
+            },
+            "baselines": {
+              "always_up": {
+                "accuracy": 0.5124894320190608
+              },
+              "always_down": {
+                "accuracy": 0.4875105679809392
+              },
+              "majority": {
+                "accuracy": 0.5124894320190608
+              },
+              "rsi_rule": {
+                "signals": 6341,
+                "coverage": 0.24367842594727537,
+                "accuracy": 0.5317773221889291
+              }
+            },
+            "train_rows": 112769,
+            "calibration_rows": 17347,
+            "validation_rows": 26022
+          },
+          {
+            "raw": {
+              "n": 17347,
+              "accuracy": 0.4988758863204012,
+              "balanced_accuracy": 0.5080917325003664,
+              "auc": 0.5309497862915337,
+              "log_loss": 0.6947686919412183,
+              "brier": 0.2508446980230802,
+              "macro_f1": 0.42752898616837864,
+              "up_rate": 0.865625180146423
+            },
+            "calibrated": {
+              "n": 17347,
+              "accuracy": 0.5168040583386176,
+              "balanced_accuracy": 0.517589981147048,
+              "auc": 0.5309497862915337,
+              "log_loss": 0.6910221328838726,
+              "brier": 0.2489565058055511,
+              "macro_f1": 0.516644676491111,
+              "up_rate": 0.5307545973367153
+            },
+            "flip_test": {
+              "accuracy": 0.5011241136795987
+            },
+            "shuffled_label_test": {
+              "n": 17347,
+              "accuracy": 0.4864241655617686,
+              "balanced_accuracy": 0.4975270031893332,
+              "auc": 0.5052231748456343,
+              "log_loss": 0.6951877037032885,
+              "brier": 0.2510191407469764,
+              "macro_f1": 0.37111420670905576,
+              "up_rate": 0.940796679541131
+            },
+            "baselines": {
+              "always_up": {
+                "accuracy": 0.4874041621029573
+              },
+              "always_down": {
+                "accuracy": 0.5125958378970427
+              },
+              "majority": {
+                "accuracy": 0.4874041621029573
+              },
+              "rsi_rule": {
+                "signals": 4134,
+                "coverage": 0.2383121000749409,
+                "accuracy": 0.5408805031446541
+              }
+            },
+            "train_rows": 138794,
+            "calibration_rows": 8672,
+            "validation_rows": 17347
+          }
+        ],
+        "mean_accuracy": 0.5214725386991458,
+        "mean_auc": 0.5266050450676625
+      },
+      "core_plus_cross": {
+        "features": [
+          "ret_1",
+          "ret_5",
+          "ret_15",
+          "ret_60",
+          "range_pct",
+          "body_ratio",
+          "upper_wick",
+          "lower_wick",
+          "atr_14_pct",
+          "rv_20",
+          "vol_ratio",
+          "parkinson_20",
+          "rsi_14",
+          "macd_hist_c",
+          "bb_pctb",
+          "ema_dist_21",
+          "ema_dist_50",
+          "ema_dist_200",
+          "zscore_60",
+          "gold_ret_1",
+          "gold_ret_5",
+          "gold_ret_15",
+          "gsr",
+          "gsr_z",
+          "gsr_chg_5",
+          "eur_ret_5",
+          "lead_lag",
+          "corr_gold_50",
+          "hour_sin",
+          "hour_cos",
+          "dow_sin",
+          "dow_cos",
+          "is_overlap",
+          "mins_since_open"
+        ],
+        "feature_count": 34,
+        "folds": [
+          {
+            "raw": {
+              "n": 26022,
+              "accuracy": 0.5236338482822227,
+              "balanced_accuracy": 0.5166348275643745,
+              "auc": 0.5252707476815693,
+              "log_loss": 0.6913546681395053,
+              "brier": 0.24910098374526954,
+              "macro_f1": 0.5149794205323814,
+              "up_rate": 0.5970717085543003
+            },
+            "calibrated": {
+              "n": 26022,
+              "accuracy": 0.5366997156252402,
+              "balanced_accuracy": 0.5122075561019085,
+              "auc": 0.5252707476815693,
+              "log_loss": 0.6895368673326682,
+              "brier": 0.24820216591621075,
+              "macro_f1": 0.461899151666041,
+              "up_rate": 0.8363307970179079
+            },
+            "flip_test": {
+              "accuracy": 0.47636615171777724
+            },
+            "shuffled_label_test": {
+              "n": 26022,
+              "accuracy": 0.5293597725001922,
+              "balanced_accuracy": 0.510207804000129,
+              "auc": 0.514803054983596,
+              "log_loss": 0.6915596735591101,
+              "brier": 0.24920617898503433,
+              "macro_f1": 0.48296479020990446,
+              "up_rate": 0.7630466528322188
+            },
+            "baselines": {
+              "always_up": {
+                "accuracy": 0.5365075705172546
+              },
+              "always_down": {
+                "accuracy": 0.4634924294827454
+              },
+              "majority": {
+                "accuracy": 0.5365075705172546
+              },
+              "rsi_rule": {
+                "signals": 6501,
+                "coverage": 0.24982706940281302,
+                "accuracy": 0.5119212428857098
+              }
+            },
+            "train_rows": 86744,
+            "calibration_rows": 17347,
+            "validation_rows": 26022
+          },
+          {
+            "raw": {
+              "n": 26022,
+              "accuracy": 0.5199446622089001,
+              "balanced_accuracy": 0.516978564715876,
+              "auc": 0.5229951093180387,
+              "log_loss": 0.6921197425033646,
+              "brier": 0.24949709000098047,
+              "macro_f1": 0.5114767050965594,
+              "up_rate": 0.6191683959726385
+            },
+            "calibrated": {
+              "n": 26022,
+              "accuracy": 0.5132964414726001,
+              "balanced_accuracy": 0.5009160512214127,
+              "auc": 0.5229951093180387,
+              "log_loss": 0.6934793563118447,
+              "brier": 0.25016878616986915,
+              "macro_f1": 0.3438766491732561,
+              "up_rate": 0.9956575205595266
+            },
+            "flip_test": {
+              "accuracy": 0.4800553377910998
+            },
+            "shuffled_label_test": {
+              "n": 26022,
+              "accuracy": 0.49965413880562604,
+              "balanced_accuracy": 0.49258935261662784,
+              "auc": 0.497470367387976,
+              "log_loss": 0.693936081099124,
+              "brier": 0.2503929416897034,
+              "macro_f1": 0.4519132622828417,
+              "up_rate": 0.7826454538467451
+            },
+            "baselines": {
+              "always_up": {
+                "accuracy": 0.5124894320190608
+              },
+              "always_down": {
+                "accuracy": 0.4875105679809392
+              },
+              "majority": {
+                "accuracy": 0.5124894320190608
+              },
+              "rsi_rule": {
+                "signals": 6341,
+                "coverage": 0.24367842594727537,
+                "accuracy": 0.5317773221889291
+              }
+            },
+            "train_rows": 112769,
+            "calibration_rows": 17347,
+            "validation_rows": 26022
+          },
+          {
+            "raw": {
+              "n": 17347,
+              "accuracy": 0.49818412405603274,
+              "balanced_accuracy": 0.5081348213518527,
+              "auc": 0.5294918149138634,
+              "log_loss": 0.6960417461162063,
+              "brier": 0.2514600549067757,
+              "macro_f1": 0.41234142192089945,
+              "up_rate": 0.8947944889606272
+            },
+            "calibrated": {
+              "n": 17347,
+              "accuracy": 0.5182452297227186,
+              "balanced_accuracy": 0.5196670912371681,
+              "auc": 0.5294918149138634,
+              "log_loss": 0.6915746992891657,
+              "brier": 0.24922079191096566,
+              "macro_f1": 0.5173381825622763,
+              "up_rate": 0.5559462731308007
+            },
+            "flip_test": {
+              "accuracy": 0.5018158759439673
+            },
+            "shuffled_label_test": {
+              "n": 17347,
+              "accuracy": 0.487000634115409,
+              "balanced_accuracy": 0.4976301131682563,
+              "auc": 0.49993566267182,
+              "log_loss": 0.6954019578242184,
+              "brier": 0.25112461369954014,
+              "macro_f1": 0.3836994972912109,
+              "up_rate": 0.922003804692454
+            },
+            "baselines": {
+              "always_up": {
+                "accuracy": 0.4874041621029573
+              },
+              "always_down": {
+                "accuracy": 0.5125958378970427
+              },
+              "majority": {
+                "accuracy": 0.4874041621029573
+              },
+              "rsi_rule": {
+                "signals": 4134,
+                "coverage": 0.2383121000749409,
+                "accuracy": 0.5408805031446541
+              }
+            },
+            "train_rows": 138794,
+            "calibration_rows": 8672,
+            "validation_rows": 17347
+          }
+        ],
+        "mean_accuracy": 0.5227471289401863,
+        "mean_auc": 0.5259192239711571
+      }
+    },
+    "h3_k0.3": {
+      "labels": {
+        "horizon_bars": 3,
+        "horizon_minutes": 15,
+        "k": 0.3,
+        "rows_before": 266937,
+        "rows_dropped_no_move_or_warmup": 103154,
+        "rows_kept": 163783,
+        "up_fraction": 0.5123913959324228
+      },
+      "rows_after_alignment": 163783,
+      "rows_before_final_holdout": 156969,
+      "core": {
+        "features": [
+          "ret_1",
+          "ret_5",
+          "ret_15",
+          "ret_60",
+          "range_pct",
+          "body_ratio",
+          "upper_wick",
+          "lower_wick",
+          "atr_14_pct",
+          "rv_20",
+          "vol_ratio",
+          "parkinson_20",
+          "rsi_14",
+          "macd_hist_c",
+          "bb_pctb",
+          "ema_dist_21",
+          "ema_dist_50",
+          "ema_dist_200",
+          "zscore_60",
+          "hour_sin",
+          "hour_cos",
+          "dow_sin",
+          "dow_cos",
+          "is_overlap",
+          "mins_since_open"
+        ],
+        "feature_count": 25,
+        "folds": [
+          {
+            "raw": {
+              "n": 23542,
+              "accuracy": 0.5234899328859061,
+              "balanced_accuracy": 0.5162723772566751,
+              "auc": 0.5295935023291312,
+              "log_loss": 0.6910284787655484,
+              "brier": 0.2489321351983672,
+              "macro_f1": 0.5142204916815454,
+              "up_rate": 0.6025401410245519
+            },
+            "calibrated": {
+              "n": 23542,
+              "accuracy": 0.5338543879024722,
+              "balanced_accuracy": 0.5139908362746475,
+              "auc": 0.5295935023291312,
+              "log_loss": 0.6897759021333567,
+              "brier": 0.24830781987088324,
+              "macro_f1": 0.48228635987452423,
+              "up_rate": 0.7800101945459179
+            },
+            "flip_test": {
+              "accuracy": 0.47651006711409394
+            },
+            "shuffled_label_test": {
+              "n": 23542,
+              "accuracy": 0.5155466825248493,
+              "balanced_accuracy": 0.49604882541225787,
+              "auc": 0.49559708363467525,
+              "log_loss": 0.6928721687043269,
+              "brier": 0.24986088563512035,
+              "macro_f1": 0.46433748319970436,
+              "up_rate": 0.7735961260725512
+            },
+            "baselines": {
+              "always_up": {
+                "accuracy": 0.5355959561634526
+              },
+              "always_down": {
+                "accuracy": 0.46440404383654743
+              },
+              "majority": {
+                "accuracy": 0.5355959561634526
+              },
+              "rsi_rule": {
+                "signals": 5950,
+                "coverage": 0.25273978421544474,
+                "accuracy": 0.5149579831932773
+              }
+            },
+            "train_rows": 78478,
+            "calibration_rows": 15693,
+            "validation_rows": 23542
+          },
+          {
+            "raw": {
+              "n": 23542,
+              "accuracy": 0.5146971370316881,
+              "balanced_accuracy": 0.5095087305821782,
+              "auc": 0.5231914429353408,
+              "log_loss": 0.6928230332376472,
+              "brier": 0.24984354604583814,
+              "macro_f1": 0.4849580050511455,
+              "up_rate": 0.7289525104069323
+            },
+            "calibrated": {
+              "n": 23542,
+              "accuracy": 0.5118511596295982,
+              "balanced_accuracy": 0.5006719420721725,
+              "auc": 0.5231914429353408,
+              "log_loss": 0.6939385676885403,
+              "brier": 0.25039781846299497,
+              "macro_f1": 0.3454493804720108,
+              "up_rate": 0.9928638178574463
+            },
+            "flip_test": {
+              "accuracy": 0.48530286296831193
+            },
+            "shuffled_label_test": {
+              "n": 23542,
+              "accuracy": 0.4967717271259876,
+              "balanced_accuracy": 0.4924686871846016,
+              "auc": 0.49515535066170846,
+              "log_loss": 0.6942439807537518,
+              "brier": 0.25054638009599267,
+              "macro_f1": 0.47561227419374846,
+              "up_rate": 0.6895335995242545
+            },
+            "baselines": {
+              "always_up": {
+                "accuracy": 0.5113414323337014
+              },
+              "always_down": {
+                "accuracy": 0.4886585676662985
+              },
+              "majority": {
+                "accuracy": 0.5113414323337014
+              },
+              "rsi_rule": {
+                "signals": 5776,
+                "coverage": 0.24534873842494265,
+                "accuracy": 0.5323753462603878
+              }
+            },
+            "train_rows": 102023,
+            "calibration_rows": 15693,
+            "validation_rows": 23542
+          },
+          {
+            "raw": {
+              "n": 15693,
+              "accuracy": 0.5011151468807749,
+              "balanced_accuracy": 0.5100901280953466,
+              "auc": 0.5332670396820219,
+              "log_loss": 0.6946702212665125,
+              "brier": 0.25079391680771773,
+              "macro_f1": 0.43589536186879185,
+              "up_rate": 0.8527368890588161
+            },
+            "calibrated": {
+              "n": 15693,
+              "accuracy": 0.522334798954948,
+              "balanced_accuracy": 0.5218215396815507,
+              "auc": 0.5332670396820219,
+              "log_loss": 0.6906786211648357,
+              "brier": 0.24878518745180273,
+              "macro_f1": 0.5217995983521981,
+              "up_rate": 0.4792582680175875
+            },
+            "flip_test": {
+              "accuracy": 0.49888485311922515
+            },
+            "shuffled_label_test": {
+              "n": 15693,
+              "accuracy": 0.4876059389536736,
+              "balanced_accuracy": 0.4984917052565637,
+              "auc": 0.5058199093930964,
+              "log_loss": 0.6951523071564281,
+              "brier": 0.25100094760682284,
+              "macro_f1": 0.380705209493947,
+              "up_rate": 0.9281845408780985
+            },
+            "baselines": {
+              "always_up": {
+                "accuracy": 0.4872873255591665
+              },
+              "always_down": {
+                "accuracy": 0.5127126744408335
+              },
+              "majority": {
+                "accuracy": 0.4872873255591665
+              },
+              "rsi_rule": {
+                "signals": 3768,
+                "coverage": 0.24010705410055438,
+                "accuracy": 0.5382165605095541
+              }
+            },
+            "train_rows": 125569,
+            "calibration_rows": 7845,
+            "validation_rows": 15693
+          }
+        ],
+        "mean_accuracy": 0.5226801154956727,
+        "mean_auc": 0.5286839949821647
+      },
+      "core_plus_cross": {
+        "features": [
+          "ret_1",
+          "ret_5",
+          "ret_15",
+          "ret_60",
+          "range_pct",
+          "body_ratio",
+          "upper_wick",
+          "lower_wick",
+          "atr_14_pct",
+          "rv_20",
+          "vol_ratio",
+          "parkinson_20",
+          "rsi_14",
+          "macd_hist_c",
+          "bb_pctb",
+          "ema_dist_21",
+          "ema_dist_50",
+          "ema_dist_200",
+          "zscore_60",
+          "gold_ret_1",
+          "gold_ret_5",
+          "gold_ret_15",
+          "gsr",
+          "gsr_z",
+          "gsr_chg_5",
+          "eur_ret_5",
+          "lead_lag",
+          "corr_gold_50",
+          "hour_sin",
+          "hour_cos",
+          "dow_sin",
+          "dow_cos",
+          "is_overlap",
+          "mins_since_open"
+        ],
+        "feature_count": 34,
+        "folds": [
+          {
+            "raw": {
+              "n": 23542,
+              "accuracy": 0.5262934330133379,
+              "balanced_accuracy": 0.520275541556417,
+              "auc": 0.5297787233855492,
+              "log_loss": 0.691076627145898,
+              "brier": 0.24896257910899977,
+              "macro_f1": 0.5191873806119874,
+              "up_rate": 0.5859740039079092
+            },
+            "calibrated": {
+              "n": 23542,
+              "accuracy": 0.5358508198114009,
+              "balanced_accuracy": 0.5123956980432014,
+              "auc": 0.5297787233855492,
+              "log_loss": 0.6893706514468255,
+              "brier": 0.24812094405077073,
+              "macro_f1": 0.46408459638797467,
+              "up_rate": 0.8303457650157166
+            },
+            "flip_test": {
+              "accuracy": 0.47370656698666214
+            },
+            "shuffled_label_test": {
+              "n": 23542,
+              "accuracy": 0.5189448644974939,
+              "balanced_accuracy": 0.49848561738022384,
+              "auc": 0.49892354383668125,
+              "log_loss": 0.6925874216475175,
+              "brier": 0.24971906051363957,
+              "macro_f1": 0.46296133014960444,
+              "up_rate": 0.7872738085124459
+            },
+            "baselines": {
+              "always_up": {
+                "accuracy": 0.5355959561634526
+              },
+              "always_down": {
+                "accuracy": 0.46440404383654743
+              },
+              "majority": {
+                "accuracy": 0.5355959561634526
+              },
+              "rsi_rule": {
+                "signals": 5950,
+                "coverage": 0.25273978421544474,
+                "accuracy": 0.5149579831932773
+              }
+            },
+            "train_rows": 78478,
+            "calibration_rows": 15693,
+            "validation_rows": 23542
+          },
+          {
+            "raw": {
+              "n": 23542,
+              "accuracy": 0.5178829326310423,
+              "balanced_accuracy": 0.5152902962477883,
+              "auc": 0.5266756359555428,
+              "log_loss": 0.6918665307963248,
+              "brier": 0.2493716017098809,
+              "macro_f1": 0.510106921270987,
+              "up_rate": 0.6146461643020984
+            },
+            "calibrated": {
+              "n": 23542,
+              "accuracy": 0.5121060232775465,
+              "balanced_accuracy": 0.5009616409996069,
+              "auc": 0.5266756359555428,
+              "log_loss": 0.6933891412066181,
+              "brier": 0.250125830431915,
+              "macro_f1": 0.3471389963713748,
+              "up_rate": 0.9913346359697561
+            },
+            "flip_test": {
+              "accuracy": 0.4821170673689576
+            },
+            "shuffled_label_test": {
+              "n": 23542,
+              "accuracy": 0.5039928638178575,
+              "balanced_accuracy": 0.4990225955776111,
+              "auc": 0.5012465451891911,
+              "log_loss": 0.6938872758526825,
+              "brier": 0.2503680271063193,
+              "macro_f1": 0.4761766762477577,
+              "up_rate": 0.7190977826862629
+            },
+            "baselines": {
+              "always_up": {
+                "accuracy": 0.5113414323337014
+              },
+              "always_down": {
+                "accuracy": 0.4886585676662985
+              },
+              "majority": {
+                "accuracy": 0.5113414323337014
+              },
+              "rsi_rule": {
+                "signals": 5776,
+                "coverage": 0.24534873842494265,
+                "accuracy": 0.5323753462603878
+              }
+            },
+            "train_rows": 102023,
+            "calibration_rows": 15693,
+            "validation_rows": 23542
+          },
+          {
+            "raw": {
+              "n": 15693,
+              "accuracy": 0.4963996686420697,
+              "balanced_accuracy": 0.5061497848727213,
+              "auc": 0.5311888964854597,
+              "log_loss": 0.6954771137603734,
+              "brier": 0.2511820893424187,
+              "macro_f1": 0.41621533405214417,
+              "up_rate": 0.8833237749314982
+            },
+            "calibrated": {
+              "n": 15693,
+              "accuracy": 0.5211877907347224,
+              "balanced_accuracy": 0.5204662734197938,
+              "auc": 0.5311888964854597,
+              "log_loss": 0.6911387831876878,
+              "brier": 0.2490054546481457,
+              "macro_f1": 0.5203573048647467,
+              "up_rate": 0.47110176511820556
+            },
+            "flip_test": {
+              "accuracy": 0.5036003313579303
+            },
+            "shuffled_label_test": {
+              "n": 15693,
+              "accuracy": 0.482826738036067,
+              "balanced_accuracy": 0.4930203945984578,
+              "auc": 0.49743529595631963,
+              "log_loss": 0.6952383688835383,
+              "brier": 0.2510440949398399,
+              "macro_f1": 0.39095427253237575,
+              "up_rate": 0.9011024023449946
+            },
+            "baselines": {
+              "always_up": {
+                "accuracy": 0.4872873255591665
+              },
+              "always_down": {
+                "accuracy": 0.5127126744408335
+              },
+              "majority": {
+                "accuracy": 0.4872873255591665
+              },
+              "rsi_rule": {
+                "signals": 3768,
+                "coverage": 0.24010705410055438,
+                "accuracy": 0.5382165605095541
+              }
+            },
+            "train_rows": 125569,
+            "calibration_rows": 7845,
+            "validation_rows": 15693
+          }
+        ],
+        "mean_accuracy": 0.5230482112745566,
+        "mean_auc": 0.5292144186088507
+      }
+    },
+    "h3_k0.5": {
+      "labels": {
+        "horizon_bars": 3,
+        "horizon_minutes": 15,
+        "k": 0.5,
+        "rows_before": 266937,
+        "rows_dropped_no_move_or_warmup": 135075,
+        "rows_kept": 131862,
+        "up_fraction": 0.5121035628156709
+      },
+      "rows_after_alignment": 131862,
+      "rows_before_final_holdout": 126255,
+      "core": {
+        "features": [
+          "ret_1",
+          "ret_5",
+          "ret_15",
+          "ret_60",
+          "range_pct",
+          "body_ratio",
+          "upper_wick",
+          "lower_wick",
+          "atr_14_pct",
+          "rv_20",
+          "vol_ratio",
+          "parkinson_20",
+          "rsi_14",
+          "macd_hist_c",
+          "bb_pctb",
+          "ema_dist_21",
+          "ema_dist_50",
+          "ema_dist_200",
+          "zscore_60",
+          "hour_sin",
+          "hour_cos",
+          "dow_sin",
+          "dow_cos",
+          "is_overlap",
+          "mins_since_open"
+        ],
+        "feature_count": 25,
+        "folds": [
+          {
+            "raw": {
+              "n": 18935,
+              "accuracy": 0.5246369157644574,
+              "balanced_accuracy": 0.5168420173547619,
+              "auc": 0.5293062925776167,
+              "log_loss": 0.6908263508564209,
+              "brier": 0.24883749526388982,
+              "macro_f1": 0.5150080402855646,
+              "up_rate": 0.6023237391074729
+            },
+            "calibrated": {
+              "n": 18935,
+              "accuracy": 0.5344599947187748,
+              "balanced_accuracy": 0.5145161231671506,
+              "auc": 0.5293062925776167,
+              "log_loss": 0.6893505372334928,
+              "brier": 0.2481016080187719,
+              "macro_f1": 0.48902955853292546,
+              "up_rate": 0.7595986268814365
+            },
+            "flip_test": {
+              "accuracy": 0.47536308423554263
+            },
+            "shuffled_label_test": {
+              "n": 18935,
+              "accuracy": 0.5148666490625825,
+              "balanced_accuracy": 0.49708055874255164,
+              "auc": 0.49923856839117914,
+              "log_loss": 0.69276132677644,
+              "brier": 0.24980617079631456,
+              "macro_f1": 0.47706382349488335,
+              "up_rate": 0.7302878267758119
+            },
+            "baselines": {
+              "always_up": {
+                "accuracy": 0.5385793504092949
+              },
+              "always_down": {
+                "accuracy": 0.46142064959070506
+              },
+              "majority": {
+                "accuracy": 0.5385793504092949
+              },
+              "rsi_rule": {
+                "signals": 4881,
+                "coverage": 0.25777660417216797,
+                "accuracy": 0.5148535136242574
+              }
+            },
+            "train_rows": 63121,
+            "calibration_rows": 12622,
+            "validation_rows": 18935
+          },
+          {
+            "raw": {
+              "n": 18935,
+              "accuracy": 0.5150250858199102,
+              "balanced_accuracy": 0.5120935455521922,
+              "auc": 0.5203114372201376,
+              "log_loss": 0.6933714428613962,
+              "brier": 0.25012205992089004,
+              "macro_f1": 0.49788911852365536,
+              "up_rate": 0.676419329284394
+            },
+            "calibrated": {
+              "n": 18935,
+              "accuracy": 0.5081594930023765,
+              "balanced_accuracy": 0.49990391563323894,
+              "auc": 0.5203114372201376,
+              "log_loss": 0.6946751317115741,
+              "brier": 0.2507666837019451,
+              "macro_f1": 0.3401752965738091,
+              "up_rate": 0.9962503300765778
+            },
+            "flip_test": {
+              "accuracy": 0.48497491418008976
+            },
+            "shuffled_label_test": {
+              "n": 18935,
+              "accuracy": 0.5043570108265117,
+              "balanced_accuracy": 0.49954887218045113,
+              "auc": 0.5013296915758785,
+              "log_loss": 0.6937873492318853,
+              "brier": 0.2503186675342869,
+              "macro_f1": 0.45628922584040854,
+              "up_rate": 0.7890150514919462
+            },
+            "baselines": {
+              "always_up": {
+                "accuracy": 0.5083179297597042
+              },
+              "always_down": {
+                "accuracy": 0.49168207024029575
+              },
+              "majority": {
+                "accuracy": 0.5083179297597042
+              },
+              "rsi_rule": {
+                "signals": 4721,
+                "coverage": 0.24932664378135727,
+                "accuracy": 0.528913365812328
+              }
+            },
+            "train_rows": 82059,
+            "calibration_rows": 12622,
+            "validation_rows": 18935
+          },
+          {
+            "raw": {
+              "n": 12622,
+              "accuracy": 0.5009507209633972,
+              "balanced_accuracy": 0.5102736894218695,
+              "auc": 0.5338218480932364,
+              "log_loss": 0.6947472910082222,
+              "brier": 0.25084570365669107,
+              "macro_f1": 0.4389801004550912,
+              "up_rate": 0.8458247504357471
+            },
+            "calibrated": {
+              "n": 12622,
+              "accuracy": 0.5301853905878625,
+              "balanced_accuracy": 0.5251030149105445,
+              "auc": 0.5338218480932364,
+              "log_loss": 0.6905254180014209,
+              "brier": 0.24869985221861063,
+              "macro_f1": 0.5100299104582022,
+              "up_rate": 0.31064807479004913
+            },
+            "flip_test": {
+              "accuracy": 0.49904927903660273
+            },
+            "shuffled_label_test": {
+              "n": 12622,
+              "accuracy": 0.4845507843447948,
+              "balanced_accuracy": 0.4947438833958575,
+              "auc": 0.49966653116354465,
+              "log_loss": 0.6954619361204614,
+              "brier": 0.2511559972525986,
+              "macro_f1": 0.4052867435557131,
+              "up_rate": 0.8785453969260022
+            },
+            "baselines": {
+              "always_up": {
+                "accuracy": 0.48653145301853906
+              },
+              "always_down": {
+                "accuracy": 0.5134685469814609
+              },
+              "majority": {
+                "accuracy": 0.48653145301853906
+              },
+              "rsi_rule": {
+                "signals": 3056,
+                "coverage": 0.24211693867849787,
+                "accuracy": 0.5418848167539267
+              }
+            },
+            "train_rows": 100998,
+            "calibration_rows": 6309,
+            "validation_rows": 12622
+          }
+        ],
+        "mean_accuracy": 0.5242682927696712,
+        "mean_auc": 0.5278131926303302
+      },
+      "core_plus_cross": {
+        "features": [
+          "ret_1",
+          "ret_5",
+          "ret_15",
+          "ret_60",
+          "range_pct",
+          "body_ratio",
+          "upper_wick",
+          "lower_wick",
+          "atr_14_pct",
+          "rv_20",
+          "vol_ratio",
+          "parkinson_20",
+          "rsi_14",
+          "macd_hist_c",
+          "bb_pctb",
+          "ema_dist_21",
+          "ema_dist_50",
+          "ema_dist_200",
+          "zscore_60",
+          "gold_ret_1",
+          "gold_ret_5",
+          "gold_ret_15",
+          "gsr",
+          "gsr_z",
+          "gsr_chg_5",
+          "eur_ret_5",
+          "lead_lag",
+          "corr_gold_50",
+          "hour_sin",
+          "hour_cos",
+          "dow_sin",
+          "dow_cos",
+          "is_overlap",
+          "mins_since_open"
+        ],
+        "feature_count": 34,
+        "folds": [
+          {
+            "raw": {
+              "n": 18935,
+              "accuracy": 0.5162397676260893,
+              "balanced_accuracy": 0.5127521654731789,
+              "auc": 0.5224550972129876,
+              "log_loss": 0.6922778919964673,
+              "brier": 0.2495610515595665,
+              "macro_f1": 0.5127388552925596,
+              "up_rate": 0.5461843147610246
+            },
+            "calibrated": {
+              "n": 18935,
+              "accuracy": 0.5317665698442039,
+              "balanced_accuracy": 0.5102119276732059,
+              "auc": 0.5224550972129876,
+              "log_loss": 0.6897655826539502,
+              "brier": 0.2483189542836652,
+              "macro_f1": 0.47882354949970973,
+              "up_rate": 0.780142593081595
+            },
+            "flip_test": {
+              "accuracy": 0.48376023237391075
+            },
+            "shuffled_label_test": {
+              "n": 18935,
+              "accuracy": 0.5101135463427515,
+              "balanced_accuracy": 0.49771830337996015,
+              "auc": 0.494765820568695,
+              "log_loss": 0.6938255560013024,
+              "brier": 0.25033566909480903,
+              "macro_f1": 0.4899031758197303,
+              "up_rate": 0.6604700290467388
+            },
+            "baselines": {
+              "always_up": {
+                "accuracy": 0.5385793504092949
+              },
+              "always_down": {
+                "accuracy": 0.46142064959070506
+              },
+              "majority": {
+                "accuracy": 0.5385793504092949
+              },
+              "rsi_rule": {
+                "signals": 4881,
+                "coverage": 0.25777660417216797,
+                "accuracy": 0.5148535136242574
+              }
+            },
+            "train_rows": 63121,
+            "calibration_rows": 12622,
+            "validation_rows": 18935
+          },
+          {
+            "raw": {
+              "n": 18935,
+              "accuracy": 0.5097438605756536,
+              "balanced_accuracy": 0.5096019919929694,
+              "auc": 0.5138343744333003,
+              "log_loss": 0.6935084028228597,
+              "brier": 0.25019660711499153,
+              "macro_f1": 0.5096020430915233,
+              "up_rate": 0.5086876155268022
+            },
+            "calibrated": {
+              "n": 18935,
+              "accuracy": 0.5083179297597042,
+              "balanced_accuracy": 0.5,
+              "auc": 0.5138343744333003,
+              "log_loss": 0.6948318371692699,
+              "brier": 0.2508408579435827,
+              "macro_f1": 0.33700980392156865,
+              "up_rate": 1.0
+            },
+            "flip_test": {
+              "accuracy": 0.4902561394243464
+            },
+            "shuffled_label_test": {
+              "n": 18935,
+              "accuracy": 0.5090573012939001,
+              "balanced_accuracy": 0.5050088858509911,
+              "auc": 0.5055069119924115,
+              "log_loss": 0.6935190530010218,
+              "brier": 0.2501849274016416,
+              "macro_f1": 0.47583516409115423,
+              "up_rate": 0.743438077634011
+            },
+            "baselines": {
+              "always_up": {
+                "accuracy": 0.5083179297597042
+              },
+              "always_down": {
+                "accuracy": 0.49168207024029575
+              },
+              "majority": {
+                "accuracy": 0.5083179297597042
+              },
+              "rsi_rule": {
+                "signals": 4721,
+                "coverage": 0.24932664378135727,
+                "accuracy": 0.528913365812328
+              }
+            },
+            "train_rows": 82059,
+            "calibration_rows": 12622,
+            "validation_rows": 18935
+          },
+          {
+            "raw": {
+              "n": 12622,
+              "accuracy": 0.5027729361432419,
+              "balanced_accuracy": 0.512727255733135,
+              "auc": 0.5379687260402504,
+              "log_loss": 0.694556061932826,
+              "brier": 0.2507353280204492,
+              "macro_f1": 0.4307369842203916,
+              "up_rate": 0.8691966407859293
+            },
+            "calibrated": {
+              "n": 12622,
+              "accuracy": 0.5304230708287118,
+              "balanced_accuracy": 0.5253515461790644,
+              "auc": 0.5379687260402504,
+              "log_loss": 0.6903721452920109,
+              "brier": 0.24861976235891625,
+              "macro_f1": 0.5103597620263927,
+              "up_rate": 0.31104420852479797
+            },
+            "flip_test": {
+              "accuracy": 0.497227063856758
+            },
+            "shuffled_label_test": {
+              "n": 12622,
+              "accuracy": 0.4818570749485026,
+              "balanced_accuracy": 0.49188590571801816,
+              "auc": 0.4936285643093722,
+              "log_loss": 0.696051362704645,
+              "brier": 0.25144869341740866,
+              "macro_f1": 0.40517118755380077,
+              "up_rate": 0.8725241641578196
+            },
+            "baselines": {
+              "always_up": {
+                "accuracy": 0.48653145301853906
+              },
+              "always_down": {
+                "accuracy": 0.5134685469814609
+              },
+              "majority": {
+                "accuracy": 0.48653145301853906
+              },
+              "rsi_rule": {
+                "signals": 3056,
+                "coverage": 0.24211693867849787,
+                "accuracy": 0.5418848167539267
+              }
+            },
+            "train_rows": 100998,
+            "calibration_rows": 6309,
+            "validation_rows": 12622
+          }
+        ],
+        "mean_accuracy": 0.52350252347754,
+        "mean_auc": 0.5247527325621794
+      }
+    },
+    "h6_k0.2": {
+      "labels": {
+        "horizon_bars": 6,
+        "horizon_minutes": 30,
+        "k": 0.2,
+        "rows_before": 266937,
+        "rows_dropped_no_move_or_warmup": 73575,
+        "rows_kept": 193362,
+        "up_fraction": 0.5163992925186955
+      },
+      "rows_after_alignment": 193362,
+      "rows_before_final_holdout": 185362,
+      "core": {
+        "features": [
+          "ret_1",
+          "ret_5",
+          "ret_15",
+          "ret_60",
+          "range_pct",
+          "body_ratio",
+          "upper_wick",
+          "lower_wick",
+          "atr_14_pct",
+          "rv_20",
+          "vol_ratio",
+          "parkinson_20",
+          "rsi_14",
+          "macd_hist_c",
+          "bb_pctb",
+          "ema_dist_21",
+          "ema_dist_50",
+          "ema_dist_200",
+          "zscore_60",
+          "hour_sin",
+          "hour_cos",
+          "dow_sin",
+          "dow_cos",
+          "is_overlap",
+          "mins_since_open"
+        ],
+        "feature_count": 25,
+        "folds": [
+          {
+            "raw": {
+              "n": 27801,
+              "accuracy": 0.5265637926693284,
+              "balanced_accuracy": 0.5138446310821071,
+              "auc": 0.5281502798017758,
+              "log_loss": 0.6904346348085081,
+              "brier": 0.24865090340865462,
+              "macro_f1": 0.5087572712004662,
+              "up_rate": 0.6466673860652494
+            },
+            "calibrated": {
+              "n": 27801,
+              "accuracy": 0.5394410273011763,
+              "balanced_accuracy": 0.5056801883069967,
+              "auc": 0.5281502798017758,
+              "log_loss": 0.6881945371021723,
+              "brier": 0.2475470051058911,
+              "macro_f1": 0.4347823963379138,
+              "up_rate": 0.8865868134239776
+            },
+            "flip_test": {
+              "accuracy": 0.47343620733067154
+            },
+            "shuffled_label_test": {
+              "n": 27801,
+              "accuracy": 0.5252329052911766,
+              "balanced_accuracy": 0.49369220949372417,
+              "auc": 0.4917590734139238,
+              "log_loss": 0.6918326315138537,
+              "brier": 0.2493430041627474,
+              "macro_f1": 0.43269985795921884,
+              "up_rate": 0.8601489155066364
+            },
+            "baselines": {
+              "always_up": {
+                "accuracy": 0.5437214488687457
+              },
+              "always_down": {
+                "accuracy": 0.45627855113125426
+              },
+              "majority": {
+                "accuracy": 0.5437214488687457
+              },
+              "rsi_rule": {
+                "signals": 6989,
+                "coverage": 0.25139383475414556,
+                "accuracy": 0.516382887394477
+              }
+            },
+            "train_rows": 92672,
+            "calibration_rows": 18533,
+            "validation_rows": 27801
+          },
+          {
+            "raw": {
+              "n": 27801,
+              "accuracy": 0.5140102873997339,
+              "balanced_accuracy": 0.5090080999038121,
+              "auc": 0.524822061469802,
+              "log_loss": 0.693704687391675,
+              "brier": 0.2502768397003644,
+              "macro_f1": 0.48587105237175054,
+              "up_rate": 0.722707816265602
+            },
+            "calibrated": {
+              "n": 27801,
+              "accuracy": 0.5104132944858099,
+              "balanced_accuracy": 0.4993818188686981,
+              "auc": 0.524822061469802,
+              "log_loss": 0.695375664942372,
+              "brier": 0.2511146870736693,
+              "macro_f1": 0.34553523276519305,
+              "up_rate": 0.9906837883529369
+            },
+            "flip_test": {
+              "accuracy": 0.4859897126002662
+            },
+            "shuffled_label_test": {
+              "n": 27801,
+              "accuracy": 0.5087946476745441,
+              "balanced_accuracy": 0.5005689697978075,
+              "auc": 0.5112554925471444,
+              "log_loss": 0.6931747120804029,
+              "brier": 0.2500129069330477,
+              "macro_f1": 0.4273406530106107,
+              "up_rate": 0.8659041041689148
+            },
+            "baselines": {
+              "always_up": {
+                "accuracy": 0.5112406028560124
+              },
+              "always_down": {
+                "accuracy": 0.48875939714398764
+              },
+              "majority": {
+                "accuracy": 0.5112406028560124
+              },
+              "rsi_rule": {
+                "signals": 6805,
+                "coverage": 0.24477536779252546,
+                "accuracy": 0.5299044819985305
+              }
+            },
+            "train_rows": 120476,
+            "calibration_rows": 18533,
+            "validation_rows": 27801
+          },
+          {
+            "raw": {
+              "n": 18533,
+              "accuracy": 0.5004586413424702,
+              "balanced_accuracy": 0.5087668215820619,
+              "auc": 0.5267166779674115,
+              "log_loss": 0.6962656246099619,
+              "brier": 0.2516039646523302,
+              "macro_f1": 0.42356142625375165,
+              "up_rate": 0.8762747531430422
+            },
+            "calibrated": {
+              "n": 18533,
+              "accuracy": 0.5215561430960989,
+              "balanced_accuracy": 0.5194084960208306,
+              "auc": 0.5267166779674115,
+              "log_loss": 0.690841930487685,
+              "brier": 0.24888041005496672,
+              "macro_f1": 0.5158269933033631,
+              "up_rate": 0.4022554362488534
+            },
+            "flip_test": {
+              "accuracy": 0.4995413586575298
+            },
+            "shuffled_label_test": {
+              "n": 18533,
+              "accuracy": 0.4847029622834943,
+              "balanced_accuracy": 0.4950144828731906,
+              "auc": 0.49587516991605896,
+              "log_loss": 0.696127367094381,
+              "brier": 0.25148706375808566,
+              "macro_f1": 0.34918425082378735,
+              "up_rate": 0.9673555279771219
+            },
+            "baselines": {
+              "always_up": {
+                "accuracy": 0.4889656288782172
+              },
+              "always_down": {
+                "accuracy": 0.5110343711217827
+              },
+              "majority": {
+                "accuracy": 0.4889656288782172
+              },
+              "rsi_rule": {
+                "signals": 4443,
+                "coverage": 0.23973452759941727,
+                "accuracy": 0.5289218996173757
+              }
+            },
+            "train_rows": 148280,
+            "calibration_rows": 9265,
+            "validation_rows": 18533
+          }
+        ],
+        "mean_accuracy": 0.5238034882943617,
+        "mean_auc": 0.5265630064129964
+      },
+      "core_plus_cross": {
+        "features": [
+          "ret_1",
+          "ret_5",
+          "ret_15",
+          "ret_60",
+          "range_pct",
+          "body_ratio",
+          "upper_wick",
+          "lower_wick",
+          "atr_14_pct",
+          "rv_20",
+          "vol_ratio",
+          "parkinson_20",
+          "rsi_14",
+          "macd_hist_c",
+          "bb_pctb",
+          "ema_dist_21",
+          "ema_dist_50",
+          "ema_dist_200",
+          "zscore_60",
+          "gold_ret_1",
+          "gold_ret_5",
+          "gold_ret_15",
+          "gsr",
+          "gsr_z",
+          "gsr_chg_5",
+          "eur_ret_5",
+          "lead_lag",
+          "corr_gold_50",
+          "hour_sin",
+          "hour_cos",
+          "dow_sin",
+          "dow_cos",
+          "is_overlap",
+          "mins_since_open"
+        ],
+        "feature_count": 34,
+        "folds": [
+          {
+            "raw": {
+              "n": 27801,
+              "accuracy": 0.5271752814646955,
+              "balanced_accuracy": 0.518571737908486,
+              "auc": 0.5300192452053613,
+              "log_loss": 0.6903674385739118,
+              "brier": 0.2486280187175831,
+              "macro_f1": 0.5172006513674621,
+              "up_rate": 0.6000143879716557
+            },
+            "calibrated": {
+              "n": 27801,
+              "accuracy": 0.5432538397899356,
+              "balanced_accuracy": 0.5072656595589822,
+              "auc": 0.5300192452053613,
+              "log_loss": 0.6875912598118965,
+              "brier": 0.24725431624017952,
+              "macro_f1": 0.42340077120347985,
+              "up_rate": 0.9121974029711162
+            },
+            "flip_test": {
+              "accuracy": 0.4728247185353045
+            },
+            "shuffled_label_test": {
+              "n": 27801,
+              "accuracy": 0.521096363440164,
+              "balanced_accuracy": 0.49079478442522484,
+              "auc": 0.48954235191617096,
+              "log_loss": 0.6920419161146553,
+              "brier": 0.24944800415313895,
+              "macro_f1": 0.43547581845201333,
+              "up_rate": 0.8457249739218013
+            },
+            "baselines": {
+              "always_up": {
+                "accuracy": 0.5437214488687457
+              },
+              "always_down": {
+                "accuracy": 0.45627855113125426
+              },
+              "majority": {
+                "accuracy": 0.5437214488687457
+              },
+              "rsi_rule": {
+                "signals": 6989,
+                "coverage": 0.25139383475414556,
+                "accuracy": 0.516382887394477
+              }
+            },
+            "train_rows": 92672,
+            "calibration_rows": 18533,
+            "validation_rows": 27801
+          },
+          {
+            "raw": {
+              "n": 27801,
+              "accuracy": 0.5216718823063918,
+              "balanced_accuracy": 0.5223248270701106,
+              "auc": 0.531800841111993,
+              "log_loss": 0.6921282191639543,
+              "brier": 0.24948747249182132,
+              "macro_f1": 0.5215286551892191,
+              "up_rate": 0.47145786122801336
+            },
+            "calibrated": {
+              "n": 27801,
+              "accuracy": 0.5103773245566706,
+              "balanced_accuracy": 0.49933693113194916,
+              "auc": 0.531800841111993,
+              "log_loss": 0.6940151084351245,
+              "brier": 0.25043825974760264,
+              "macro_f1": 0.3451393110394637,
+              "up_rate": 0.9910794575734686
+            },
+            "flip_test": {
+              "accuracy": 0.47832811769360817
+            },
+            "shuffled_label_test": {
+              "n": 27801,
+              "accuracy": 0.5064566022804935,
+              "balanced_accuracy": 0.49884543397426606,
+              "auc": 0.5089459514368229,
+              "log_loss": 0.6931710786305814,
+              "brier": 0.25001148475679025,
+              "macro_f1": 0.4376598102048985,
+              "up_rate": 0.8385309880939534
+            },
+            "baselines": {
+              "always_up": {
+                "accuracy": 0.5112406028560124
+              },
+              "always_down": {
+                "accuracy": 0.48875939714398764
+              },
+              "majority": {
+                "accuracy": 0.5112406028560124
+              },
+              "rsi_rule": {
+                "signals": 6805,
+                "coverage": 0.24477536779252546,
+                "accuracy": 0.5299044819985305
+              }
+            },
+            "train_rows": 120476,
+            "calibration_rows": 18533,
+            "validation_rows": 27801
+          },
+          {
+            "raw": {
+              "n": 18533,
+              "accuracy": 0.498246371337614,
+              "balanced_accuracy": 0.5076268899793562,
+              "auc": 0.5287318259754754,
+              "log_loss": 0.6980277319106274,
+              "brier": 0.2524476720046314,
+              "macro_f1": 0.3945459661077645,
+              "up_rate": 0.9248907354448821
+            },
+            "calibrated": {
+              "n": 18533,
+              "accuracy": 0.5223115523660498,
+              "balanced_accuracy": 0.5198259268189451,
+              "auc": 0.5287318259754754,
+              "log_loss": 0.6909553542678274,
+              "brier": 0.24891445265383413,
+              "macro_f1": 0.5148393296488272,
+              "up_rate": 0.38693141962984945
+            },
+            "flip_test": {
+              "accuracy": 0.501753628662386
+            },
+            "shuffled_label_test": {
+              "n": 18533,
+              "accuracy": 0.4855662871634382,
+              "balanced_accuracy": 0.4950609546953971,
+              "auc": 0.49160918829892997,
+              "log_loss": 0.6958886559230156,
+              "brier": 0.2513673706276398,
+              "macro_f1": 0.3758254026739121,
+              "up_rate": 0.9303404737495279
+            },
+            "baselines": {
+              "always_up": {
+                "accuracy": 0.4889656288782172
+              },
+              "always_down": {
+                "accuracy": 0.5110343711217827
+              },
+              "majority": {
+                "accuracy": 0.4889656288782172
+              },
+              "rsi_rule": {
+                "signals": 4443,
+                "coverage": 0.23973452759941727,
+                "accuracy": 0.5289218996173757
+              }
+            },
+            "train_rows": 148280,
+            "calibration_rows": 9265,
+            "validation_rows": 18533
+          }
+        ],
+        "mean_accuracy": 0.5253142389042187,
+        "mean_auc": 0.5301839707642765
+      }
+    },
+    "h6_k0.3": {
+      "labels": {
+        "horizon_bars": 6,
+        "horizon_minutes": 30,
+        "k": 0.3,
+        "rows_before": 266937,
+        "rows_dropped_no_move_or_warmup": 86360,
+        "rows_kept": 180577,
+        "up_fraction": 0.5166272559628302
+      },
+      "rows_after_alignment": 180577,
+      "rows_before_final_holdout": 173096,
+      "core": {
+        "features": [
+          "ret_1",
+          "ret_5",
+          "ret_15",
+          "ret_60",
+          "range_pct",
+          "body_ratio",
+          "upper_wick",
+          "lower_wick",
+          "atr_14_pct",
+          "rv_20",
+          "vol_ratio",
+          "parkinson_20",
+          "rsi_14",
+          "macd_hist_c",
+          "bb_pctb",
+          "ema_dist_21",
+          "ema_dist_50",
+          "ema_dist_200",
+          "zscore_60",
+          "hour_sin",
+          "hour_cos",
+          "dow_sin",
+          "dow_cos",
+          "is_overlap",
+          "mins_since_open"
+        ],
+        "feature_count": 25,
+        "folds": [
+          {
+            "raw": {
+              "n": 25961,
+              "accuracy": 0.5297176534031817,
+              "balanced_accuracy": 0.5172578547517189,
+              "auc": 0.5351181558119212,
+              "log_loss": 0.6892851610567506,
+              "brier": 0.24806924083600454,
+              "macro_f1": 0.5132008452381065,
+              "up_rate": 0.6388043603867339
+            },
+            "calibrated": {
+              "n": 25961,
+              "accuracy": 0.5448172258387581,
+              "balanced_accuracy": 0.5119954925455696,
+              "auc": 0.5351181558119212,
+              "log_loss": 0.6870559802303781,
+              "brier": 0.24697381136933783,
+              "macro_f1": 0.45391529136130565,
+              "up_rate": 0.862601594699742
+            },
+            "flip_test": {
+              "accuracy": 0.4702823465968183
+            },
+            "shuffled_label_test": {
+              "n": 25961,
+              "accuracy": 0.5297176534031817,
+              "balanced_accuracy": 0.49820912681726537,
+              "auc": 0.4987570114651239,
+              "log_loss": 0.6916127653124386,
+              "brier": 0.24923247588593408,
+              "macro_f1": 0.44418680041135294,
+              "up_rate": 0.8468857131851624
+            },
+            "baselines": {
+              "always_up": {
+                "accuracy": 0.5453950156003236
+              },
+              "always_down": {
+                "accuracy": 0.45460498439967645
+              },
+              "majority": {
+                "accuracy": 0.5453950156003236
+              },
+              "rsi_rule": {
+                "signals": 6556,
+                "coverage": 0.25253264512152845,
+                "accuracy": 0.5181513117754728
+              }
+            },
+            "train_rows": 86539,
+            "calibration_rows": 17306,
+            "validation_rows": 25961
+          },
+          {
+            "raw": {
+              "n": 25961,
+              "accuracy": 0.5173144331882439,
+              "balanced_accuracy": 0.5124465423425975,
+              "auc": 0.524834408261194,
+              "log_loss": 0.693633600583721,
+              "brier": 0.25025009480023114,
+              "macro_f1": 0.4912888470920369,
+              "up_rate": 0.7148414930087439
+            },
+            "calibrated": {
+              "n": 25961,
+              "accuracy": 0.5106505912715227,
+              "balanced_accuracy": 0.49937624494044625,
+              "auc": 0.524834408261194,
+              "log_loss": 0.6956053735233059,
+              "brier": 0.25122673942645785,
+              "macro_f1": 0.3402054219801561,
+              "up_rate": 0.9969184546049844
+            },
+            "flip_test": {
+              "accuracy": 0.4826855668117561
+            },
+            "shuffled_label_test": {
+              "n": 25961,
+              "accuracy": 0.5086090674473248,
+              "balanced_accuracy": 0.5005172568897962,
+              "auc": 0.5100233037115814,
+              "log_loss": 0.6933298171990198,
+              "brier": 0.2500898913743813,
+              "macro_f1": 0.43163284135778124,
+              "up_rate": 0.8566696198143369
+            },
+            "baselines": {
+              "always_up": {
+                "accuracy": 0.5113439389854012
+              },
+              "always_down": {
+                "accuracy": 0.4886560610145988
+              },
+              "majority": {
+                "accuracy": 0.5113439389854012
+              },
+              "rsi_rule": {
+                "signals": 6406,
+                "coverage": 0.2467547475058742,
+                "accuracy": 0.5276303465501093
+              }
+            },
+            "train_rows": 112503,
+            "calibration_rows": 17306,
+            "validation_rows": 25961
+          },
+          {
+            "raw": {
+              "n": 17306,
+              "accuracy": 0.5022535536808044,
+              "balanced_accuracy": 0.5099015566970253,
+              "auc": 0.5251531938557312,
+              "log_loss": 0.6970633075557209,
+              "brier": 0.25199018666596634,
+              "macro_f1": 0.4264923014781748,
+              "up_rate": 0.8736854270195308
+            },
+            "calibrated": {
+              "n": 17306,
+              "accuracy": 0.5206864671212297,
+              "balanced_accuracy": 0.5172139227835092,
+              "auc": 0.5251531938557312,
+              "log_loss": 0.6911146349290821,
+              "brier": 0.24901683872775876,
+              "macro_f1": 0.504573582425508,
+              "up_rate": 0.3298855888131284
+            },
+            "flip_test": {
+              "accuracy": 0.4977464463191957
+            },
+            "shuffled_label_test": {
+              "n": 17306,
+              "accuracy": 0.4893678493008205,
+              "balanced_accuracy": 0.49898400760631445,
+              "auc": 0.4906517008653305,
+              "log_loss": 0.6965897893727818,
+              "brier": 0.25171709369519313,
+              "macro_f1": 0.3523952744748609,
+              "up_rate": 0.9701259678724142
+            },
+            "baselines": {
+              "always_up": {
+                "accuracy": 0.48977233329481107
+              },
+              "always_down": {
+                "accuracy": 0.5102276667051889
+              },
+              "majority": {
+                "accuracy": 0.48977233329481107
+              },
+              "rsi_rule": {
+                "signals": 4155,
+                "coverage": 0.24009014214723218,
+                "accuracy": 0.5299638989169675
+              }
+            },
+            "train_rows": 138467,
+            "calibration_rows": 8651,
+            "validation_rows": 17306
+          }
+        ],
+        "mean_accuracy": 0.5253847614105035,
+        "mean_auc": 0.5283685859762822
+      },
+      "core_plus_cross": {
+        "features": [
+          "ret_1",
+          "ret_5",
+          "ret_15",
+          "ret_60",
+          "range_pct",
+          "body_ratio",
+          "upper_wick",
+          "lower_wick",
+          "atr_14_pct",
+          "rv_20",
+          "vol_ratio",
+          "parkinson_20",
+          "rsi_14",
+          "macd_hist_c",
+          "bb_pctb",
+          "ema_dist_21",
+          "ema_dist_50",
+          "ema_dist_200",
+          "zscore_60",
+          "gold_ret_1",
+          "gold_ret_5",
+          "gold_ret_15",
+          "gsr",
+          "gsr_z",
+          "gsr_chg_5",
+          "eur_ret_5",
+          "lead_lag",
+          "corr_gold_50",
+          "hour_sin",
+          "hour_cos",
+          "dow_sin",
+          "dow_cos",
+          "is_overlap",
+          "mins_since_open"
+        ],
+        "feature_count": 34,
+        "folds": [
+          {
+            "raw": {
+              "n": 25961,
+              "accuracy": 0.5255960864373483,
+              "balanced_accuracy": 0.5187969035044283,
+              "auc": 0.5325327050702483,
+              "log_loss": 0.6903342296376179,
+              "brier": 0.24860816142619113,
+              "macro_f1": 0.5184294861946955,
+              "up_rate": 0.5765956627248565
+            },
+            "calibrated": {
+              "n": 25961,
+              "accuracy": 0.5453179769654481,
+              "balanced_accuracy": 0.5107690236119169,
+              "auc": 0.5325327050702483,
+              "log_loss": 0.6871750669584192,
+              "brier": 0.2470460032002211,
+              "macro_f1": 0.4439828490090348,
+              "up_rate": 0.8815145795616501
+            },
+            "flip_test": {
+              "accuracy": 0.47440391356265166
+            },
+            "shuffled_label_test": {
+              "n": 25961,
+              "accuracy": 0.5297946920380571,
+              "balanced_accuracy": 0.4998806645072278,
+              "auc": 0.5025225888865554,
+              "log_loss": 0.6913437708637837,
+              "brier": 0.24909836155289636,
+              "macro_f1": 0.45291406519495797,
+              "up_rate": 0.8294749817033242
+            },
+            "baselines": {
+              "always_up": {
+                "accuracy": 0.5453950156003236
+              },
+              "always_down": {
+                "accuracy": 0.45460498439967645
+              },
+              "majority": {
+                "accuracy": 0.5453950156003236
+              },
+              "rsi_rule": {
+                "signals": 6556,
+                "coverage": 0.25253264512152845,
+                "accuracy": 0.5181513117754728
+              }
+            },
+            "train_rows": 86539,
+            "calibration_rows": 17306,
+            "validation_rows": 25961
+          },
+          {
+            "raw": {
+              "n": 25961,
+              "accuracy": 0.5155810639035476,
+              "balanced_accuracy": 0.5168897160533743,
+              "auc": 0.5222221776871638,
+              "log_loss": 0.6936872378823036,
+              "brier": 0.2502734242846861,
+              "macro_f1": 0.5145559379091292,
+              "up_rate": 0.4427025153114287
+            },
+            "calibrated": {
+              "n": 25961,
+              "accuracy": 0.5113824583028389,
+              "balanced_accuracy": 0.5003419461167359,
+              "auc": 0.5222221776871638,
+              "log_loss": 0.6944560114834154,
+              "brier": 0.2506577759567178,
+              "macro_f1": 0.35025833391788624,
+              "up_rate": 0.9866337968491198
+            },
+            "flip_test": {
+              "accuracy": 0.48441893609645237
+            },
+            "shuffled_label_test": {
+              "n": 25961,
+              "accuracy": 0.5081853549555102,
+              "balanced_accuracy": 0.49954684390432325,
+              "auc": 0.5067396596274554,
+              "log_loss": 0.6934234347357122,
+              "brier": 0.250137114856628,
+              "macro_f1": 0.41884215603059305,
+              "up_rate": 0.8807441932128963
+            },
+            "baselines": {
+              "always_up": {
+                "accuracy": 0.5113439389854012
+              },
+              "always_down": {
+                "accuracy": 0.4886560610145988
+              },
+              "majority": {
+                "accuracy": 0.5113439389854012
+              },
+              "rsi_rule": {
+                "signals": 6406,
+                "coverage": 0.2467547475058742,
+                "accuracy": 0.5276303465501093
+              }
+            },
+            "train_rows": 112503,
+            "calibration_rows": 17306,
+            "validation_rows": 25961
+          },
+          {
+            "raw": {
+              "n": 17306,
+              "accuracy": 0.49786201317462153,
+              "balanced_accuracy": 0.5065771344525105,
+              "auc": 0.5308098891707824,
+              "log_loss": 0.6979118972861033,
+              "brier": 0.25238714180427096,
+              "macro_f1": 0.3929655612244898,
+              "up_rate": 0.9259216456720213
+            },
+            "calibrated": {
+              "n": 17306,
+              "accuracy": 0.5276204784467815,
+              "balanced_accuracy": 0.5237700800127414,
+              "auc": 0.5308098891707824,
+              "log_loss": 0.6907687850451967,
+              "brier": 0.24881782244325845,
+              "macro_f1": 0.5081529546862136,
+              "up_rate": 0.3112793250895643
+            },
+            "flip_test": {
+              "accuracy": 0.5021379868253785
+            },
+            "shuffled_label_test": {
+              "n": 17306,
+              "accuracy": 0.48925228244539465,
+              "balanced_accuracy": 0.49890859649282204,
+              "auc": 0.5041689959846656,
+              "log_loss": 0.695992590569559,
+              "brier": 0.2514200556360857,
+              "macro_f1": 0.3507575988408316,
+              "up_rate": 0.9720906044146539
+            },
+            "baselines": {
+              "always_up": {
+                "accuracy": 0.48977233329481107
+              },
+              "always_down": {
+                "accuracy": 0.5102276667051889
+              },
+              "majority": {
+                "accuracy": 0.48977233329481107
+              },
+              "rsi_rule": {
+                "signals": 4155,
+                "coverage": 0.24009014214723218,
+                "accuracy": 0.5299638989169675
+              }
+            },
+            "train_rows": 138467,
+            "calibration_rows": 8651,
+            "validation_rows": 17306
+          }
+        ],
+        "mean_accuracy": 0.5281069712383561,
+        "mean_auc": 0.5285215906427315
+      }
+    },
+    "h6_k0.5": {
+      "labels": {
+        "horizon_bars": 6,
+        "horizon_minutes": 30,
+        "k": 0.5,
+        "rows_before": 266937,
+        "rows_dropped_no_move_or_warmup": 110696,
+        "rows_kept": 156241,
+        "up_fraction": 0.5163561421137858
+      },
+      "rows_after_alignment": 156241,
+      "rows_before_final_holdout": 149718,
+      "core": {
+        "features": [
+          "ret_1",
+          "ret_5",
+          "ret_15",
+          "ret_60",
+          "range_pct",
+          "body_ratio",
+          "upper_wick",
+          "lower_wick",
+          "atr_14_pct",
+          "rv_20",
+          "vol_ratio",
+          "parkinson_20",
+          "rsi_14",
+          "macd_hist_c",
+          "bb_pctb",
+          "ema_dist_21",
+          "ema_dist_50",
+          "ema_dist_200",
+          "zscore_60",
+          "hour_sin",
+          "hour_cos",
+          "dow_sin",
+          "dow_cos",
+          "is_overlap",
+          "mins_since_open"
+        ],
+        "feature_count": 25,
+        "folds": [
+          {
+            "raw": {
+              "n": 22454,
+              "accuracy": 0.5275674712746059,
+              "balanced_accuracy": 0.5153353356675603,
+              "auc": 0.5308611372542511,
+              "log_loss": 0.6899150352670828,
+              "brier": 0.248410837749587,
+              "macro_f1": 0.5124490694875427,
+              "up_rate": 0.6275941925714794
+            },
+            "calibrated": {
+              "n": 22454,
+              "accuracy": 0.5411062616905674,
+              "balanced_accuracy": 0.5116637880202219,
+              "auc": 0.5308611372542511,
+              "log_loss": 0.6874501951551999,
+              "brier": 0.24719494116091814,
+              "macro_f1": 0.47571385539853484,
+              "up_rate": 0.8046673198539236
+            },
+            "flip_test": {
+              "accuracy": 0.47243252872539415
+            },
+            "shuffled_label_test": {
+              "n": 22454,
+              "accuracy": 0.5310857753629643,
+              "balanced_accuracy": 0.4991365502284774,
+              "auc": 0.509829940359896,
+              "log_loss": 0.6906727293784407,
+              "brier": 0.24876453778918217,
+              "macro_f1": 0.4530153309803371,
+              "up_rate": 0.8292954484724325
+            },
+            "baselines": {
+              "always_up": {
+                "accuracy": 0.548499153825599
+              },
+              "always_down": {
+                "accuracy": 0.451500846174401
+              },
+              "majority": {
+                "accuracy": 0.548499153825599
+              },
+              "rsi_rule": {
+                "signals": 5798,
+                "coverage": 0.2582167987886345,
+                "accuracy": 0.5134529147982063
+              }
+            },
+            "train_rows": 74850,
+            "calibration_rows": 14968,
+            "validation_rows": 22454
+          },
+          {
+            "raw": {
+              "n": 22454,
+              "accuracy": 0.5183040883584217,
+              "balanced_accuracy": 0.515636313773737,
+              "auc": 0.5224836167510032,
+              "log_loss": 0.6948252413421926,
+              "brier": 0.25083399306410736,
+              "macro_f1": 0.5000193023612782,
+              "up_rate": 0.6839761289747929
+            },
+            "calibrated": {
+              "n": 22454,
+              "accuracy": 0.508595350494344,
+              "balanced_accuracy": 0.5014592248658456,
+              "auc": 0.5224836167510032,
+              "log_loss": 0.6969196742768702,
+              "brier": 0.25187796611200186,
+              "macro_f1": 0.34584133759235797,
+              "up_rate": 0.9915382559900241
+            },
+            "flip_test": {
+              "accuracy": 0.4816959116415783
+            },
+            "shuffled_label_test": {
+              "n": 22454,
+              "accuracy": 0.4995101095573172,
+              "balanced_accuracy": 0.49512324970782173,
+              "auc": 0.5029339950115443,
+              "log_loss": 0.694244982327707,
+              "brier": 0.25054578263386357,
+              "macro_f1": 0.4465484305664489,
+              "up_rate": 0.8020842611561414
+            },
+            "baselines": {
+              "always_up": {
+                "accuracy": 0.5072592856506636
+              },
+              "always_down": {
+                "accuracy": 0.4927407143493364
+              },
+              "majority": {
+                "accuracy": 0.5072592856506636
+              },
+              "rsi_rule": {
+                "signals": 5559,
+                "coverage": 0.24757281553398058,
+                "accuracy": 0.5294117647058824
+              }
+            },
+            "train_rows": 97307,
+            "calibration_rows": 14968,
+            "validation_rows": 22454
+          },
+          {
+            "raw": {
+              "n": 14968,
+              "accuracy": 0.5054783538214859,
+              "balanced_accuracy": 0.5150853643836352,
+              "auc": 0.5269682746789207,
+              "log_loss": 0.6970163449014612,
+              "brier": 0.2519787323680183,
+              "macro_f1": 0.43403559155884325,
+              "up_rate": 0.8683190807055051
+            },
+            "calibrated": {
+              "n": 14968,
+              "accuracy": 0.5220470336718332,
+              "balanced_accuracy": 0.5182349797705937,
+              "auc": 0.5269682746789207,
+              "log_loss": 0.6905352385515151,
+              "brier": 0.24872979868063938,
+              "macro_f1": 0.5095209513256177,
+              "up_rate": 0.35322020309994656
+            },
+            "flip_test": {
+              "accuracy": 0.4945216461785142
+            },
+            "shuffled_label_test": {
+              "n": 14968,
+              "accuracy": 0.48496793158738644,
+              "balanced_accuracy": 0.4964614596119994,
+              "auc": 0.5067875711439838,
+              "log_loss": 0.6961115900138403,
+              "brier": 0.2514781263848473,
+              "macro_f1": 0.36934471935546975,
+              "up_rate": 0.9412079102084446
+            },
+            "baselines": {
+              "always_up": {
+                "accuracy": 0.4869722073757349
+              },
+              "always_down": {
+                "accuracy": 0.5130277926242651
+              },
+              "majority": {
+                "accuracy": 0.4869722073757349
+              },
+              "rsi_rule": {
+                "signals": 3627,
+                "coverage": 0.24231694281133084,
+                "accuracy": 0.5332230493520816
+              }
+            },
+            "train_rows": 119765,
+            "calibration_rows": 7482,
+            "validation_rows": 14968
+          }
+        ],
+        "mean_accuracy": 0.5239162152855815,
+        "mean_auc": 0.5267710095613917
+      },
+      "core_plus_cross": {
+        "features": [
+          "ret_1",
+          "ret_5",
+          "ret_15",
+          "ret_60",
+          "range_pct",
+          "body_ratio",
+          "upper_wick",
+          "lower_wick",
+          "atr_14_pct",
+          "rv_20",
+          "vol_ratio",
+          "parkinson_20",
+          "rsi_14",
+          "macd_hist_c",
+          "bb_pctb",
+          "ema_dist_21",
+          "ema_dist_50",
+          "ema_dist_200",
+          "zscore_60",
+          "gold_ret_1",
+          "gold_ret_5",
+          "gold_ret_15",
+          "gsr",
+          "gsr_z",
+          "gsr_chg_5",
+          "eur_ret_5",
+          "lead_lag",
+          "corr_gold_50",
+          "hour_sin",
+          "hour_cos",
+          "dow_sin",
+          "dow_cos",
+          "is_overlap",
+          "mins_since_open"
+        ],
+        "feature_count": 34,
+        "folds": [
+          {
+            "raw": {
+              "n": 22454,
+              "accuracy": 0.5232920637748285,
+              "balanced_accuracy": 0.5183456286359637,
+              "auc": 0.5285539820051333,
+              "log_loss": 0.6912306327455269,
+              "brier": 0.24906210486929878,
+              "macro_f1": 0.5183521069994764,
+              "up_rate": 0.5527745613253763
+            },
+            "calibrated": {
+              "n": 22454,
+              "accuracy": 0.5450253852320299,
+              "balanced_accuracy": 0.5116342748729437,
+              "auc": 0.5285539820051333,
+              "log_loss": 0.6872280805930062,
+              "brier": 0.24708138938829052,
+              "macro_f1": 0.4614824129769297,
+              "up_rate": 0.8453727620913868
+            },
+            "flip_test": {
+              "accuracy": 0.47670793622517144
+            },
+            "shuffled_label_test": {
+              "n": 22454,
+              "accuracy": 0.5293934265609691,
+              "balanced_accuracy": 0.5002714328560122,
+              "auc": 0.5108595127096667,
+              "log_loss": 0.6907787740313697,
+              "brier": 0.24881786450050342,
+              "macro_f1": 0.4642263289377552,
+              "up_rate": 0.8002583058697782
+            },
+            "baselines": {
+              "always_up": {
+                "accuracy": 0.548499153825599
+              },
+              "always_down": {
+                "accuracy": 0.451500846174401
+              },
+              "majority": {
+                "accuracy": 0.548499153825599
+              },
+              "rsi_rule": {
+                "signals": 5798,
+                "coverage": 0.2582167987886345,
+                "accuracy": 0.5134529147982063
+              }
+            },
+            "train_rows": 74850,
+            "calibration_rows": 14968,
+            "validation_rows": 22454
+          },
+          {
+            "raw": {
+              "n": 22454,
+              "accuracy": 0.5207535405718358,
+              "balanced_accuracy": 0.5222298692196794,
+              "auc": 0.5315984356639667,
+              "log_loss": 0.6921248650498628,
+              "brier": 0.24951308336628183,
+              "macro_f1": 0.516471670534183,
+              "up_rate": 0.398637213859446
+            },
+            "calibrated": {
+              "n": 22454,
+              "accuracy": 0.5078382470829251,
+              "balanced_accuracy": 0.5006185339095006,
+              "auc": 0.5315984356639667,
+              "log_loss": 0.6951397990581504,
+              "brier": 0.25099940162383605,
+              "macro_f1": 0.33976724813723547,
+              "up_rate": 0.9972833348178498
+            },
+            "flip_test": {
+              "accuracy": 0.47924645942816424
+            },
+            "shuffled_label_test": {
+              "n": 22454,
+              "accuracy": 0.5025385232029927,
+              "balanced_accuracy": 0.4981070308785281,
+              "auc": 0.5043435091037095,
+              "log_loss": 0.6939989938013919,
+              "brier": 0.2504229165806515,
+              "macro_f1": 0.44871557994404143,
+              "up_rate": 0.8052017457913957
+            },
+            "baselines": {
+              "always_up": {
+                "accuracy": 0.5072592856506636
+              },
+              "always_down": {
+                "accuracy": 0.4927407143493364
+              },
+              "majority": {
+                "accuracy": 0.5072592856506636
+              },
+              "rsi_rule": {
+                "signals": 5559,
+                "coverage": 0.24757281553398058,
+                "accuracy": 0.5294117647058824
+              }
+            },
+            "train_rows": 97307,
+            "calibration_rows": 14968,
+            "validation_rows": 22454
+          },
+          {
+            "raw": {
+              "n": 14968,
+              "accuracy": 0.49873062533404594,
+              "balanced_accuracy": 0.5096412451381472,
+              "auc": 0.5303819495778183,
+              "log_loss": 0.6986308902596057,
+              "brier": 0.2527356229005006,
+              "macro_f1": 0.4001071202717158,
+              "up_rate": 0.918492784607162
+            },
+            "calibrated": {
+              "n": 14968,
+              "accuracy": 0.530331373597007,
+              "balanced_accuracy": 0.5263298509577008,
+              "auc": 0.5303819495778183,
+              "log_loss": 0.6906996804508834,
+              "brier": 0.2487863326302249,
+              "macro_f1": 0.5168087755740195,
+              "up_rate": 0.34573757349011225
+            },
+            "flip_test": {
+              "accuracy": 0.501269374665954
+            },
+            "shuffled_label_test": {
+              "n": 14968,
+              "accuracy": 0.48623730625334044,
+              "balanced_accuracy": 0.49784492242233475,
+              "auc": 0.49871909697506966,
+              "log_loss": 0.6960407371988336,
+              "brier": 0.251443434424424,
+              "macro_f1": 0.3680065664462075,
+              "up_rate": 0.9455505077498664
+            },
+            "baselines": {
+              "always_up": {
+                "accuracy": 0.4869722073757349
+              },
+              "always_down": {
+                "accuracy": 0.5130277926242651
+              },
+              "majority": {
+                "accuracy": 0.4869722073757349
+              },
+              "rsi_rule": {
+                "signals": 3627,
+                "coverage": 0.24231694281133084,
+                "accuracy": 0.5332230493520816
+              }
+            },
+            "train_rows": 119765,
+            "calibration_rows": 7482,
+            "validation_rows": 14968
+          }
+        ],
+        "mean_accuracy": 0.5277316686373207,
+        "mean_auc": 0.5301781224156393
+      }
+    },
+    "h12_k0.2": {
+      "labels": {
+        "horizon_bars": 12,
+        "horizon_minutes": 60,
+        "k": 0.2,
+        "rows_before": 266937,
+        "rows_dropped_no_move_or_warmup": 61808,
+        "rows_kept": 205129,
+        "up_fraction": 0.5205553578479883
+      },
+      "rows_after_alignment": 205129,
+      "rows_before_final_holdout": 196760,
+      "core": {
+        "features": [
+          "ret_1",
+          "ret_5",
+          "ret_15",
+          "ret_60",
+          "range_pct",
+          "body_ratio",
+          "upper_wick",
+          "lower_wick",
+          "atr_14_pct",
+          "rv_20",
+          "vol_ratio",
+          "parkinson_20",
+          "rsi_14",
+          "macd_hist_c",
+          "bb_pctb",
+          "ema_dist_21",
+          "ema_dist_50",
+          "ema_dist_200",
+          "zscore_60",
+          "hour_sin",
+          "hour_cos",
+          "dow_sin",
+          "dow_cos",
+          "is_overlap",
+          "mins_since_open"
+        ],
+        "feature_count": 25,
+        "folds": [
+          {
+            "raw": {
+              "n": 29511,
+              "accuracy": 0.543864999491715,
+              "balanced_accuracy": 0.5283971849785032,
+              "auc": 0.540413107819683,
+              "log_loss": 0.6885703189390152,
+              "brier": 0.24772877744475816,
+              "macro_f1": 0.523478449137605,
+              "up_rate": 0.6565009657415879
+            },
+            "calibrated": {
+              "n": 29511,
+              "accuracy": 0.5491850496425061,
+              "balanced_accuracy": 0.5103744595522779,
+              "auc": 0.540413107819683,
+              "log_loss": 0.685181117841759,
+              "brier": 0.24609188050851558,
+              "macro_f1": 0.4428391633690175,
+              "up_rate": 0.8865507776761208
+            },
+            "flip_test": {
+              "accuracy": 0.45613500050828504
+            },
+            "shuffled_label_test": {
+              "n": 29511,
+              "accuracy": 0.533157127850632,
+              "balanced_accuracy": 0.4938619160797051,
+              "auc": 0.49478330285715716,
+              "log_loss": 0.6909965940149816,
+              "brier": 0.24892550164961613,
+              "macro_f1": 0.42105295249638874,
+              "up_rate": 0.8897021449628952
+            },
+            "baselines": {
+              "always_up": {
+                "accuracy": 0.5503371624140151
+              },
+              "always_down": {
+                "accuracy": 0.4496628375859849
+              },
+              "majority": {
+                "accuracy": 0.5503371624140151
+              },
+              "rsi_rule": {
+                "signals": 7465,
+                "coverage": 0.2529565246857104,
+                "accuracy": 0.5352980576021433
+              }
+            },
+            "train_rows": 98365,
+            "calibration_rows": 19673,
+            "validation_rows": 29511
+          },
+          {
+            "raw": {
+              "n": 29511,
+              "accuracy": 0.5167564636915049,
+              "balanced_accuracy": 0.5099242611966956,
+              "auc": 0.5243614484916832,
+              "log_loss": 0.6963815192173292,
+              "brier": 0.2515561317351305,
+              "macro_f1": 0.4879813162058285,
+              "up_rate": 0.7216292230015926
+            },
+            "calibrated": {
+              "n": 29511,
+              "accuracy": 0.5136050964047304,
+              "balanced_accuracy": 0.49915474309399754,
+              "auc": 0.5243614484916832,
+              "log_loss": 0.6959046079339654,
+              "brier": 0.25137551701934746,
+              "macro_f1": 0.365196732550395,
+              "up_rate": 0.9680796990952526
+            },
+            "flip_test": {
+              "accuracy": 0.48324353630849515
+            },
+            "shuffled_label_test": {
+              "n": 29511,
+              "accuracy": 0.5159432076174986,
+              "balanced_accuracy": 0.5020343117535938,
+              "auc": 0.5141572992125224,
+              "log_loss": 0.6930806549908813,
+              "brier": 0.2499627948104674,
+              "macro_f1": 0.3816221460214245,
+              "up_rate": 0.9506285791738673
+            },
+            "baselines": {
+              "always_up": {
+                "accuracy": 0.5154349225712446
+              },
+              "always_down": {
+                "accuracy": 0.4845650774287554
+              },
+              "majority": {
+                "accuracy": 0.5154349225712446
+              },
+              "rsi_rule": {
+                "signals": 7163,
+                "coverage": 0.2427230524211311,
+                "accuracy": 0.5182186234817814
+              }
+            },
+            "train_rows": 127879,
+            "calibration_rows": 19673,
+            "validation_rows": 29511
+          },
+          {
+            "raw": {
+              "n": 19673,
+              "accuracy": 0.4906216642098307,
+              "balanced_accuracy": 0.5026104591348999,
+              "auc": 0.5151408036867855,
+              "log_loss": 0.7022614793104331,
+              "brier": 0.2545624992330267,
+              "macro_f1": 0.4164925058852621,
+              "up_rate": 0.8725156305596503
+            },
+            "calibrated": {
+              "n": 19673,
+              "accuracy": 0.5197478778020638,
+              "balanced_accuracy": 0.5127830589046414,
+              "auc": 0.5151408036867855,
+              "log_loss": 0.6917533379529857,
+              "brier": 0.24933395407129932,
+              "macro_f1": 0.49218906001108564,
+              "up_rate": 0.283129161795354
+            },
+            "flip_test": {
+              "accuracy": 0.5093783357901692
+            },
+            "shuffled_label_test": {
+              "n": 19673,
+              "accuracy": 0.48416611599654347,
+              "balanced_accuracy": 0.49997117629677695,
+              "auc": 0.5039660008591242,
+              "log_loss": 0.6974066930467868,
+              "brier": 0.2521243845930598,
+              "macro_f1": 0.3337740854217299,
+              "up_rate": 0.9912062217252071
+            },
+            "baselines": {
+              "always_up": {
+                "accuracy": 0.48391196055507546
+              },
+              "always_down": {
+                "accuracy": 0.5160880394449245
+              },
+              "majority": {
+                "accuracy": 0.48391196055507546
+              },
+              "rsi_rule": {
+                "signals": 4666,
+                "coverage": 0.2371778579779393,
+                "accuracy": 0.5145735105015002
+              }
+            },
+            "train_rows": 157393,
+            "calibration_rows": 9835,
+            "validation_rows": 19673
+          }
+        ],
+        "mean_accuracy": 0.5275126746164335,
+        "mean_auc": 0.5266384533327172
+      },
+      "core_plus_cross": {
+        "features": [
+          "ret_1",
+          "ret_5",
+          "ret_15",
+          "ret_60",
+          "range_pct",
+          "body_ratio",
+          "upper_wick",
+          "lower_wick",
+          "atr_14_pct",
+          "rv_20",
+          "vol_ratio",
+          "parkinson_20",
+          "rsi_14",
+          "macd_hist_c",
+          "bb_pctb",
+          "ema_dist_21",
+          "ema_dist_50",
+          "ema_dist_200",
+          "zscore_60",
+          "gold_ret_1",
+          "gold_ret_5",
+          "gold_ret_15",
+          "gsr",
+          "gsr_z",
+          "gsr_chg_5",
+          "eur_ret_5",
+          "lead_lag",
+          "corr_gold_50",
+          "hour_sin",
+          "hour_cos",
+          "dow_sin",
+          "dow_cos",
+          "is_overlap",
+          "mins_since_open"
+        ],
+        "feature_count": 34,
+        "folds": [
+          {
+            "raw": {
+              "n": 29511,
+              "accuracy": 0.5344786689708922,
+              "balanced_accuracy": 0.5272997085580806,
+              "auc": 0.5409750653390688,
+              "log_loss": 0.6890676806388057,
+              "brier": 0.2480026410090785,
+              "macro_f1": 0.5271620020216862,
+              "up_rate": 0.574057131239199
+            },
+            "calibrated": {
+              "n": 29511,
+              "accuracy": 0.5500999627257632,
+              "balanced_accuracy": 0.5045473472363593,
+              "auc": 0.5409750653390688,
+              "log_loss": 0.6850957859500588,
+              "brier": 0.2460224285124843,
+              "macro_f1": 0.39749781067229534,
+              "up_rate": 0.9529328047168852
+            },
+            "flip_test": {
+              "accuracy": 0.4655213310291078
+            },
+            "shuffled_label_test": {
+              "n": 29511,
+              "accuracy": 0.538714377689675,
+              "balanced_accuracy": 0.49620203772240534,
+              "auc": 0.4943264223737713,
+              "log_loss": 0.6904779863074196,
+              "brier": 0.24866691640953123,
+              "macro_f1": 0.406323413693354,
+              "up_rate": 0.9218935312256447
+            },
+            "baselines": {
+              "always_up": {
+                "accuracy": 0.5503371624140151
+              },
+              "always_down": {
+                "accuracy": 0.4496628375859849
+              },
+              "majority": {
+                "accuracy": 0.5503371624140151
+              },
+              "rsi_rule": {
+                "signals": 7465,
+                "coverage": 0.2529565246857104,
+                "accuracy": 0.5352980576021433
+              }
+            },
+            "train_rows": 98365,
+            "calibration_rows": 19673,
+            "validation_rows": 29511
+          },
+          {
+            "raw": {
+              "n": 29511,
+              "accuracy": 0.5222459421910474,
+              "balanced_accuracy": 0.5190752505662768,
+              "auc": 0.5336005274063258,
+              "log_loss": 0.6928269927204158,
+              "brier": 0.24980960849161551,
+              "macro_f1": 0.5154142070616817,
+              "up_rate": 0.6033004642336756
+            },
+            "calibrated": {
+              "n": 29511,
+              "accuracy": 0.5141472671207347,
+              "balanced_accuracy": 0.5002167643677078,
+              "auc": 0.5336005274063258,
+              "log_loss": 0.6943759449567669,
+              "brier": 0.2506230750271628,
+              "macro_f1": 0.3788513111657227,
+              "up_rate": 0.9512724068991224
+            },
+            "flip_test": {
+              "accuracy": 0.4777540578089526
+            },
+            "shuffled_label_test": {
+              "n": 29511,
+              "accuracy": 0.5148249805157399,
+              "balanced_accuracy": 0.5006312693289223,
+              "auc": 0.5217686294377505,
+              "log_loss": 0.6925496567497159,
+              "brier": 0.24970003672172886,
+              "macro_f1": 0.37327285583265374,
+              "up_rate": 0.9598115956761886
+            },
+            "baselines": {
+              "always_up": {
+                "accuracy": 0.5154349225712446
+              },
+              "always_down": {
+                "accuracy": 0.4845650774287554
+              },
+              "majority": {
+                "accuracy": 0.5154349225712446
+              },
+              "rsi_rule": {
+                "signals": 7163,
+                "coverage": 0.2427230524211311,
+                "accuracy": 0.5182186234817814
+              }
+            },
+            "train_rows": 127879,
+            "calibration_rows": 19673,
+            "validation_rows": 29511
+          },
+          {
+            "raw": {
+              "n": 19673,
+              "accuracy": 0.4855385553804707,
+              "balanced_accuracy": 0.49891701090955437,
+              "auc": 0.5311628719250923,
+              "log_loss": 0.7007187168958221,
+              "brier": 0.25377812162504115,
+              "macro_f1": 0.3876999856263107,
+              "up_rate": 0.9158237177857977
+            },
+            "calibrated": {
+              "n": 19673,
+              "accuracy": 0.5325064809637574,
+              "balanced_accuracy": 0.5245610799722233,
+              "auc": 0.5311628719250923,
+              "log_loss": 0.6906780090313733,
+              "brier": 0.24877419463486997,
+              "macro_f1": 0.49753627021697905,
+              "up_rate": 0.2522746912011386
+            },
+            "flip_test": {
+              "accuracy": 0.5144614446195293
+            },
+            "shuffled_label_test": {
+              "n": 19673,
+              "accuracy": 0.4827428455243227,
+              "balanced_accuracy": 0.49841545157410944,
+              "auc": 0.499819582861215,
+              "log_loss": 0.6972071277840599,
+              "brier": 0.2520256469990582,
+              "macro_f1": 0.33523929166908517,
+              "up_rate": 0.9871397346617191
+            },
+            "baselines": {
+              "always_up": {
+                "accuracy": 0.48391196055507546
+              },
+              "always_down": {
+                "accuracy": 0.5160880394449245
+              },
+              "majority": {
+                "accuracy": 0.48391196055507546
+              },
+              "rsi_rule": {
+                "signals": 4666,
+                "coverage": 0.2371778579779393,
+                "accuracy": 0.5145735105015002
+              }
+            },
+            "train_rows": 157393,
+            "calibration_rows": 9835,
+            "validation_rows": 19673
+          }
+        ],
+        "mean_accuracy": 0.5322512369367517,
+        "mean_auc": 0.5352461548901623
+      }
+    },
+    "h12_k0.3": {
+      "labels": {
+        "horizon_bars": 12,
+        "horizon_minutes": 60,
+        "k": 0.3,
+        "rows_before": 266937,
+        "rows_dropped_no_move_or_warmup": 71238,
+        "rows_kept": 195699,
+        "up_fraction": 0.5210552940996122
+      },
+      "rows_after_alignment": 195699,
+      "rows_before_final_holdout": 187698,
+      "core": {
+        "features": [
+          "ret_1",
+          "ret_5",
+          "ret_15",
+          "ret_60",
+          "range_pct",
+          "body_ratio",
+          "upper_wick",
+          "lower_wick",
+          "atr_14_pct",
+          "rv_20",
+          "vol_ratio",
+          "parkinson_20",
+          "rsi_14",
+          "macd_hist_c",
+          "bb_pctb",
+          "ema_dist_21",
+          "ema_dist_50",
+          "ema_dist_200",
+          "zscore_60",
+          "hour_sin",
+          "hour_cos",
+          "dow_sin",
+          "dow_cos",
+          "is_overlap",
+          "mins_since_open"
+        ],
+        "feature_count": 25,
+        "folds": [
+          {
+            "raw": {
+              "n": 28151,
+              "accuracy": 0.5424674079073567,
+              "balanced_accuracy": 0.5265840177559084,
+              "auc": 0.5404668263768889,
+              "log_loss": 0.6882069397136058,
+              "brier": 0.24758547141271486,
+              "macro_f1": 0.521780607280494,
+              "up_rate": 0.6562466697453021
+            },
+            "calibrated": {
+              "n": 28151,
+              "accuracy": 0.5512415189513694,
+              "balanced_accuracy": 0.5078722465298017,
+              "auc": 0.5404668263768889,
+              "log_loss": 0.6844593896908584,
+              "brier": 0.24574699734681266,
+              "macro_f1": 0.4228385784389367,
+              "up_rate": 0.9199317963837874
+            },
+            "flip_test": {
+              "accuracy": 0.45753259209264324
+            },
+            "shuffled_label_test": {
+              "n": 28151,
+              "accuracy": 0.5383467727611808,
+              "balanced_accuracy": 0.49669201481065844,
+              "auc": 0.5057670319276429,
+              "log_loss": 0.6897774145748184,
+              "brier": 0.24831891026155212,
+              "macro_f1": 0.4185245157809272,
+              "up_rate": 0.9022059607118752
+            },
+            "baselines": {
+              "always_up": {
+                "accuracy": 0.5517388369862527
+              },
+              "always_down": {
+                "accuracy": 0.4482611630137473
+              },
+              "majority": {
+                "accuracy": 0.5517388369862527
+              },
+              "rsi_rule": {
+                "signals": 7141,
+                "coverage": 0.2536677205072644,
+                "accuracy": 0.5350791205713485
+              }
+            },
+            "train_rows": 93834,
+            "calibration_rows": 18766,
+            "validation_rows": 28151
+          },
+          {
+            "raw": {
+              "n": 28151,
+              "accuracy": 0.5199815281872757,
+              "balanced_accuracy": 0.5128792678989569,
+              "auc": 0.5291564484876166,
+              "log_loss": 0.6960588327659136,
+              "brier": 0.25140067251686793,
+              "macro_f1": 0.48654284193272535,
+              "up_rate": 0.7403999857909133
+            },
+            "calibrated": {
+              "n": 28151,
+              "accuracy": 0.5115981670278142,
+              "balanced_accuracy": 0.4979279549595661,
+              "auc": 0.5291564484876166,
+              "log_loss": 0.6962318510487202,
+              "brier": 0.25154310394291785,
+              "macro_f1": 0.36796338632860226,
+              "up_rate": 0.9619196476146495
+            },
+            "flip_test": {
+              "accuracy": 0.4800184718127242
+            },
+            "shuffled_label_test": {
+              "n": 28151,
+              "accuracy": 0.5123086213633619,
+              "balanced_accuracy": 0.4990261875563499,
+              "auc": 0.5030703035169733,
+              "log_loss": 0.6938941378666915,
+              "brier": 0.25036844858643503,
+              "macro_f1": 0.3787652964035566,
+              "up_rate": 0.948847287840574
+            },
+            "baselines": {
+              "always_up": {
+                "accuracy": 0.5147952115377784
+              },
+              "always_down": {
+                "accuracy": 0.4852047884622216
+              },
+              "majority": {
+                "accuracy": 0.5147952115377784
+              },
+              "rsi_rule": {
+                "signals": 6883,
+                "coverage": 0.24450285957870058,
+                "accuracy": 0.5193956123783234
+              }
+            },
+            "train_rows": 121988,
+            "calibration_rows": 18766,
+            "validation_rows": 28151
+          },
+          {
+            "raw": {
+              "n": 18766,
+              "accuracy": 0.49131407865288285,
+              "balanced_accuracy": 0.5035130180168298,
+              "auc": 0.5184269032192337,
+              "log_loss": 0.7025800672846366,
+              "brier": 0.2547129596280394,
+              "macro_f1": 0.4148423025928325,
+              "up_rate": 0.8776510710860066
+            },
+            "calibrated": {
+              "n": 18766,
+              "accuracy": 0.5203559629116488,
+              "balanced_accuracy": 0.5135523044750542,
+              "auc": 0.5184269032192337,
+              "log_loss": 0.6919165766972367,
+              "brier": 0.24942048792170085,
+              "macro_f1": 0.4942315600201263,
+              "up_rate": 0.28887349461792605
+            },
+            "flip_test": {
+              "accuracy": 0.5086859213471171
+            },
+            "shuffled_label_test": {
+              "n": 18766,
+              "accuracy": 0.4821485665565384,
+              "balanced_accuracy": 0.49791403824585373,
+              "auc": 0.5064232085729802,
+              "log_loss": 0.6977601884783385,
+              "brier": 0.25230056472339857,
+              "macro_f1": 0.3336041626297696,
+              "up_rate": 0.9882766705744431
+            },
+            "baselines": {
+              "always_up": {
+                "accuracy": 0.4838537781093467
+              },
+              "always_down": {
+                "accuracy": 0.5161462218906533
+              },
+              "majority": {
+                "accuracy": 0.4838537781093467
+              },
+              "rsi_rule": {
+                "signals": 4465,
+                "coverage": 0.23793029947777897,
+                "accuracy": 0.5144456886898097
+              }
+            },
+            "train_rows": 150143,
+            "calibration_rows": 9381,
+            "validation_rows": 18766
+          }
+        ],
+        "mean_accuracy": 0.5277318829636107,
+        "mean_auc": 0.5293500593612464
+      },
+      "core_plus_cross": {
+        "features": [
+          "ret_1",
+          "ret_5",
+          "ret_15",
+          "ret_60",
+          "range_pct",
+          "body_ratio",
+          "upper_wick",
+          "lower_wick",
+          "atr_14_pct",
+          "rv_20",
+          "vol_ratio",
+          "parkinson_20",
+          "rsi_14",
+          "macd_hist_c",
+          "bb_pctb",
+          "ema_dist_21",
+          "ema_dist_50",
+          "ema_dist_200",
+          "zscore_60",
+          "gold_ret_1",
+          "gold_ret_5",
+          "gold_ret_15",
+          "gsr",
+          "gsr_z",
+          "gsr_chg_5",
+          "eur_ret_5",
+          "lead_lag",
+          "corr_gold_50",
+          "hour_sin",
+          "hour_cos",
+          "dow_sin",
+          "dow_cos",
+          "is_overlap",
+          "mins_since_open"
+        ],
+        "feature_count": 34,
+        "folds": [
+          {
+            "raw": {
+              "n": 28151,
+              "accuracy": 0.537991545593407,
+              "balanced_accuracy": 0.5295131910016284,
+              "auc": 0.540671981209144,
+              "log_loss": 0.6889333333064361,
+              "brier": 0.24794757768763095,
+              "macro_f1": 0.5291901052382519,
+              "up_rate": 0.5849880998898795
+            },
+            "calibrated": {
+              "n": 28151,
+              "accuracy": 0.5523072004546907,
+              "balanced_accuracy": 0.5065863451229385,
+              "auc": 0.540671981209144,
+              "log_loss": 0.6846109791486094,
+              "brier": 0.24578898832773155,
+              "macro_f1": 0.40758181023105977,
+              "up_rate": 0.9425242442542006
+            },
+            "flip_test": {
+              "accuracy": 0.462008454406593
+            },
+            "shuffled_label_test": {
+              "n": 28151,
+              "accuracy": 0.5400163404497176,
+              "balanced_accuracy": 0.4995500649934182,
+              "auc": 0.5019920656661995,
+              "log_loss": 0.689975325239199,
+              "brier": 0.2484178182821944,
+              "macro_f1": 0.42785816631790213,
+              "up_rate": 0.8910163049270008
+            },
+            "baselines": {
+              "always_up": {
+                "accuracy": 0.5517388369862527
+              },
+              "always_down": {
+                "accuracy": 0.4482611630137473
+              },
+              "majority": {
+                "accuracy": 0.5517388369862527
+              },
+              "rsi_rule": {
+                "signals": 7141,
+                "coverage": 0.2536677205072644,
+                "accuracy": 0.5350791205713485
+              }
+            },
+            "train_rows": 93834,
+            "calibration_rows": 18766,
+            "validation_rows": 28151
+          },
+          {
+            "raw": {
+              "n": 28151,
+              "accuracy": 0.5233561862811268,
+              "balanced_accuracy": 0.5238979471738152,
+              "auc": 0.5306876168410746,
+              "log_loss": 0.6949476537317204,
+              "brier": 0.2508329059609379,
+              "macro_f1": 0.5233524325435319,
+              "up_rate": 0.48239849383680866
+            },
+            "calibrated": {
+              "n": 28151,
+              "accuracy": 0.512983552982132,
+              "balanced_accuracy": 0.4997216996729031,
+              "auc": 0.5306876168410746,
+              "log_loss": 0.6944713444313484,
+              "brier": 0.2506725348396135,
+              "macro_f1": 0.3801188710196185,
+              "up_rate": 0.9481723562218038
+            },
+            "flip_test": {
+              "accuracy": 0.4766438137188732
+            },
+            "shuffled_label_test": {
+              "n": 28151,
+              "accuracy": 0.5067670775460907,
+              "balanced_accuracy": 0.4943992820110722,
+              "auc": 0.4923050061858214,
+              "log_loss": 0.6948123658557416,
+              "brier": 0.250825537735714,
+              "macro_f1": 0.3932137012364605,
+              "up_rate": 0.9178004333771447
+            },
+            "baselines": {
+              "always_up": {
+                "accuracy": 0.5147952115377784
+              },
+              "always_down": {
+                "accuracy": 0.4852047884622216
+              },
+              "majority": {
+                "accuracy": 0.5147952115377784
+              },
+              "rsi_rule": {
+                "signals": 6883,
+                "coverage": 0.24450285957870058,
+                "accuracy": 0.5193956123783234
+              }
+            },
+            "train_rows": 121988,
+            "calibration_rows": 18766,
+            "validation_rows": 28151
+          },
+          {
+            "raw": {
+              "n": 18766,
+              "accuracy": 0.48278802088884154,
+              "balanced_accuracy": 0.4960701830426948,
+              "auc": 0.5286834067699326,
+              "log_loss": 0.7013568344111935,
+              "brier": 0.2540873060295047,
+              "macro_f1": 0.3870053565230352,
+              "up_rate": 0.9114355749760205
+            },
+            "calibrated": {
+              "n": 18766,
+              "accuracy": 0.5328786102525844,
+              "balanced_accuracy": 0.5256556536024108,
+              "auc": 0.5286834067699326,
+              "log_loss": 0.6911352240396151,
+              "brier": 0.2490027661688595,
+              "macro_f1": 0.5041640300390182,
+              "up_rate": 0.27549824150058616
+            },
+            "flip_test": {
+              "accuracy": 0.5172119791111585
+            },
+            "shuffled_label_test": {
+              "n": 18766,
+              "accuracy": 0.4828413087498668,
+              "balanced_accuracy": 0.49872636240506985,
+              "auc": 0.5063482275158024,
+              "log_loss": 0.698300921388583,
+              "brier": 0.25256911532073345,
+              "macro_f1": 0.3314972304567336,
+              "up_rate": 0.991953532985186
+            },
+            "baselines": {
+              "always_up": {
+                "accuracy": 0.4838537781093467
+              },
+              "always_down": {
+                "accuracy": 0.5161462218906533
+              },
+              "majority": {
+                "accuracy": 0.4838537781093467
+              },
+              "rsi_rule": {
+                "signals": 4465,
+                "coverage": 0.23793029947777897,
+                "accuracy": 0.5144456886898097
+              }
+            },
+            "train_rows": 150143,
+            "calibration_rows": 9381,
+            "validation_rows": 18766
+          }
+        ],
+        "mean_accuracy": 0.5327231212298024,
+        "mean_auc": 0.5333476682733836
+      }
+    },
+    "h12_k0.5": {
+      "labels": {
+        "horizon_bars": 12,
+        "horizon_minutes": 60,
+        "k": 0.5,
+        "rows_before": 266937,
+        "rows_dropped_no_move_or_warmup": 89640,
+        "rows_kept": 177297,
+        "up_fraction": 0.5206799889451034
+      },
+      "rows_after_alignment": 177297,
+      "rows_before_final_holdout": 170017,
+      "core": {
+        "features": [
+          "ret_1",
+          "ret_5",
+          "ret_15",
+          "ret_60",
+          "range_pct",
+          "body_ratio",
+          "upper_wick",
+          "lower_wick",
+          "atr_14_pct",
+          "rv_20",
+          "vol_ratio",
+          "parkinson_20",
+          "rsi_14",
+          "macd_hist_c",
+          "bb_pctb",
+          "ema_dist_21",
+          "ema_dist_50",
+          "ema_dist_200",
+          "zscore_60",
+          "hour_sin",
+          "hour_cos",
+          "dow_sin",
+          "dow_cos",
+          "is_overlap",
+          "mins_since_open"
+        ],
+        "feature_count": 25,
+        "folds": [
+          {
+            "raw": {
+              "n": 25499,
+              "accuracy": 0.5433546413584847,
+              "balanced_accuracy": 0.5275739283876862,
+              "auc": 0.5444384205895312,
+              "log_loss": 0.6875220896038796,
+              "brier": 0.24725278749638266,
+              "macro_f1": 0.5231642547638775,
+              "up_rate": 0.6533197380289423
+            },
+            "calibrated": {
+              "n": 25499,
+              "accuracy": 0.5507274795090004,
+              "balanced_accuracy": 0.5083804517721989,
+              "auc": 0.5444384205895312,
+              "log_loss": 0.6839831667015661,
+              "brier": 0.2455252476144056,
+              "macro_f1": 0.4321290812696273,
+              "up_rate": 0.9045452762853445
+            },
+            "flip_test": {
+              "accuracy": 0.45664535864151534
+            },
+            "shuffled_label_test": {
+              "n": 25499,
+              "accuracy": 0.5399819600768657,
+              "balanced_accuracy": 0.4964005040928996,
+              "auc": 0.5001539989426779,
+              "log_loss": 0.689926247451199,
+              "brier": 0.2483923694254601,
+              "macro_f1": 0.41131689274133915,
+              "up_rate": 0.9150554923722499
+            },
+            "baselines": {
+              "always_up": {
+                "accuracy": 0.5524530373740146
+              },
+              "always_down": {
+                "accuracy": 0.4475469626259853
+              },
+              "majority": {
+                "accuracy": 0.5524530373740146
+              },
+              "rsi_rule": {
+                "signals": 6494,
+                "coverage": 0.25467665398643086,
+                "accuracy": 0.5378811210348013
+              }
+            },
+            "train_rows": 84993,
+            "calibration_rows": 16998,
+            "validation_rows": 25499
+          },
+          {
+            "raw": {
+              "n": 25499,
+              "accuracy": 0.5185693556610063,
+              "balanced_accuracy": 0.5120655522084971,
+              "auc": 0.5297600486367582,
+              "log_loss": 0.6966984692684163,
+              "brier": 0.25166703994657247,
+              "macro_f1": 0.4840785415684271,
+              "up_rate": 0.7452841287893643
+            },
+            "calibrated": {
+              "n": 25499,
+              "accuracy": 0.5124122514608416,
+              "balanced_accuracy": 0.49968468035197894,
+              "auc": 0.5297600486367582,
+              "log_loss": 0.6970907128376242,
+              "brier": 0.25196155366245504,
+              "macro_f1": 0.3561490959180982,
+              "up_rate": 0.979371740068238
+            },
+            "flip_test": {
+              "accuracy": 0.4814306443389937
+            },
+            "shuffled_label_test": {
+              "n": 25499,
+              "accuracy": 0.4882544413506412,
+              "balanced_accuracy": 0.48203246232983243,
+              "auc": 0.4765884934474288,
+              "log_loss": 0.6970734143138324,
+              "brier": 0.25195421292000947,
+              "macro_f1": 0.4549626826541311,
+              "up_rate": 0.7338719165457469
+            },
+            "baselines": {
+              "always_up": {
+                "accuracy": 0.5132750303933488
+              },
+              "always_down": {
+                "accuracy": 0.48672496960665124
+              },
+              "majority": {
+                "accuracy": 0.5132750303933488
+              },
+              "rsi_rule": {
+                "signals": 6267,
+                "coverage": 0.24577434409192517,
+                "accuracy": 0.5206637944790171
+              }
+            },
+            "train_rows": 110496,
+            "calibration_rows": 16998,
+            "validation_rows": 25499
+          },
+          {
+            "raw": {
+              "n": 16998,
+              "accuracy": 0.4926461936698435,
+              "balanced_accuracy": 0.5067141635653015,
+              "auc": 0.5173670188695065,
+              "log_loss": 0.7039056747570474,
+              "brier": 0.2553710903048019,
+              "macro_f1": 0.4225032488014374,
+              "up_rate": 0.8676314860571832
+            },
+            "calibrated": {
+              "n": 16998,
+              "accuracy": 0.5199435227673844,
+              "balanced_accuracy": 0.5129637739767492,
+              "auc": 0.5173670188695065,
+              "log_loss": 0.6917733643363891,
+              "brier": 0.24935777135986967,
+              "macro_f1": 0.49949219471750006,
+              "up_rate": 0.3169784680550653
+            },
+            "flip_test": {
+              "accuracy": 0.5073538063301565
+            },
+            "shuffled_label_test": {
+              "n": 16998,
+              "accuracy": 0.48046829038710437,
+              "balanced_accuracy": 0.49894999646181504,
+              "auc": 0.49210317868765946,
+              "log_loss": 0.6985841219363779,
+              "brier": 0.2527101440220385,
+              "macro_f1": 0.33774548872915366,
+              "up_rate": 0.9833509824685257
+            },
+            "baselines": {
+              "always_up": {
+                "accuracy": 0.4808801035415931
+              },
+              "always_down": {
+                "accuracy": 0.5191198964584068
+              },
+              "majority": {
+                "accuracy": 0.4808801035415931
+              },
+              "rsi_rule": {
+                "signals": 4038,
+                "coverage": 0.23755735968937522,
+                "accuracy": 0.5195641406636949
+              }
+            },
+            "train_rows": 135998,
+            "calibration_rows": 8497,
+            "validation_rows": 16998
+          }
+        ],
+        "mean_accuracy": 0.5276944179124089,
+        "mean_auc": 0.5305218293652653
+      },
+      "core_plus_cross": {
+        "features": [
+          "ret_1",
+          "ret_5",
+          "ret_15",
+          "ret_60",
+          "range_pct",
+          "body_ratio",
+          "upper_wick",
+          "lower_wick",
+          "atr_14_pct",
+          "rv_20",
+          "vol_ratio",
+          "parkinson_20",
+          "rsi_14",
+          "macd_hist_c",
+          "bb_pctb",
+          "ema_dist_21",
+          "ema_dist_50",
+          "ema_dist_200",
+          "zscore_60",
+          "gold_ret_1",
+          "gold_ret_5",
+          "gold_ret_15",
+          "gsr",
+          "gsr_z",
+          "gsr_chg_5",
+          "eur_ret_5",
+          "lead_lag",
+          "corr_gold_50",
+          "hour_sin",
+          "hour_cos",
+          "dow_sin",
+          "dow_cos",
+          "is_overlap",
+          "mins_since_open"
+        ],
+        "feature_count": 34,
+        "folds": [
+          {
+            "raw": {
+              "n": 25499,
+              "accuracy": 0.5360994548805835,
+              "balanced_accuracy": 0.5293024431994149,
+              "auc": 0.5444687824604852,
+              "log_loss": 0.6881265310359668,
+              "brier": 0.24757164349379102,
+              "macro_f1": 0.5292851380328268,
+              "up_rate": 0.5678654064865288
+            },
+            "calibrated": {
+              "n": 25499,
+              "accuracy": 0.5546884191536923,
+              "balanced_accuracy": 0.5125227446554087,
+              "auc": 0.5444687824604852,
+              "log_loss": 0.6834635901101979,
+              "brier": 0.245255774591411,
+              "macro_f1": 0.43797472849403923,
+              "up_rate": 0.9032511078865838
+            },
+            "flip_test": {
+              "accuracy": 0.4639005451194165
+            },
+            "shuffled_label_test": {
+              "n": 25499,
+              "accuracy": 0.5440213341699675,
+              "balanced_accuracy": 0.4998816409548086,
+              "auc": 0.5089819819557553,
+              "log_loss": 0.6892738269750407,
+              "brier": 0.2480670673930762,
+              "macro_f1": 0.41246409298400755,
+              "up_rate": 0.9207419898819561
+            },
+            "baselines": {
+              "always_up": {
+                "accuracy": 0.5524530373740146
+              },
+              "always_down": {
+                "accuracy": 0.4475469626259853
+              },
+              "majority": {
+                "accuracy": 0.5524530373740146
+              },
+              "rsi_rule": {
+                "signals": 6494,
+                "coverage": 0.25467665398643086,
+                "accuracy": 0.5378811210348013
+              }
+            },
+            "train_rows": 84993,
+            "calibration_rows": 16998,
+            "validation_rows": 25499
+          },
+          {
+            "raw": {
+              "n": 25499,
+              "accuracy": 0.5320992980116868,
+              "balanced_accuracy": 0.5331894229949021,
+              "auc": 0.538952725434433,
+              "log_loss": 0.6920963831154736,
+              "brier": 0.24947732120078994,
+              "macro_f1": 0.5317603991778688,
+              "up_rate": 0.4598219538021099
+            },
+            "calibrated": {
+              "n": 25499,
+              "accuracy": 0.5091964390760422,
+              "balanced_accuracy": 0.49743353298960485,
+              "auc": 0.538952725434433,
+              "log_loss": 0.6937893302160538,
+              "brier": 0.25034831145624764,
+              "macro_f1": 0.38016786065904035,
+              "up_rate": 0.9429781560061179
+            },
+            "flip_test": {
+              "accuracy": 0.4679007019883133
+            },
+            "shuffled_label_test": {
+              "n": 25499,
+              "accuracy": 0.4804894309580768,
+              "balanced_accuracy": 0.4753831171584715,
+              "auc": 0.4696519321480925,
+              "log_loss": 0.6971615301224725,
+              "brier": 0.25199910802070485,
+              "macro_f1": 0.45771102722853396,
+              "up_rate": 0.6916741833013059
+            },
+            "baselines": {
+              "always_up": {
+                "accuracy": 0.5132750303933488
+              },
+              "always_down": {
+                "accuracy": 0.48672496960665124
+              },
+              "majority": {
+                "accuracy": 0.5132750303933488
+              },
+              "rsi_rule": {
+                "signals": 6267,
+                "coverage": 0.24577434409192517,
+                "accuracy": 0.5206637944790171
+              }
+            },
+            "train_rows": 110496,
+            "calibration_rows": 16998,
+            "validation_rows": 25499
+          },
+          {
+            "raw": {
+              "n": 16998,
+              "accuracy": 0.4879985880691846,
+              "balanced_accuracy": 0.5037066647204801,
+              "auc": 0.5292722627258755,
+              "log_loss": 0.7041163553210872,
+              "brier": 0.255421225813375,
+              "macro_f1": 0.3953082381325973,
+              "up_rate": 0.9106365454759383
+            },
+            "calibrated": {
+              "n": 16998,
+              "accuracy": 0.5295917166725497,
+              "balanced_accuracy": 0.5226981915992619,
+              "auc": 0.5292722627258755,
+              "log_loss": 0.6907125582688134,
+              "brier": 0.2487951868950699,
+              "macro_f1": 0.5099384813389751,
+              "up_rate": 0.3188610424755854
+            },
+            "flip_test": {
+              "accuracy": 0.5120014119308154
+            },
+            "shuffled_label_test": {
+              "n": 16998,
+              "accuracy": 0.4799976467819744,
+              "balanced_accuracy": 0.4985868056533763,
+              "auc": 0.4895714284684362,
+              "log_loss": 0.698735736066111,
+              "brier": 0.25278497761592056,
+              "macro_f1": 0.33491600953842915,
+              "up_rate": 0.9861748440993058
+            },
+            "baselines": {
+              "always_up": {
+                "accuracy": 0.4808801035415931
+              },
+              "always_down": {
+                "accuracy": 0.5191198964584068
+              },
+              "majority": {
+                "accuracy": 0.4808801035415931
+              },
+              "rsi_rule": {
+                "signals": 4038,
+                "coverage": 0.23755735968937522,
+                "accuracy": 0.5195641406636949
+              }
+            },
+            "train_rows": 135998,
+            "calibration_rows": 8497,
+            "validation_rows": 16998
+          }
+        ],
+        "mean_accuracy": 0.5311588583007614,
+        "mean_auc": 0.5375645902069311
+      }
+    }
+  },
+  "selected_candidate": "h12_k0.3",
+  "final_holdout": {
+    "start": "2026-10-01 00:00:00+00:00",
+    "end": "2026-11-13 21:59:00+00:00",
+    "rows": 8001,
+    "raw": {
+      "n": 8001,
+      "accuracy": 0.4903137107861517,
+      "balanced_accuracy": 0.5029323041433769,
+      "auc": 0.5070392477776708,
+      "log_loss": 0.6995062582643244,
+      "brier": 0.2531320098204978,
+      "macro_f1": 0.4842010795265563,
+      "up_rate": 0.650668666416698
+    },
+    "calibrated": {
+      "n": 8001,
+      "accuracy": 0.5460567429071366,
+      "balanced_accuracy": 0.5099623964344571,
+      "auc": 0.5070392477776708,
+      "log_loss": 0.6902303586005551,
+      "brier": 0.24853580106793796,
+      "macro_f1": 0.4142853618504592,
+      "up_rate": 0.06749156355455568
+    },
+    "threshold_table": [
+      {
+        "threshold": 0.55,
+        "signals": 1689,
+        "coverage": 0.21109861267341581,
+        "accuracy": 0.5328596802841918
+      },
+      {
+        "threshold": 0.6,
+        "signals": 19,
+        "coverage": 0.002374703162104737,
+        "accuracy": 0.2631578947368421
+      },
+      {
+        "threshold": 0.65,
+        "signals": 1,
+        "coverage": 0.00012498437695288088,
+        "accuracy": 1.0
+      },
+      {
+        "threshold": 0.7,
+        "signals": 0,
+        "coverage": 0.0,
+        "accuracy": null
+      }
+    ]
+  },
+  "label_definition": "log(close[t+H]/close[t]); Up if fwd_ret > k*ATR_pct, Down if below -k*ATR_pct; no-move rows dropped",
+  "leakage_checks": {
+    "holdout_used_for_selection": false,
+    "previous_holdout_used_for_selection": true,
+    "cross_market_fill_limit_bars": 2,
+    "purge_bars": 3,
+    "embargo_bars": 3,
+    "candle_known_at": "timestamp + candle interval"
+  },
+  "baseline_note": "Previous SI results were 3-class and are not comparable to this binary spot study."
+}

@@ -11,26 +11,12 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from backend.main import app
 from backend.routes.api import FeatureObservation
+from src.features.spot_features import SPOT_FEATURE_COLUMNS
 
 
 FEATURES = {
-    "return_1": 0.01,
-    "return_3": 0.02,
-    "return_6": 0.03,
-    "volatility_5": 0.01,
-    "volatility_20": 0.02,
-    "volatility_50": 0.03,
-    "sma_distance_20": 0.01,
-    "sma_distance_50": 0.02,
-    "candle_return": 0.01,
-    "candle_range_pct": 0.02,
-    "upper_wick_ratio": 0.1,
-    "lower_wick_ratio": 0.1,
-    "relative_volume": 1.0,
-    "volume_change": 0.1,
-    "hour_sin": 0.5,
-    "hour_cos": 0.5,
-    "day_of_week": 2.0,
+    "timestamp": "2026-01-01T09:30:00+00:00",
+    **{feature: 0.01 for feature in SPOT_FEATURE_COLUMNS},
 }
 
 
@@ -87,7 +73,7 @@ def test_backend_rejects_missing_and_extra_features(monkeypatch):
     client = TestClient(app)
 
     missing = dict(FEATURES)
-    missing.pop("return_1")
+    missing.pop(SPOT_FEATURE_COLUMNS[0])
     assert client.post("/api/predict", json=missing).status_code == 422
 
     extra = dict(FEATURES, unexpected=1.0)
@@ -110,7 +96,7 @@ def test_backend_cors_and_schema_contract(monkeypatch):
         headers={"Origin": "http://localhost:3000"},
     )
     assert response.headers["access-control-allow-origin"] == "http://localhost:3000"
-    assert set(FeatureObservation.model_fields) == {"datetime_et", *FEATURES}
+    assert set(FeatureObservation.model_fields) == {"timestamp", "known_at", *SPOT_FEATURE_COLUMNS}
 
 
 def test_backend_hides_model_loading_failure(monkeypatch):
@@ -129,7 +115,7 @@ def test_confirmed_candle_endpoint_preserves_closed_candle_boundary(monkeypatch)
     fake = FakePredictionService()
     monkeypatch.setattr(app.state, "prediction_service", fake)
     payload = {
-        "datetime_et": "2026-01-01T09:30:00-05:00",
+        "timestamp": "2026-01-01T09:30:00+00:00",
         "close": 50.0,
         "features": FEATURES,
     }

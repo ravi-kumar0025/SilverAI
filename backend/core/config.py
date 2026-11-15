@@ -7,15 +7,15 @@ from pathlib import Path
 
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
-MODEL_ROOT = Path(os.getenv("SILVERAI_MODEL_ROOT", PROJECT_ROOT / "saved_models"))
+MODEL_ROOT = Path(os.getenv("SILVERAI_MODEL_ROOT", PROJECT_ROOT / "reports" / "spot_dukascopy_20261115"))
 SELECTION_PATH = Path(
     os.getenv(
         "SILVERAI_SELECTION_PATH",
-        PROJECT_ROOT / "reports" / "model_comparison" / "evaluation_selection.json",
+        PROJECT_ROOT / "reports" / "spot_dukascopy_20261115" / "metrics.json",
     )
 )
 PREDICTION_DB_PATH = Path(
-    os.getenv("SILVERAI_PREDICTION_DB_PATH", PROJECT_ROOT / "data" / "silverai_predictions.sqlite3")
+    os.getenv("SILVERAI_PREDICTION_DB_PATH", PROJECT_ROOT / "data" / "spot_predictions.sqlite3")
 )
 FROZEN_EVALUATION_PATH = Path(
     os.getenv("SILVERAI_FROZEN_EVALUATION_PATH", PROJECT_ROOT / "reports" / "frozen_evaluation.json")

@@ -9,7 +9,7 @@ def test_historical_provider_is_explicitly_not_live():
     provider = HistoricalCsvProvider()
     candles = provider.candles(12)
     assert provider.is_live is False
-    assert provider.name == "silver_5m.csv"
+    assert provider.name == "Dukascopy xagusd_1m.csv"
     assert len(candles) == 12
     assert candles[-1].high >= max(candles[-1].open, candles[-1].close)
 
@@ -31,7 +31,7 @@ def test_baselines_and_paper_trading_are_explicit():
     baselines = classification_baselines(pd.Series([-1, 0, 1, 1]), pd.Series([50, 49, 50, 51]))
     assert {"always_up_baseline", "always_down_baseline", "majority_class_baseline", "rsi_14_baseline"} <= set(baselines.model)
     result = evaluate_paper_trades([
-        {"prediction_id": "p1", "outcome_status": "evaluated", "predicted_direction": "UP", "close_price": 50, "actual_price": 51, "candle_timestamp": "2026-01-01T09:30:00", "outcome_evaluated_at": "2026-01-01T09:45:00"}
+        {"prediction_id": "p1", "outcome_status": "evaluated", "predicted_direction": "UP", "close_price": 50, "actual_price": 51, "candle_timestamp": "2026-01-01T09:30:00", "outcome_timestamp": "2026-01-01T09:45:00", "outcome_evaluated_at": "2026-01-01T10:30:00"}
     ])
     assert result["paper_only"] is True
     assert result["trade_count"] == 1

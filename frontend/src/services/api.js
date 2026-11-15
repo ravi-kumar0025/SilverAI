@@ -24,6 +24,7 @@ export const api = {
   latest: () => request('/api/predictions/latest'),
   candles: (limit = 288, timeframe = null) => request(`/api/market/candles?limit=${limit}${timeframe ? `&timeframe_minutes=${timeframe}` : ''}`),
   marketStatus: () => request('/api/market/status'),
+  marketInsights: () => request('/api/market/insights'),
   predictionHistory: (limit = 100) => request(`/api/predictions?limit=${limit}`),
   paperTrading: () => request('/api/paper-trading'),
   evaluationMetrics: () => request('/api/evaluation/metrics'),

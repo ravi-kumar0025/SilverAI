@@ -40,8 +40,13 @@ saved_models/
 *.pt
 *.pth
 
-# Datasets - keep directory, ignore its contents
+# Spot dataset: keep the merged Dukascopy CSVs; ignore download chunks and old/generated data.
 data/*
+!data/raw/
+!data/raw/dukascopy/
+!data/raw/dukascopy/*.csv
+data/raw/dukascopy/chunks/
+!data/dataset_manifest.json
 !data/.gitkeep
 
 # Node.js dependencies
@@ -82,3 +87,9 @@ desktop.ini
 # Ignore only temporary/log files.
 reports/**/*.tmp
 reports/**/*.log
+
+# Final spot submission evidence and model artifacts are intentional deliverables.
+!reports/spot_dukascopy_20261115/
+!reports/spot_dukascopy_20261115/*.json
+!reports/spot_dukascopy_20261115/*.md
+!reports/spot_dukascopy_20261115/*.joblib

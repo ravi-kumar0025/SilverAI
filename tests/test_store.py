@@ -9,9 +9,9 @@ from src.prediction.store import PredictionStore, is_finalized_signal_record
 def test_prediction_store_deduplicates_and_preserves_signal(tmp_path):
     store = PredictionStore(tmp_path / "predictions.sqlite3")
     payload = {
-        "instrument": "COMEX Silver Futures",
-        "contract": "SI",
-        "candle_timestamp": "2026-01-01T09:30:00-05:00",
+        "instrument": "XAGUSD_SPOT",
+        "contract": "XAG/USD",
+        "candle_timestamp": "2026-01-01T09:30:00Z",
         "close_price": 50.0,
         "predicted_direction_name": "UP",
         "class_probabilities": {"down": 0.1, "neutral": 0.2, "up": 0.7},
@@ -28,7 +28,7 @@ def test_prediction_store_deduplicates_and_preserves_signal(tmp_path):
 def test_prediction_store_records_only_explicitly_closed_candles_as_finalized(tmp_path):
     store = PredictionStore(tmp_path / "predictions.sqlite3")
     row = store.record({
-        "candle_timestamp": "2026-01-01T09:30:00-05:00",
+        "candle_timestamp": "2026-01-01T09:30:00Z",
         "close_price": 50.0,
         "predicted_direction_name": "UP",
         "class_probabilities": {"down": 0.1, "neutral": 0.2, "up": 0.7},
@@ -52,9 +52,9 @@ def test_finalized_signal_eligibility_excludes_newer_unfinalized_and_raw_rows(tm
         "forecast_horizon_minutes": 15,
         "forecast_horizon_bars": 3,
     }
-    store.record({**base, "candle_timestamp": "2026-01-01T09:30:00-05:00", "signal": {"signal": "BULLISH"}, "candle_finalized": True})
-    store.record({**base, "candle_timestamp": "2026-01-01T09:35:00-05:00", "predicted_direction_name": "DOWN", "candle_finalized": False})
-    store.record({**base, "candle_timestamp": "2026-01-01T09:40:00-05:00", "candle_finalized": True})
+    store.record({**base, "candle_timestamp": "2026-01-01T09:30:00Z", "signal": {"signal": "BULLISH"}, "candle_finalized": True})
+    store.record({**base, "candle_timestamp": "2026-01-01T09:35:00Z", "predicted_direction_name": "DOWN", "candle_finalized": False})
+    store.record({**base, "candle_timestamp": "2026-01-01T09:40:00Z", "candle_finalized": True})
     latest = store.list_finalized_signals(limit=1)
     assert latest[0]["candle_timestamp"].startswith("2026-01-01T09:30")
     assert is_finalized_signal_record(latest[0])
@@ -70,8 +70,8 @@ def test_latest_retrieval_uses_finalized_store_record_after_restart(tmp_path):
         "forecast_horizon_minutes": 15,
         "forecast_horizon_bars": 3,
     }
-    store.record({**base, "candle_timestamp": "2026-01-01T09:30:00-05:00", "signal": {"signal": "BULLISH"}, "candle_finalized": True})
-    store.record({**base, "candle_timestamp": "2026-01-01T09:35:00-05:00", "predicted_direction_name": "DOWN", "candle_finalized": False})
+    store.record({**base, "candle_timestamp": "2026-01-01T09:30:00Z", "signal": {"signal": "BULLISH"}, "candle_finalized": True})
+    store.record({**base, "candle_timestamp": "2026-01-01T09:35:00Z", "predicted_direction_name": "DOWN", "candle_finalized": False})
     service = PredictionService.__new__(PredictionService)
     service.store = store
     service._latest = None
@@ -80,11 +80,11 @@ def test_latest_retrieval_uses_finalized_store_record_after_restart(tmp_path):
 
 def test_prediction_outcome_is_written_without_changing_forecast(tmp_path):
     store = PredictionStore(tmp_path / "predictions.sqlite3")
-    timestamp = pd.Timestamp("2026-01-01 09:30", tz="America/New_York")
+    timestamp = pd.Timestamp("2026-01-01 09:30", tz="UTC")
     store.record(
         {
-            "instrument": "COMEX Silver Futures",
-            "contract": "SI",
+            "instrument": "XAGUSD_SPOT",
+            "contract": "XAG/USD",
             "candle_timestamp": timestamp.isoformat(),
             "close_price": 50.0,
             "predicted_direction_name": "UP",
@@ -109,7 +109,7 @@ def test_prediction_outcome_is_written_without_changing_forecast(tmp_path):
 
 def test_prediction_remains_pending_when_horizon_contains_a_gap(tmp_path):
     store = PredictionStore(tmp_path / "predictions.sqlite3")
-    timestamp = pd.Timestamp("2026-01-01 09:30", tz="America/New_York")
+    timestamp = pd.Timestamp("2026-01-01 09:30", tz="UTC")
     store.record({
         "candle_timestamp": timestamp.isoformat(),
         "close_price": 50.0,

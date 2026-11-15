@@ -134,8 +134,8 @@ class PredictionStore:
         horizon_bars = int(prediction.get("forecast_horizon_bars", CONFIG.forecast_horizon_bars))
         row = {
             "prediction_id": prediction_id,
-            "instrument": prediction.get("instrument", "COMEX Silver Futures"),
-            "contract": prediction.get("contract", "SI"),
+            "instrument": prediction.get("instrument", "XAG/USD Spot"),
+            "contract": prediction.get("contract", "XAG/USD"),
             "candle_timestamp": str(prediction.get("prediction_timestamp") or prediction.get("candle_timestamp") or ""),
             "created_at": created_at,
             "close_price": prediction.get("close_price"),

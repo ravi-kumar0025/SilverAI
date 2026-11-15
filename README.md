@@ -1,165 +1,51 @@
-# SilverAI
+# SilverAI — XAG/USD spot research terminal
 
-SilverAI is an Option B live-web-app implementation of the project brief in `ps.pdf`: a research and prototype prediction system for one declared asset, COMEX silver futures. It currently consumes five-minute OHLCV data, creates causal features, trains chronological baseline models, and exposes predictions through a FastAPI backend and React dashboard.
+SilverAI is a research and presentation project for XAG/USD spot using Dukascopy UTC bid data. It builds complete 5-minute candles from 1-minute files, aligns XAG/USD with XAU/USD and EUR/USD, creates causal features, and evaluates binary Up/Down signals with walk-forward validation.
 
-The project is analytical research software, not a trading system or a claim of profitable prediction. The current untouched-test results show modest classification performance and regression performance approximately equal to a zero-return baseline.
+The model is not a trading guarantee. The checked-in spot study reports per-fold metrics, calibration results, baselines, label audits, and leakage controls. A result above roughly 60% should be treated as a possible leakage or validation problem until independently verified.
 
-## Problem and objective
+## Current dataset
 
-SilverAI investigates whether information available at the close of a five-minute silver candle can support a forecast for the next three consecutive five-minute candles (15 minutes). It produces two independent outputs:
-
-- a three-class direction: `DOWN`, `NEUTRAL`, or `UP`;
-- a continuous predicted 15-minute return, expressed in percent.
-
-The outputs are combined into descriptive scenarios and an analytical signal. Model disagreement is retained as `MIXED`; the system does not force a directional conclusion.
-
-## Data
-
-The repository currently contains these local CSV artifacts under `data/`:
+The canonical data lives under `data/raw/dukascopy/`:
 
 | File | Role |
 | --- | --- |
-| `SI_1m_1098d.csv` | Raw one-minute silver OHLCV data. |
-| `silver_5m.csv` | Five-minute OHLCV candles used by the feature workflow. |
-| `silver_features.csv` | Five-minute candles plus the 17 engineered features. |
-| `silver_modeling_data.csv` | Feature data plus `future_return_15m` and `target_direction_15m`. |
-| `SI_daily_roll-adjusted.csv` | Separate daily roll-adjusted OHLCV context data. |
+| `xagusd_1m.csv` | XAG/USD target, merged 1-minute UTC data |
+| `xauusd_1m.csv` | XAU/USD cross-market data |
+| `eurusd_1m.csv` | EUR/USD cross-market data |
+| `*_5m.csv`, `*_15m.csv`, `*_1h.csv` | Regenerable complete-candle resolutions |
 
-The notebooks inspect these files locally. The external acquisition provenance is not recorded in the source code, so users should treat the checked-in CSVs as supplied research inputs and document their own data vendor/source when reproducing the dataset.
+The source files contain bid OHLC and no volume. The pipeline does not invent volume. Candle `T` becomes known at `T + resolution`; features and live inference use only closed candles. Gold and EUR/USD may be forward-filled for at most two candles; XAG/USD is never filled.
 
-All intraday timestamps are interpreted as timezone-aware `America/New_York` values. The loader preserves all source rows and columns while validating required schema.
-
-## Architecture
+## Research pipeline
 
 ```text
-data/*.csv
-   -> src.data.loader
-   -> src.data.preprocessing
-   -> src.features.technical_indicators
-   -> notebook 06 target creation / silver_modeling_data.csv
-   -> src.models.train
-   -> saved_models + reports/model_comparison
-   -> src.models.predict
-   -> src.prediction.pipeline
-      -> scenarios -> signals
-   -> backend FastAPI
-   -> frontend React/Vite dashboard
+data/raw/dukascopy/*_1m.csv
+  -> src.data.spot_data
+  -> src.features.spot_features (34 switchable features)
+  -> src.spot_targets (ATR-scaled binary labels)
+  -> src.experiments.spot_dukascopy_study
+  -> reports/spot_dukascopy_20261115
 ```
 
-Detailed responsibilities are in [`docs/architecture.md`](docs/architecture.md). The notebook sequence and reproducibility commands are in [`docs/reproducibility.md`](docs/reproducibility.md).
+The 34 core features cover silver price action, volatility, trend/momentum, cross-market relationships, and UTC session context. Horizons are 15, 30, and 60 minutes (`H = 3, 6, 12` on 5-minute candles); the dead-zone multiplier is tested at `k = 0.2, 0.3, 0.5`. The final selected artifact uses `H=12` and `k=0.2`, a 60-minute horizon.
 
-## Features and target
+The API and rolling inference contract use the same ordered 34-feature schema. A closed candle produces a binary Up/Down probability; confidence below the configured threshold becomes `No signal`. The model artifact is available for reproducible research inference, but the report does not promote it as a reliable live trading model.
 
-The approved 17-feature input is:
-
-`return_1`, `return_3`, `return_6`, `volatility_5`, `volatility_20`, `volatility_50`, `sma_distance_20`, `sma_distance_50`, `candle_return`, `candle_range_pct`, `upper_wick_ratio`, `lower_wick_ratio`, `relative_volume`, `volume_change`, `hour_sin`, `hour_cos`, `day_of_week`.
-
-Features use only the current and historical candle information. Rolling warm-up values remain missing and are not silently filled by the feature module. The target notebook requires three consecutive five-minute observations, then computes:
-
-```text
-future_return_15m = (close[t+3] - close[t]) / close[t] * 100
-```
-
-The training workflow recalibrates the neutral band from the purged training partition only. The saved threshold is `±0.0776397515528126%`; the original notebook's `±0.05%` label is explicitly provisional and is not the final training threshold.
-
-## Models and evaluation
-
-The training module evaluates three classifiers and three regressors:
-
-- classifiers: logistic regression, random forest, histogram gradient boosting;
-- regressors: linear regression, random forest, histogram gradient boosting.
-
-Selection uses validation performance only: highest macro F1 for classification and lowest RMSE for regression. The split is chronological with nominal fractions 70% / 15% / 15% and a three-row purge at train/validation boundaries. Test data is not used for selection.
-
-The selected saved artifacts are:
-
-- `hist_gradient_boosting_classifier`
-- `linear_regression`
-
-Evaluation on the untouched test partition produced:
-
-| Family | Metric | Selected model | Zero/majority baseline |
-| --- | ---: | ---: | ---: |
-| Classification | Accuracy | 0.38375 | 0.27003 majority accuracy |
-| Classification | Balanced accuracy | 0.38565 | 0.33333 |
-| Classification | Macro F1 | 0.37312 | 0.14175 |
-| Regression | MAE | 0.22040 | 0.22018 zero-return MAE |
-| Regression | RMSE | 0.31952 | 0.31940 zero-return RMSE |
-| Regression | R² | -0.00084 | -0.00010 |
-
-These figures are descriptive results from the available artifacts, not evidence of deployable trading performance. Full tables are under `reports/model_comparison/`.
-
-## Prediction, scenarios, and reliability
-
-`src.models.predict` loads the selected classifier and regressor, validates the exact feature order, and returns independent outputs. `src.prediction.pipeline` adds model metadata, scenarios, reliability limitations, and a final signal.
-
-Scenario probabilities are copied from valid classifier probabilities only. The scenario module reports supporting evidence, contradicting evidence, forecast information, and model disagreement. `signals.py` emits `BULLISH`, `BEARISH`, `NEUTRAL`, `MIXED`, or `INSUFFICIENT_DATA`.
-
-`src/models/calibration.py` provides leakage-safe sigmoid and isotonic train-suffix calibration, validation-only method selection, multiclass Brier/log-loss/ECE metrics, and safe artifact loading. The current checked-in model artifacts do not include a calibrator, so the runtime reports calibrated probabilities as unavailable rather than treating raw probabilities as confidence. Regenerated artifacts may include `saved_models/metadata/classification_calibrator.joblib` and its metadata contract.
-
-## Backend and frontend
-
-The FastAPI backend is organized as:
-
-- `backend/main.py` — application and CORS setup;
-- `backend/routes/api.py` — validated REST contracts;
-- `backend/services/prediction_service.py` — lazy, cached model access;
-- `backend/core/config.py` — environment-driven paths and CORS.
-
-Available routes are documented in [`docs/api.md`](docs/api.md). Confirmed predictions are persisted in SQLite through the confirmed-candle route and prediction journal; the dashboard can recover the latest durable record after restart.
-
-The React/Vite frontend in `frontend/` consumes backend health, model, journal, evaluation, and latest-prediction endpoints. Historical CSV data remains explicitly labeled historical; it is never presented as live data.
-
-## Installation and execution
-
-Prerequisites: Python 3.10+ with the project scientific dependencies available, Node.js 22+ and npm, and the supplied CSV/model artifacts.
-
-From the repository root:
+## Run
 
 ```powershell
 python -m pip install -r requirements.txt
 pytest -q
+python -m src.experiments.spot_dukascopy_study
 ```
 
-Start the API:
+Configuration is in [`config.yaml`](config.yaml). Environment defaults are documented in [`.env.example`](.env.example). The live-source decision and verification gate are in [`docs/spot_live_source.md`](docs/spot_live_source.md).
 
-```powershell
-python -m uvicorn backend.main:app --reload --host 0.0.0.0 --port 8000
-```
+## Repository policy
 
-Start the dashboard in another terminal:
+Only source code, the canonical Dukascopy dataset, the current spot report, and reproducibility documentation are retained. Raw download chunks, old SI/futures datasets, old models, notebooks, caches, and frontend build output are disposable and should not be committed.
 
-```powershell
-cd frontend
-npm install
-npm run dev
-```
+## Status
 
-Set `frontend/.env` when the API is not on the default URL:
-
-```env
-VITE_API_BASE_URL=http://localhost:8000
-```
-
-The backend expects the selected artifacts at `saved_models/` and selection metadata at `reports/model_comparison/evaluation_selection.json`. These can be overridden with `SILVERAI_MODEL_ROOT`, `SILVERAI_SELECTION_PATH`, and `SILVERAI_CORS_ORIGINS`.
-
-To regenerate models and evaluation reports, use the Python modules from the repository root:
-
-```powershell
-python -c "from src.models.train import run_training; run_training()"
-python -c "from src.models.evaluate import evaluate_saved_models; evaluate_saved_models()"
-```
-
-The notebook workflow is described in [`docs/reproducibility.md`](docs/reproducibility.md).
-
-## Limitations and future work
-
-- The data acquisition provenance is not encoded in the repository.
-- The target-creation workflow remains notebook-based rather than a reusable source module.
-- Regression test performance is effectively at the zero-return baseline.
-- The calibration training path is implemented, but the checked-in model artifacts have no calibration artifact; regenerate and evaluate artifacts before making calibrated-confidence claims.
-- A SQLite prediction journal, closed-candle orchestrator, frozen evaluation manifest, and cost/slippage-aware paper evaluator exist; they are not a live trading system.
-- Authenticated live data, contract-roll verification, and the PDF's five-trading-day continuous test remain outside the verified scope until a genuine live feed is configured.
-- Research papers justify hypotheses and validation practices; they do not establish SilverAI feature superiority or predictive novelty.
-
-The existing literature rationale and four-paper review are in [`reports/feature_research_analysis.md`](reports/feature_research_analysis.md).
+The current spot report is an evidence package, not a promoted production model. Historical data is always labelled historical in the app; no live readiness is implied.

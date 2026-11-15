@@ -5,31 +5,27 @@ from __future__ import annotations
 import os
 import hashlib
 import json
+from src.features.spot_features import SPOT_FEATURE_COLUMNS
 
 
-APPROVED_FEATURES = (
-    "return_1", "return_3", "return_6", "volatility_5", "volatility_20", "volatility_50",
-    "sma_distance_20", "sma_distance_50", "candle_return", "candle_range_pct",
-    "upper_wick_ratio", "lower_wick_ratio", "relative_volume", "volume_change",
-    "hour_sin", "hour_cos", "day_of_week",
-)
+APPROVED_FEATURES = SPOT_FEATURE_COLUMNS
 from dataclasses import dataclass
 
 
 @dataclass(frozen=True)
 class SilverAIConfig:
-    instrument: str = "COMEX Silver Futures"
-    symbol: str = "SI"
+    instrument: str = "XAG/USD Spot"
+    symbol: str = "XAG/USD"
     candle_minutes: int = 5
-    forecast_horizon_bars: int = 3
-    timezone: str = "America/New_York"
+    forecast_horizon_bars: int = 12
+    timezone: str = "UTC"
     evaluation_days: int = 5
     neutral_quantile: float = 0.40
     calibration_fraction: float = 0.20
     random_seed: int = 42
-    classification_target: str = "target_direction_15m"
-    regression_target: str = "future_return_15m"
-    threshold_definition: str = "40th percentile of absolute training returns"
+    classification_target: str = "binary_atr_scaled_direction"
+    regression_target: str | None = None
+    threshold_definition: str = "Up/Down outside k*ATR_pct; no-move rows dropped"
     feature_names: tuple[str, ...] = APPROVED_FEATURES
 
     @property
@@ -58,7 +54,7 @@ def load_config() -> SilverAIConfig:
     """Load safe, integer runtime overrides without scattering constants."""
 
     candle_minutes = int(os.getenv("SILVERAI_CANDLE_MINUTES", "5"))
-    horizon_bars = int(os.getenv("SILVERAI_HORIZON_BARS", "3"))
+    horizon_bars = int(os.getenv("SILVERAI_HORIZON_BARS", "12"))
     evaluation_days = int(os.getenv("SILVERAI_EVALUATION_DAYS", "5"))
     neutral_quantile = float(os.getenv("SILVERAI_NEUTRAL_QUANTILE", "0.40"))
     calibration_fraction = float(os.getenv("SILVERAI_CALIBRATION_FRACTION", "0.20"))
@@ -67,6 +63,8 @@ def load_config() -> SilverAIConfig:
     if not 0 < neutral_quantile < 1 or not 0 < calibration_fraction < 1:
         raise ValueError("SilverAI quantile and calibration fraction must be between zero and one.")
     return SilverAIConfig(
+        instrument=os.getenv("SILVERAI_INSTRUMENT", "XAGUSD_SPOT"),
+        symbol=os.getenv("SILVERAI_SYMBOL", "XAG/USD"),
         candle_minutes=candle_minutes,
         forecast_horizon_bars=horizon_bars,
         evaluation_days=evaluation_days,

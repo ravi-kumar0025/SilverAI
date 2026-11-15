@@ -47,3 +47,12 @@ def test_missing_and_low_reliability_are_insufficient():
     )
     assert low["signal"] == "INSUFFICIENT_DATA"
 
+
+def test_actionable_decision_is_selective():
+    result = interpret_signal(
+        _prediction(1, 0.25),
+        _scenarios(1, 0.25),
+    )
+    assert result["trade_decision"] == "ACTIONABLE_LONG"
+    assert result["coverage_policy"] == "selective_actionable_signals"
+

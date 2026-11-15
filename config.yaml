@@ -1,0 +1,33 @@
+instrument: XAGUSD_SPOT
+symbol: XAG/USD
+data_source: Dukascopy
+price_side: bid
+data_root: data/raw/dukascopy
+dataset_manifest: data/dataset_manifest.json
+timezone: UTC
+candle_minutes: 5
+candidate_horizons_bars: [3, 6, 12]
+target_k_values: [0.2, 0.3, 0.5]
+target_k: 0.2
+forecast_horizon_bars: 12
+purge_bars: 3
+embargo_bars: 3
+holdout_fraction: 0.2
+confidence_threshold: 0.60
+feature_groups:
+  - silver_price
+  - volatility
+  - trend_momentum
+  - cross_market
+  - time_session
+feature_set_version: xagusd_spot_34_v1
+model_version: xagusd_5m_60m_atr_binary_lgbm_v1
+final_holdout_start: 2026-10-01T00:00:00Z
+final_holdout_end: 2026-11-13T21:59:00Z
+costs:
+  spread_bps: 2.0
+  slippage_bps: 1.0
+live_sources:
+  xagusd: Dukascopy-compatible broker/websocket adapter required
+  xauusd: Dukascopy-compatible broker/websocket adapter required
+  eurusd: Dukascopy-compatible broker/websocket adapter required

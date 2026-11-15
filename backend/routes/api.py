@@ -7,10 +7,10 @@ from functools import lru_cache
 from typing import Any
 
 from fastapi import APIRouter, HTTPException, Request, status
-from pydantic import BaseModel, ConfigDict, Field
-from src.data.loader import load_5m_data
+from pydantic import BaseModel, ConfigDict, Field, create_model
+from src.data.spot_data import build_candles, load_candles, load_raw_instrument
 from src.config import CONFIG
-from src.experiments.timeframe_horizon import resample_ohlcv
+from src.features.spot_features import SPOT_FEATURE_COLUMNS
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api")
@@ -18,33 +18,19 @@ router = APIRouter(prefix="/api")
 
 @lru_cache(maxsize=1)
 def _market_frame():
-    """Load the repository's validated five-minute candles once per process."""
-    return load_5m_data().sort_values("datetime_et").reset_index(drop=True)
+    """Load complete UTC XAG/USD Dukascopy candles once per process."""
+    frame, _ = load_candles("xagusd", CONFIG.candle_minutes)
+    frame = frame.rename(columns={"timestamp": "datetime_et"})
+    return frame.sort_values("datetime_et").reset_index(drop=True)
 
 
-class FeatureObservation(BaseModel):
-    """One engineered observation accepted by the prediction pipeline."""
-
-    model_config = ConfigDict(extra="forbid")
-
-    datetime_et: str | None = None
-    return_1: float
-    return_3: float
-    return_6: float
-    volatility_5: float
-    volatility_20: float
-    volatility_50: float
-    sma_distance_20: float
-    sma_distance_50: float
-    candle_return: float
-    candle_range_pct: float
-    upper_wick_ratio: float
-    lower_wick_ratio: float
-    relative_volume: float
-    volume_change: float
-    hour_sin: float
-    hour_cos: float
-    day_of_week: float
+FeatureObservation = create_model(
+    "FeatureObservation",
+    __config__=ConfigDict(extra="forbid"),
+    timestamp=(str | None, None),
+    known_at=(str | None, None),
+    **{feature: (float, ...) for feature in SPOT_FEATURE_COLUMNS},
+)
 
 
 class BatchPredictionRequest(BaseModel):
@@ -58,7 +44,7 @@ class ConfirmedCandlePrediction(BaseModel):
 
     model_config = ConfigDict(extra="forbid")
 
-    datetime_et: str
+    timestamp: str
     close: float
     features: FeatureObservation
 
@@ -121,7 +107,7 @@ def predict_confirmed(payload: ConfirmedCandlePrediction, request: Request) -> d
     """Infer once for a closed candle and persist its close for later evaluation."""
     try:
         observation = payload.features.model_dump(exclude_none=True)
-        observation["datetime_et"] = payload.datetime_et
+        observation["timestamp"] = payload.timestamp
         observation["close"] = payload.close
         return _service(request).predict([observation], finalized=True)
     except Exception as exc:
@@ -145,7 +131,11 @@ def market_candles(limit: int = 288, timeframe_minutes: int = CONFIG.candle_minu
         raise HTTPException(status_code=422, detail="timeframe_minutes must be one of 5, 10, 15, or 30.")
     try:
         source_frame = _market_frame()
-        frame = source_frame if timeframe_minutes == 5 else resample_ohlcv(source_frame, timeframe_minutes)
+        if timeframe_minutes == 5:
+            frame = source_frame
+        else:
+            raw, _ = load_raw_instrument("xagusd")
+            frame = build_candles(raw, timeframe_minutes).rename(columns={"timestamp": "datetime_et"})
         frame = frame.tail(limit)
     except (FileNotFoundError, OSError, ValueError) as exc:
         raise HTTPException(status_code=503, detail="Historical market data is unavailable.") from exc
@@ -157,7 +147,6 @@ def market_candles(limit: int = 288, timeframe_minutes: int = CONFIG.candle_minu
             "high": float(row.high),
             "low": float(row.low),
             "close": float(row.close),
-            "volume": float(row.volume),
         }
         for row in frame.itertuples(index=False)
     ]
@@ -165,12 +154,12 @@ def market_candles(limit: int = 288, timeframe_minutes: int = CONFIG.candle_minu
     previous = candles[-2] if len(candles) > 1 else last
     session = frame[frame.datetime_et.dt.date == frame.iloc[-1].datetime_et.date()]
     return {
-        "instrument": "COMEX Silver Futures",
-        "symbol": "SI",
-        "source": "silver_5m.csv" if timeframe_minutes == 5 else f"silver_5m.csv resampled to {timeframe_minutes}m",
+        "instrument": CONFIG.instrument,
+        "symbol": CONFIG.symbol,
+        "source": "Dukascopy xagusd_1m.csv" if timeframe_minutes == 5 else f"Dukascopy xagusd_1m.csv resampled to {timeframe_minutes}m",
         "timeframe_minutes": timeframe_minutes,
         "data_status": "historical",
-        "timezone": "America/New_York",
+        "timezone": "UTC",
         "timestamp": last["time"],
         "candles": candles,
         "stats": {
@@ -181,7 +170,6 @@ def market_candles(limit: int = 288, timeframe_minutes: int = CONFIG.candle_minu
             "previous_close": previous["close"],
             "change": last["close"] - previous["close"],
             "change_pct": (last["close"] / previous["close"] - 1) if previous["close"] else 0,
-            "volume": sum(item["volume"] for item in candles),
         },
     }
 
@@ -190,6 +178,14 @@ def market_candles(limit: int = 288, timeframe_minutes: int = CONFIG.candle_minu
 def market_status(request: Request) -> dict[str, Any]:
     """Report the configured data source without implying that historical data is live."""
     return _service(request).market_status()
+
+
+@router.get("/market/insights")
+def market_insights(request: Request) -> dict[str, Any]:
+    try:
+        return _service(request).market_insights()
+    except (FileNotFoundError, OSError, ValueError) as exc:
+        raise HTTPException(status_code=503, detail="Market insights are unavailable.") from exc
 
 
 @router.get("/provider/health")

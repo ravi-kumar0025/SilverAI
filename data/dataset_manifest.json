@@ -1,0 +1,66 @@
+{
+  "manifest_version": "xagusd_spot_manifest_v1",
+  "instrument": "XAGUSD_SPOT",
+  "instruments": [
+    "XAG/USD",
+    "XAU/USD",
+    "EUR/USD"
+  ],
+  "provider": "Dukascopy",
+  "price_side": "bid",
+  "timezone": "UTC",
+  "source_frequency": "1m",
+  "volume_present": false,
+  "files": {
+    "xagusd_1m.csv": {
+      "sha256": "c3f4b6818437adae25fd1dcb8269da737bfb6cfbcac4d9c4ee4b26c05e730673",
+      "rows": 1334781,
+      "start": "2023-11-01 00:00:00+00:00",
+      "end": "2026-11-13 21:59:00+00:00",
+      "columns": [
+        "timestamp",
+        "open",
+        "high",
+        "low",
+        "close"
+      ]
+    },
+    "xauusd_1m.csv": {
+      "sha256": "5a4ad05d76016b1391d00dd4db200f10953ada38827695b012682cece4425c6c",
+      "rows": 1334790,
+      "start": "2023-11-01 00:00:00+00:00",
+      "end": "2026-11-13 21:59:00+00:00",
+      "columns": [
+        "timestamp",
+        "open",
+        "high",
+        "low",
+        "close"
+      ]
+    },
+    "eurusd_1m.csv": {
+      "sha256": "1c40da92e1b7793ea081b75080a338ead4e33b804ea948c095c9075493dc69ab",
+      "rows": 1342487,
+      "start": "2023-11-01 00:00:00+00:00",
+      "end": "2026-11-13 21:59:00+00:00",
+      "columns": [
+        "timestamp",
+        "open",
+        "high",
+        "low",
+        "close"
+      ]
+    }
+  },
+  "date_range": {
+    "start": "2023-11-01 00:00:00+00:00",
+    "end": "2026-11-13 21:59:00+00:00"
+  },
+  "resampling": {
+    "closed": "left",
+    "label": "left",
+    "complete_candle_rule": "exactly timeframe rows"
+  },
+  "git_commit_at_generation": "e2dee2b78f5650d9abeb1de2f9640b778fbfc659",
+  "dataset_id": "4be8732dbab3aaa6"
+}

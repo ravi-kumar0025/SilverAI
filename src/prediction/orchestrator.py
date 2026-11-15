@@ -38,7 +38,10 @@ class ClosedCandleOrchestrator:
         key = (candle.instrument, candle.contract, candle.timestamp)
         if key in self._seen:
             return None
-        features = self.feature_builder([candle])
+        append = getattr(self.feature_builder, "append", None)
+        features = append(candle) if callable(append) else self.feature_builder([candle])
+        if features is None:
+            return None
         if not isinstance(features, pd.DataFrame) or len(features) != 1:
             raise ValueError("feature_builder must return exactly one feature row per closed candle.")
         result = self.predict_closed_candle(features, candle)
