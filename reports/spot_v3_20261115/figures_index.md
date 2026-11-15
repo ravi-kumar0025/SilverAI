@@ -1,23 +1,24 @@
 # Figures index
 
+dataset_id: 4be8732dbab3aaa6
+
 Generated:
-- 03_label_path_breakdown.png: generated from stored development artifacts
-- 07_per_fold_accuracy.png: generated from stored development artifacts
-- 07b_three_vs_six_fold_selection_bias.png: generated from stored development artifacts
-- 08_horizon_label_comparison.png: generated from stored development artifacts
-- 10_confident_thresholds.png: generated from stored development artifacts
-- 14_seed_stability.png: generated from stored development artifacts
-- 16_architecture.png: generated from stored development artifacts
+- fig_3_1_architecture.png
+- fig_3_2_price_history.png
+- fig_3_3_coverage_gaps.png
+- fig_3_8_eda.png
+- fig_3_4_label_drops.png
+- fig_3_4_label_construction.png
+- fig_3_5_class_balance.png
+- fig_3_6_walk_forward.png
+- fig_4_1_accuracy.png
+- fig_4_3_horizon_label_comparison.png
+- fig_4_4_thresholds.png
 
 MISSING:
-- 01_price_history: no stored figure artifact
-- 02_coverage: no stored coverage figure artifact
-- 04_timeline: no stored fold timeline artifact
-- 05_feature_importance: no stored importance artifact
-- 06_lead_lag: no stored lead-lag artifact
-- 09_reliability: no stored probability-bin artifact
-- 11_session_regime: no stored subgroup artifact
-- 12_roc_confusion: no stored curve artifact
-- 13_profit_drawdown: no stored equity curve artifact
-- 15_signal_timeline: no stored signal timeline artifact
-- 17_live_validation: live machine artifacts not available
+- fig_3_7_feature_groups_heatmap.png
+- fig_4_2_auc_curves.png
+- fig_4_5_reliability.png
+- fig_4_6_session_regime.png
+- fig_4_7_profit_costs.png
+- fig_4_8_seed_stability.png
