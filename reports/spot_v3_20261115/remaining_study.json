@@ -1,0 +1,16 @@
+{
+  "one_minute": {
+    "source_event_count": 142721,
+    "historical_report_event_count": 100424,
+    "recovered": 76726,
+    "ambiguous_1m": 62687,
+    "invalid_1m": 3308,
+    "invariant_sum": 142721,
+    "retained_rows": 281970,
+    "up_rows": 134118,
+    "down_rows": 147852,
+    "up_fraction": 0.4756463453558889
+  },
+  "candidate_rows": 84,
+  "hour_rows": 274
+}

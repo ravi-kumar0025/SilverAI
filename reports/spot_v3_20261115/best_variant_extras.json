@@ -1,0 +1,159 @@
+{
+  "best_variant": "triple_neutral_2h_60m",
+  "thresholds": [
+    {
+      "threshold": 0.52,
+      "signals": 3373,
+      "coverage": 0.5176488643339472,
+      "accuracy": 0.5404684257337682,
+      "wilson_lo": 0.5236135692836638,
+      "wilson_hi": 0.5572312092850468
+    },
+    {
+      "threshold": 0.55,
+      "signals": 685,
+      "coverage": 0.10512584407612031,
+      "accuracy": 0.5591240875912409,
+      "wilson_lo": 0.5217162330498066,
+      "wilson_hi": 0.5958725081079528
+    },
+    {
+      "threshold": 0.58,
+      "signals": 144,
+      "coverage": 0.022099447513812154,
+      "accuracy": 0.625,
+      "wilson_lo": 0.5436465771441876,
+      "wilson_hi": 0.6998575135700531
+    },
+    {
+      "threshold": 0.6,
+      "signals": 40,
+      "coverage": 0.006138735420503376,
+      "accuracy": 0.575,
+      "wilson_lo": 0.42195068541991065,
+      "wilson_hi": 0.7149060744004962
+    },
+    {
+      "threshold": 0.65,
+      "signals": 1,
+      "coverage": 0.0001534683855125844,
+      "accuracy": 1.0,
+      "wilson_lo": 0.20654931437723745,
+      "wilson_hi": 1
+    },
+    {
+      "threshold": 0.7,
+      "signals": 0,
+      "coverage": 0.0,
+      "accuracy": null,
+      "wilson_lo": null,
+      "wilson_hi": null
+    },
+    {
+      "threshold": 0.75,
+      "signals": 0,
+      "coverage": 0.0,
+      "accuracy": null,
+      "wilson_lo": null,
+      "wilson_hi": null
+    }
+  ],
+  "meta_model": [
+    {
+      "fold": 1,
+      "signals": 0,
+      "coverage": 0.0,
+      "accuracy": null
+    },
+    {
+      "fold": 2,
+      "signals": 421,
+      "coverage": 0.3876611418047882,
+      "accuracy": 0.5581947743467933
+    },
+    {
+      "fold": 3,
+      "signals": 1085,
+      "coverage": 0.9990791896869244,
+      "accuracy": 0.5069124423963134
+    },
+    {
+      "fold": 4,
+      "signals": 481,
+      "coverage": 0.4429097605893186,
+      "accuracy": 0.5738045738045738
+    },
+    {
+      "fold": 5,
+      "signals": 485,
+      "coverage": 0.44659300184162065,
+      "accuracy": 0.5628865979381443
+    },
+    {
+      "fold": 6,
+      "signals": 651,
+      "coverage": 0.5994475138121547,
+      "accuracy": 0.5268817204301075
+    }
+  ],
+  "baselines": [
+    {
+      "baseline": "always_up",
+      "signals": 10860,
+      "coverage": 1.0,
+      "accuracy": 0.49788213627992634
+    },
+    {
+      "baseline": "last_candle",
+      "signals": 10860,
+      "coverage": 1.0,
+      "accuracy": 0.47384898710865564
+    },
+    {
+      "baseline": "rsi_rule",
+      "signals": 2924,
+      "coverage": 0.2692449355432781,
+      "accuracy": 0.5147058823529411
+    }
+  ],
+  "costs": [
+    {
+      "cost_multiple": 1,
+      "signals": 6516,
+      "gross_return": 0.39862392148016,
+      "cost": 3.9095999999999997,
+      "net_return": -3.51097607851984
+    },
+    {
+      "cost_multiple": 2,
+      "signals": 6516,
+      "gross_return": 0.39862392148016,
+      "cost": 7.8191999999999995,
+      "net_return": -7.420576078519839
+    },
+    {
+      "cost_multiple": 3,
+      "signals": 6516,
+      "gross_return": 0.39862392148016,
+      "cost": 11.7288,
+      "net_return": -11.33017607851984
+    }
+  ],
+  "seed_stability": [
+    {
+      "seed": 1,
+      "accuracy": 0.5224063842848373,
+      "auc_proxy": 0.06439943572833862
+    },
+    {
+      "seed": 42,
+      "accuracy": 0.5331491712707183,
+      "auc_proxy": 0.06648140941344782
+    },
+    {
+      "seed": 99,
+      "accuracy": 0.5220994475138122,
+      "auc_proxy": 0.055361620718161975
+    }
+  ]
+}

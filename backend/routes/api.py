@@ -49,6 +49,18 @@ class ConfirmedCandlePrediction(BaseModel):
     features: FeatureObservation
 
 
+class LiveCandle(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    symbol: str
+    timestamp: str
+    open: float
+    high: float
+    low: float
+    close: float
+    forming: bool = False
+
+
 def _service(request: Request):
     return request.app.state.prediction_service
 
@@ -118,7 +130,19 @@ def predict_confirmed(payload: ConfirmedCandlePrediction, request: Request) -> d
 def latest(request: Request) -> dict[str, Any]:
     result = _service(request).latest()
     if result is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No prediction available.")
+        reason = "no_prediction_yet"
+        status_report = getattr(_service(request), "market_status", lambda: {})()
+        if status_report.get("companion_missing"):
+            reason = "companion_missing"
+        elif status_report.get("is_live") and status_report.get("last_update") and not status_report.get("fresh", True):
+            reason = "stale_data"
+        return {
+            "direction": "No clear signal",
+            "reason": reason,
+            "signal": {"signal": "NO_CLEAR_SIGNAL"},
+            "trade_decision": "WAIT",
+            "candle_finalized": False,
+        }
     return result
 
 
@@ -190,6 +214,31 @@ def market_insights(request: Request) -> dict[str, Any]:
 
 @router.get("/provider/health")
 def provider_health(request: Request) -> dict[str, Any]:
+    return _service(request).market_status()
+
+
+@router.post("/live/candles")
+def ingest_live_candle(payload: LiveCandle, request: Request) -> dict[str, Any]:
+    """Receive a normalized, closed one-minute candle from the Node bridge."""
+    try:
+        return _service(request).ingest_live_candle(payload.model_dump())
+    except (ValueError, TypeError) as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+    except RuntimeError as exc:
+        raise HTTPException(status_code=503, detail=str(exc)) from exc
+
+
+@router.post("/live/heartbeat")
+def live_heartbeat(request: Request) -> dict[str, Any]:
+    try:
+        return {"heartbeat": True, "status": _service(request).live_heartbeat()}
+    except RuntimeError as exc:
+        raise HTTPException(status_code=503, detail=str(exc)) from exc
+
+
+@router.get("/live/status")
+def live_status(request: Request) -> dict[str, Any]:
+    """Expose live-feed freshness for the explicit UI live-mode opt-in."""
     return _service(request).market_status()
 
 

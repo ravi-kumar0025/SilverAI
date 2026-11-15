@@ -1,0 +1,26 @@
+{
+  "ledger_version": 1,
+  "policy": "The original holdout is used and must never be evaluated again.",
+  "holdouts": [
+    {
+      "name": "original_final_holdout",
+      "start": "2026-10-01T00:00:00Z",
+      "end": "2026-11-13T21:59:00Z",
+      "status": "used",
+      "uses": [
+        {
+          "artifact": "reports/spot_dukascopy_20261115/metrics.json",
+          "purpose": "pre-existing stored final evaluation",
+          "run_by_this_turn": false,
+          "labels_reopened": false
+        }
+      ],
+      "reuse_allowed": false
+    }
+  ],
+  "next_holdout": {
+    "status": "not_frozen",
+    "selection_rule": "most recent block after the extended dataset is available",
+    "reuse_allowed": false
+  }
+}

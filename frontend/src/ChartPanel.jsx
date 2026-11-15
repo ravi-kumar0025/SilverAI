@@ -1,5 +1,5 @@
-import React, { useMemo, useState } from 'react'
-import { signalsForCandle } from './chartSignals.mjs'
+import React, { useEffect, useMemo, useState } from 'react'
+import { createSeriesMarkers } from './chartSignals.mjs'
 
 const money = value => value == null || !Number.isFinite(Number(value)) ? '—' : Number(value).toFixed(3)
 const date = value => value ? new Date(value).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' }) : '—'
@@ -9,11 +9,10 @@ function aggregate(candles, minutes) {
   const groups = new Map()
   candles.forEach(candle => {
     const key = Math.floor(Date.parse(candle.time) / (minutes * 60000))
-    const item = groups.get(key) || { time: candle.time, open: candle.open, high: candle.high, low: candle.low, close: candle.close, volume: 0 }
+    const item = groups.get(key) || { time: candle.time, open: candle.open, high: candle.high, low: candle.low, close: candle.close }
     item.high = Math.max(item.high, candle.high)
     item.low = Math.min(item.low, candle.low)
     item.close = candle.close
-    item.volume += candle.volume
     groups.set(key, item)
   })
   return [...groups.values()]
@@ -23,16 +22,23 @@ function signalLabel(signal) {
   return signal === 'BULLISH' ? 'Bullish' : signal === 'BEARISH' ? 'Bearish' : 'Neutral'
 }
 
-export default function ChartPanel({ market, predictions, models }) {
-  const [timeframe, setTimeframe] = useState(Number(models?.configuration?.candle_minutes || 5))
-  const [horizon, setHorizon] = useState(Number(models?.prediction_horizon_minutes || 15))
+export default function ChartPanel({ market, predictions, models, mode = 'historical' }) {
+  const [timeframe, setTimeframe] = useState(Number(models?.configuration?.candle_minutes || 0))
   const [range, setRange] = useState('4H')
   const [zoom, setZoom] = useState(1)
   const [offset, setOffset] = useState(0)
   const [hover, setHover] = useState(null)
   const [selected, setSelected] = useState(null)
 
-  const all = useMemo(() => aggregate(market?.candles, timeframe), [market, timeframe])
+  useEffect(() => {
+    if (models?.configuration?.candle_minutes) setTimeframe(Number(models.configuration.candle_minutes))
+  }, [models])
+
+  const all = useMemo(() => {
+    const candles = [...(market?.candles || [])]
+    if (mode === 'live' && market?.forming_candle) candles.push(market.forming_candle)
+    return aggregate(candles, timeframe)
+  }, [market, timeframe, mode])
   const rangeBars = { '1H': Math.max(1, Math.round(60 / timeframe)), '4H': Math.max(1, Math.round(240 / timeframe)), '1D': Math.max(1, Math.round(1440 / timeframe)), ALL: all.length }
   const visibleBars = Math.max(12, Math.min(all.length, Math.round((rangeBars[range] || 48) / zoom)))
   const start = Math.max(0, all.length - visibleBars - offset)
@@ -41,8 +47,7 @@ export default function ChartPanel({ market, predictions, models }) {
   const w = 1400
   const h = 520
   const pad = { l: 18, r: 86, t: 22, b: 34 }
-  const priceBottom = 390
-  const volumeTop = 420
+  const priceBottom = 470
 
   const values = shown.flatMap(candle => [candle.high, candle.low])
   const rawMin = values.length ? Math.min(...values) : 0
@@ -50,10 +55,8 @@ export default function ChartPanel({ market, predictions, models }) {
   const margin = Math.max((rawMax - rawMin) * .08, .01)
   const min = rawMin - margin
   const max = rawMax + margin
-  const maxVolume = Math.max(...shown.map(candle => candle.volume), 1)
 
   const sy = value => pad.t + (max - value) / (max - min || 1) * (priceBottom - pad.t)
-  const vy = value => volumeTop + (1 - value / maxVolume) * 54
   const step = (w - pad.l - pad.r) / Math.max(shown.length, 1)
   const sx = index => pad.l + index * step + step / 2
 
@@ -68,7 +71,7 @@ export default function ChartPanel({ market, predictions, models }) {
     <section className="chart-shell">
       <div className="chart-head">
         <div>
-          <span className="kicker">PRICE ACTION</span>
+          <span className="kicker">PRICE ACTION · {mode === 'live' ? 'LIVE' : 'PAST'}</span>
           <h2>XAG/USD Spot <code>XAG/USD</code></h2>
         </div>
         <div className="chart-legend">
@@ -90,20 +93,14 @@ export default function ChartPanel({ market, predictions, models }) {
                 setSelected(null)
               }}
             >
-              <option value="5">5m</option>
-              <option value="10">10m</option>
-              <option value="15">15m</option>
-              <option value="30">30m</option>
+              {models?.configuration?.candle_minutes != null && (
+                <option value={models.configuration.candle_minutes}>{models.configuration.candle_minutes}m</option>
+              )}
             </select>
           </label>
-          <label>
-            Forecast
-            <select value={horizon} onChange={event => setHorizon(Number(event.target.value))}>
-              <option value="10">10m</option>
-              <option value="15">15m</option>
-              <option value="30">30m</option>
-            </select>
-          </label>
+          <span className="toolbar-readout">
+            Forecast {models?.prediction_horizon_minutes == null ? 'Unavailable' : `${models.prediction_horizon_minutes}m`}
+          </span>
           <div className="toolbar-divider" />
           <button type="button" onClick={() => setZoom(value => Math.min(4, value + .5))}>Zoom +</button>
           <button type="button" onClick={() => setZoom(value => Math.max(1, value - .5))}>Zoom −</button>
@@ -136,17 +133,6 @@ export default function ChartPanel({ market, predictions, models }) {
             preserveAspectRatio="xMidYMid meet"
             onMouseLeave={() => setHover(null)}
           >
-            <defs>
-              <linearGradient id="vol-up" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0" stopColor="#16a34a" stopOpacity="0.4" />
-                <stop offset="1" stopColor="#16a34a" stopOpacity="0.04" />
-              </linearGradient>
-              <linearGradient id="vol-down" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0" stopColor="#dc2626" stopOpacity="0.35" />
-                <stop offset="1" stopColor="#dc2626" stopOpacity="0.04" />
-              </linearGradient>
-            </defs>
-
             {[0, .25, .5, .75, 1].map(value => (
               <g key={value}>
                 <line
@@ -163,13 +149,14 @@ export default function ChartPanel({ market, predictions, models }) {
             ))}
 
             {shown.map((candle, index) => {
-              const candleSignals = signalsForCandle(candle, predictions, timeframe)
+              const candleSignals = createSeriesMarkers(candle, predictions, timeframe)
               const bullish = candle.close >= candle.open
               const bodyWidth = Math.max(4, step * 0.62)
               const timeLabel = index % labelEvery === 0 || index === shown.length - 1
 
               return (
                 <g key={candle.time} onMouseMove={() => setHover({ candle, marker: null })}>
+                  <title>{candleSignals[0] ? `${candleSignals[0].direction} · ${candleSignals[0].confidenceLabel}` : 'No clear signal'}</title>
                   {timeLabel && (
                     <text className="axis time-axis" x={sx(index)} y={h - 10} textAnchor="middle">
                       {new Date(candle.time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
@@ -177,7 +164,7 @@ export default function ChartPanel({ market, predictions, models }) {
                   )}
 
                   <line
-                    className={bullish ? 'candle-up' : 'candle-down'}
+                    className={candle.forming ? 'candle-forming' : bullish ? 'candle-up' : 'candle-down'}
                     x1={sx(index)}
                     x2={sx(index)}
                     y1={sy(candle.high)}
@@ -185,23 +172,14 @@ export default function ChartPanel({ market, predictions, models }) {
                     strokeWidth="1.4"
                   />
                   <rect
-                    className={bullish ? 'body-up' : 'body-down'}
+                    className={candle.forming ? 'body-forming' : bullish ? 'body-up' : 'body-down'}
                     x={sx(index) - bodyWidth / 2}
                     y={Math.min(sy(candle.open), sy(candle.close))}
                     width={bodyWidth}
                     height={Math.max(1.8, Math.abs(sy(candle.open) - sy(candle.close)))}
                     rx="1"
                   />
-                  <rect
-                    className={bullish ? 'volume-up' : 'volume-down'}
-                    x={sx(index) - bodyWidth / 2}
-                    y={vy(candle.volume)}
-                    width={bodyWidth}
-                    height={Math.max(1, volumeTop + 54 - vy(candle.volume))}
-                    rx="1"
-                  />
-
-                  {candleSignals.map((marker, markerIndex) => {
+                  {!candle.forming && candleSignals.map((marker, markerIndex) => {
                     const markerY =
                       marker.signal === 'BEARISH'
                         ? sy(candle.high) - 14 - markerIndex * 14
@@ -229,7 +207,7 @@ export default function ChartPanel({ market, predictions, models }) {
                         }}
                       >
                         <title>
-                          {`${signalLabel(marker.signal)} · ${date(marker.timestamp)} · reference ${money(marker.referencePrice)}`}
+                          {`${mode === 'live' ? 'Live' : 'Past'} ${marker.direction} · ${marker.confidenceLabel} · ${date(marker.timestamp)} · reference ${money(marker.referencePrice)}`}
                         </title>
                         <circle
                           className={`marker-${marker.signal.toLowerCase().replace('bullish', 'up').replace('bearish', 'down').replace('neutral', 'neutral')}`}
@@ -243,12 +221,10 @@ export default function ChartPanel({ market, predictions, models }) {
                       </g>
                     )
                   })}
+                  {candle.forming && <text className="forming-label" x={sx(index)} y={sy(candle.high) - 12} textAnchor="middle">FORMING</text>}
                 </g>
               )
             })}
-
-            <line className="volume-divider" x1={pad.l} x2={w - pad.r} y1={volumeTop - 8} y2={volumeTop - 8} />
-            <text className="volume-label" x={pad.l} y={volumeTop + 12}>VOLUME</text>
 
             {last && (
               <text className="last-tag" x={w - pad.r + 8} y={sy(last.close) - 6}>
@@ -293,7 +269,7 @@ export default function ChartPanel({ market, predictions, models }) {
 
       <div className="chart-foot">
         <span>{shown.length} candles · {market?.source || 'unavailable'} · {timeframe}m</span>
-        <span>Latest {date(market?.timestamp)} · horizon {horizon}m</span>
+        <span>Latest {date(market?.timestamp)} · horizon {models?.prediction_horizon_minutes == null ? 'Unavailable' : `${models.prediction_horizon_minutes}m`}</span>
       </div>
     </section>
   )

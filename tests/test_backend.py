@@ -42,6 +42,9 @@ class FakePredictionService:
     def latest(self):
         return self.last
 
+    def market_status(self):
+        return {"is_live": False, "fresh": False, "last_update": None}
+
     def prediction_history(self, status=None, limit=100):
         return [{"prediction_id": "final-1", "final_signal": "BULLISH", "candle_timestamp": "2026-01-01T09:30:00-05:00", "candle_finalized": 1}]
 
@@ -53,7 +56,10 @@ def test_backend_endpoints_and_latest(monkeypatch):
 
     assert client.get("/api/health").json()["models_available"] is True
     assert client.get("/api/models").status_code == 200
-    assert client.get("/api/predictions/latest").status_code == 404
+    empty_latest = client.get("/api/predictions/latest")
+    assert empty_latest.status_code == 200
+    assert empty_latest.json()["direction"] == "No clear signal"
+    assert empty_latest.json()["reason"] == "no_prediction_yet"
 
     single = client.post("/api/predict", json=FEATURES)
     assert single.status_code == 200
@@ -78,6 +84,18 @@ def test_backend_rejects_missing_and_extra_features(monkeypatch):
 
     extra = dict(FEATURES, unexpected=1.0)
     assert client.post("/api/predict", json=extra).status_code == 422
+
+
+def test_latest_reports_stale_reason_without_changing_status_code(monkeypatch):
+    class StaleService(FakePredictionService):
+        def market_status(self):
+            return {"is_live": True, "fresh": False, "last_update": "2026-01-01T10:00:00+00:00"}
+
+    monkeypatch.setattr(app.state, "prediction_service", StaleService())
+    response = TestClient(app).get("/api/predictions/latest")
+    assert response.status_code == 200
+    assert response.json()["direction"] == "No clear signal"
+    assert response.json()["reason"] == "stale_data"
 
 
 def test_prediction_history_returns_persisted_final_signal_fields(monkeypatch):

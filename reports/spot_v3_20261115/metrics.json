@@ -1,0 +1,995 @@
+{
+  "metadata": {
+    "runtime_versions": {
+      "python": "3.12",
+      "joblib": "1.4.2",
+      "numpy": "1.26.4",
+      "pandas": "2.2.3",
+      "scikit-learn": "1.6.1",
+      "lightgbm": "4.7.0"
+    },
+    "dataset_id": "4be8732dbab3aaa6",
+    "model_version": "xagusd_5m_60m_atr_binary_lgbm_v3_dev",
+    "holdout_status": "not_evaluated_development_only",
+    "holdout_start": "2026-10-01 00:00:00+00:00"
+  },
+  "development": {
+    "rows": 187686,
+    "start": "2023-11-01 01:05:00+00:00",
+    "end": "2026-09-30 22:55:00+00:00",
+    "label_report": {
+      "horizon_bars": 12,
+      "horizon_minutes": 60,
+      "k": 0.3,
+      "rows_before": 256222,
+      "rows_dropped_no_move_or_warmup": 68536,
+      "rows_kept": 187686,
+      "up_fraction": 0.5237684217256482
+    },
+    "alignment": {
+      "xagusd": {
+        "instrument": "xagusd",
+        "source_files": 1,
+        "rows": 1334781,
+        "rows_before_deduplication": 1334781,
+        "duplicates_removed": 0,
+        "start": "2023-11-01 00:00:00+00:00",
+        "end": "2026-11-13 21:59:00+00:00",
+        "volume_available": false,
+        "median_gap_minutes": 1.0,
+        "max_gap_hours": 51.03333333333333,
+        "gaps_over_5m": 163,
+        "candle_minutes": 5,
+        "complete_candles": 266937,
+        "candle_start": "2023-11-01 00:00:00+00:00",
+        "candle_end": "2026-11-13 21:55:00+00:00"
+      },
+      "xauusd": {
+        "instrument": "xauusd",
+        "source_files": 1,
+        "rows": 1334790,
+        "rows_before_deduplication": 1334790,
+        "duplicates_removed": 0,
+        "start": "2023-11-01 00:00:00+00:00",
+        "end": "2026-11-13 21:59:00+00:00",
+        "volume_available": false,
+        "median_gap_minutes": 1.0,
+        "max_gap_hours": 51.03333333333333,
+        "gaps_over_5m": 163,
+        "candle_minutes": 5,
+        "complete_candles": 266941,
+        "candle_start": "2023-11-01 00:00:00+00:00",
+        "candle_end": "2026-11-13 21:55:00+00:00"
+      },
+      "eurusd": {
+        "instrument": "eurusd",
+        "source_files": 1,
+        "rows": 1342487,
+        "rows_before_deduplication": 1342487,
+        "duplicates_removed": 0,
+        "start": "2023-11-01 00:00:00+00:00",
+        "end": "2026-11-13 21:59:00+00:00",
+        "volume_available": false,
+        "median_gap_minutes": 1.0,
+        "max_gap_hours": 50.016666666666666,
+        "gaps_over_5m": 160,
+        "candle_minutes": 5,
+        "complete_candles": 268489,
+        "candle_start": "2023-11-01 00:00:00+00:00",
+        "candle_end": "2026-11-13 21:55:00+00:00"
+      },
+      "aligned": {
+        "rows": 266937,
+        "cross_market_complete_rows": 266937,
+        "coverage_ratio": 1.0
+      }
+    }
+  },
+  "selected_candidate": "h12_k0.3",
+  "corrected_folds": [
+    {
+      "train_rows": 93828,
+      "calibration_rows": 18765,
+      "validation_rows": 28149,
+      "raw": {
+        "n": 28149,
+        "accuracy": 0.540090234111336,
+        "balanced_accuracy": 0.5329791950441106,
+        "auc": 0.5420435233231683,
+        "log_loss": 0.6890454825673042,
+        "brier": 0.24800692120616497,
+        "macro_f1": 0.5329143985742606,
+        "up_rate": 0.5724892536146933
+      },
+      "calibrated": {
+        "n": 28149,
+        "accuracy": 0.5529148459980816,
+        "balanced_accuracy": 0.5081421033375828,
+        "auc": 0.5420435233231683,
+        "log_loss": 0.6845768881472792,
+        "brier": 0.24577595614418074,
+        "macro_f1": 0.41366216132012673,
+        "up_rate": 0.9358769405662724
+      },
+      "raw_thresholds": [
+        {
+          "threshold": 0.52,
+          "signals": 19588,
+          "coverage": 0.6958684145085083,
+          "accuracy": 0.5465591178272412,
+          "accuracy_ci95_lower": 0.5395790744821695,
+          "accuracy_ci95_upper": 0.5535209030688838
+        },
+        {
+          "threshold": 0.55,
+          "signals": 10210,
+          "coverage": 0.3627127073785925,
+          "accuracy": 0.5574926542605289,
+          "accuracy_ci95_lower": 0.5478386324846745,
+          "accuracy_ci95_upper": 0.5671034296898005
+        },
+        {
+          "threshold": 0.6,
+          "signals": 3087,
+          "coverage": 0.10966641798998188,
+          "accuracy": 0.6090055069646907,
+          "accuracy_ci95_lower": 0.5916664376659692,
+          "accuracy_ci95_upper": 0.6260736208153165
+        },
+        {
+          "threshold": 0.65,
+          "signals": 972,
+          "coverage": 0.034530533944367475,
+          "accuracy": 0.6512345679012346,
+          "accuracy_ci95_lower": 0.6207317342813028,
+          "accuracy_ci95_upper": 0.6805467135060042
+        },
+        {
+          "threshold": 0.7,
+          "signals": 399,
+          "coverage": 0.014174571032718747,
+          "accuracy": 0.7368421052631579,
+          "accuracy_ci95_lower": 0.6915235411454995,
+          "accuracy_ci95_upper": 0.7776436606447322
+        },
+        {
+          "threshold": 0.75,
+          "signals": 246,
+          "coverage": 0.008739209208142385,
+          "accuracy": 0.7886178861788617,
+          "accuracy_ci95_lower": 0.7333589743358339,
+          "accuracy_ci95_upper": 0.8350014597981598
+        }
+      ],
+      "calibrated_thresholds": [
+        {
+          "threshold": 0.52,
+          "signals": 23981,
+          "coverage": 0.8519307968311486,
+          "accuracy": 0.5603185855468913,
+          "accuracy_ci95_lower": 0.5540273758798312,
+          "accuracy_ci95_upper": 0.5665904737301802
+        },
+        {
+          "threshold": 0.55,
+          "signals": 11398,
+          "coverage": 0.40491669331059715,
+          "accuracy": 0.5818564660466748,
+          "accuracy_ci95_lower": 0.5727750386354348,
+          "accuracy_ci95_upper": 0.5908827360090657
+        },
+        {
+          "threshold": 0.6,
+          "signals": 1065,
+          "coverage": 0.0378343813279335,
+          "accuracy": 0.6948356807511737,
+          "accuracy_ci95_lower": 0.6665208147106828,
+          "accuracy_ci95_upper": 0.7217500523811403
+        },
+        {
+          "threshold": 0.65,
+          "signals": 316,
+          "coverage": 0.011225976055987779,
+          "accuracy": 0.7658227848101266,
+          "accuracy_ci95_lower": 0.716109833921962,
+          "accuracy_ci95_upper": 0.8091504016317479
+        },
+        {
+          "threshold": 0.7,
+          "signals": 140,
+          "coverage": 0.004973533695690788,
+          "accuracy": 0.8785714285714286,
+          "accuracy_ci95_lower": 0.8141350629217808,
+          "accuracy_ci95_upper": 0.9227873853699492
+        },
+        {
+          "threshold": 0.75,
+          "signals": 22,
+          "coverage": 0.0007815552950371239,
+          "accuracy": 1.0,
+          "accuracy_ci95_lower": 0.8513451253913791,
+          "accuracy_ci95_upper": 1.0
+        }
+      ]
+    },
+    {
+      "train_rows": 121980,
+      "calibration_rows": 18765,
+      "validation_rows": 28149,
+      "raw": {
+        "n": 28149,
+        "accuracy": 0.5258090873565668,
+        "balanced_accuracy": 0.5251225849151552,
+        "auc": 0.5345206438463181,
+        "log_loss": 0.6929992003711384,
+        "brier": 0.2499038817587448,
+        "macro_f1": 0.5251009223343963,
+        "up_rate": 0.523570997193506
+      },
+      "calibrated": {
+        "n": 28149,
+        "accuracy": 0.5138370812462254,
+        "balanced_accuracy": 0.5001049076318176,
+        "auc": 0.5345206438463181,
+        "log_loss": 0.6941226389146624,
+        "brier": 0.2505003890489436,
+        "macro_f1": 0.37492170377181405,
+        "up_rate": 0.956375004440655
+      },
+      "raw_thresholds": [
+        {
+          "threshold": 0.52,
+          "signals": 19761,
+          "coverage": 0.7020142811467548,
+          "accuracy": 0.5319062800465564,
+          "accuracy_ci95_lower": 0.524943662527507,
+          "accuracy_ci95_upper": 0.5388564950718973
+        },
+        {
+          "threshold": 0.55,
+          "signals": 10351,
+          "coverage": 0.3677217663149668,
+          "accuracy": 0.5461308086175248,
+          "accuracy_ci95_lower": 0.5365243101257362,
+          "accuracy_ci95_upper": 0.5557030797187013
+        },
+        {
+          "threshold": 0.6,
+          "signals": 3083,
+          "coverage": 0.10952431702724785,
+          "accuracy": 0.5556276354200455,
+          "accuracy_ci95_lower": 0.538029303368021,
+          "accuracy_ci95_upper": 0.5730875144458232
+        },
+        {
+          "threshold": 0.65,
+          "signals": 846,
+          "coverage": 0.030054353618245763,
+          "accuracy": 0.6146572104018913,
+          "accuracy_ci95_lower": 0.5814143836906033,
+          "accuracy_ci95_upper": 0.6468634885953751
+        },
+        {
+          "threshold": 0.7,
+          "signals": 330,
+          "coverage": 0.011723329425556858,
+          "accuracy": 0.7212121212121212,
+          "accuracy_ci95_lower": 0.6704992167862988,
+          "accuracy_ci95_upper": 0.76683412256511
+        },
+        {
+          "threshold": 0.75,
+          "signals": 170,
+          "coverage": 0.006039290916195957,
+          "accuracy": 0.7764705882352941,
+          "accuracy_ci95_lower": 0.7081306516869896,
+          "accuracy_ci95_upper": 0.8325919160921655
+        }
+      ],
+      "calibrated_thresholds": [
+        {
+          "threshold": 0.52,
+          "signals": 25295,
+          "coverage": 0.8986109630892749,
+          "accuracy": 0.5158331686103973,
+          "accuracy_ci95_lower": 0.5096726187983373,
+          "accuracy_ci95_upper": 0.5219889101022569
+        },
+        {
+          "threshold": 0.55,
+          "signals": 16648,
+          "coverage": 0.5914242068990018,
+          "accuracy": 0.5341182123978856,
+          "accuracy_ci95_lower": 0.5265337521804125,
+          "accuracy_ci95_upper": 0.5416869309680115
+        },
+        {
+          "threshold": 0.6,
+          "signals": 2426,
+          "coverage": 0.08618423389818466,
+          "accuracy": 0.5948062654575432,
+          "accuracy_ci95_lower": 0.5751358762853356,
+          "accuracy_ci95_upper": 0.6141768866235899
+        },
+        {
+          "threshold": 0.65,
+          "signals": 368,
+          "coverage": 0.013073288571530072,
+          "accuracy": 0.717391304347826,
+          "accuracy_ci95_lower": 0.6693246950357133,
+          "accuracy_ci95_upper": 0.7609662157934464
+        },
+        {
+          "threshold": 0.7,
+          "signals": 125,
+          "coverage": 0.004440655085438204,
+          "accuracy": 0.768,
+          "accuracy_ci95_lower": 0.6866866534318612,
+          "accuracy_ci95_upper": 0.8333322955404758
+        },
+        {
+          "threshold": 0.75,
+          "signals": 28,
+          "coverage": 0.0009947067391381577,
+          "accuracy": 0.8928571428571429,
+          "accuracy_ci95_lower": 0.7280414845132785,
+          "accuracy_ci95_upper": 0.9628816331707
+        }
+      ]
+    },
+    {
+      "train_rows": 150133,
+      "calibration_rows": 9381,
+      "validation_rows": 18765,
+      "raw": {
+        "n": 18765,
+        "accuracy": 0.48569144684252596,
+        "balanced_accuracy": 0.49836489139821005,
+        "auc": 0.5274120475723282,
+        "log_loss": 0.7009179214038276,
+        "brier": 0.25388756515337185,
+        "macro_f1": 0.39603264707052044,
+        "up_rate": 0.9010924593658407
+      },
+      "calibrated": {
+        "n": 18765,
+        "accuracy": 0.5309352517985612,
+        "balanced_accuracy": 0.5232648571648258,
+        "auc": 0.5274120475723282,
+        "log_loss": 0.6909941397631739,
+        "brier": 0.24893489611017658,
+        "macro_f1": 0.4971349978840457,
+        "up_rate": 0.25654143351985076
+      },
+      "raw_thresholds": [
+        {
+          "threshold": 0.52,
+          "signals": 16006,
+          "coverage": 0.8529709565680789,
+          "accuracy": 0.4873797326002749,
+          "accuracy_ci95_lower": 0.47964017136940107,
+          "accuracy_ci95_upper": 0.4951253501356594
+        },
+        {
+          "threshold": 0.55,
+          "signals": 9552,
+          "coverage": 0.5090327737809752,
+          "accuracy": 0.507642378559464,
+          "accuracy_ci95_lower": 0.497615494350196,
+          "accuracy_ci95_upper": 0.5176631182794885
+        },
+        {
+          "threshold": 0.6,
+          "signals": 2342,
+          "coverage": 0.12480682120969891,
+          "accuracy": 0.535866780529462,
+          "accuracy_ci95_lower": 0.5156266903766262,
+          "accuracy_ci95_upper": 0.5559894025900558
+        },
+        {
+          "threshold": 0.65,
+          "signals": 528,
+          "coverage": 0.028137490007993603,
+          "accuracy": 0.6761363636363636,
+          "accuracy_ci95_lower": 0.6350738299961672,
+          "accuracy_ci95_upper": 0.7146544525872113
+        },
+        {
+          "threshold": 0.7,
+          "signals": 111,
+          "coverage": 0.005915267785771383,
+          "accuracy": 0.954954954954955,
+          "accuracy_ci95_lower": 0.8988650882440173,
+          "accuracy_ci95_upper": 0.980608239917851
+        },
+        {
+          "threshold": 0.75,
+          "signals": 48,
+          "coverage": 0.002557953637090328,
+          "accuracy": 1.0,
+          "accuracy_ci95_lower": 0.9258998703338824,
+          "accuracy_ci95_upper": 0.9999999999999999
+        }
+      ],
+      "calibrated_thresholds": [
+        {
+          "threshold": 0.52,
+          "signals": 10737,
+          "coverage": 0.5721822541966427,
+          "accuracy": 0.5371146502747509,
+          "accuracy_ci95_lower": 0.5276716391231888,
+          "accuracy_ci95_upper": 0.5465311133385824
+        },
+        {
+          "threshold": 0.55,
+          "signals": 2695,
+          "coverage": 0.14361843858246737,
+          "accuracy": 0.5395176252319109,
+          "accuracy_ci95_lower": 0.5206564923353296,
+          "accuracy_ci95_upper": 0.5582662614647673
+        },
+        {
+          "threshold": 0.6,
+          "signals": 215,
+          "coverage": 0.01145750066613376,
+          "accuracy": 0.7255813953488373,
+          "accuracy_ci95_lower": 0.662369340160799,
+          "accuracy_ci95_upper": 0.7808739123870473
+        },
+        {
+          "threshold": 0.65,
+          "signals": 34,
+          "coverage": 0.0018118838262723156,
+          "accuracy": 0.9705882352941176,
+          "accuracy_ci95_lower": 0.8508442670731406,
+          "accuracy_ci95_upper": 0.9947890937237309
+        },
+        {
+          "threshold": 0.7,
+          "signals": 0,
+          "coverage": 0.0,
+          "accuracy": null,
+          "accuracy_ci95_lower": null,
+          "accuracy_ci95_upper": null
+        },
+        {
+          "threshold": 0.75,
+          "signals": 0,
+          "coverage": 0.0,
+          "accuracy": null,
+          "accuracy_ci95_lower": null,
+          "accuracy_ci95_upper": null
+        }
+      ]
+    }
+  ],
+  "baseline_comparison_old_vs_corrected": [
+    {
+      "fold": 1,
+      "old": {
+        "train_rows": 93834,
+        "calibration_rows": 18766,
+        "validation_rows": 28151,
+        "raw": {
+          "n": 28151,
+          "accuracy": 0.537991545593407,
+          "balanced_accuracy": 0.5295131910016284,
+          "auc": 0.540671981209144,
+          "log_loss": 0.6889333333064361,
+          "brier": 0.24794757768763095,
+          "macro_f1": 0.5291901052382519,
+          "up_rate": 0.5849880998898795
+        },
+        "calibrated": {
+          "n": 28151,
+          "accuracy": 0.5523072004546907,
+          "balanced_accuracy": 0.5065863451229385,
+          "auc": 0.540671981209144,
+          "log_loss": 0.6846109791486094,
+          "brier": 0.24578898832773155,
+          "macro_f1": 0.40758181023105977,
+          "up_rate": 0.9425242442542006
+        }
+      },
+      "corrected": {
+        "train_rows": 93828,
+        "calibration_rows": 18765,
+        "validation_rows": 28149,
+        "raw": {
+          "n": 28149,
+          "accuracy": 0.540090234111336,
+          "balanced_accuracy": 0.5329791950441106,
+          "auc": 0.5420435233231683,
+          "log_loss": 0.6890454825673042,
+          "brier": 0.24800692120616497,
+          "macro_f1": 0.5329143985742606,
+          "up_rate": 0.5724892536146933
+        },
+        "calibrated": {
+          "n": 28149,
+          "accuracy": 0.5529148459980816,
+          "balanced_accuracy": 0.5081421033375828,
+          "auc": 0.5420435233231683,
+          "log_loss": 0.6845768881472792,
+          "brier": 0.24577595614418074,
+          "macro_f1": 0.41366216132012673,
+          "up_rate": 0.9358769405662724
+        },
+        "raw_thresholds": [
+          {
+            "threshold": 0.52,
+            "signals": 19588,
+            "coverage": 0.6958684145085083,
+            "accuracy": 0.5465591178272412,
+            "accuracy_ci95_lower": 0.5395790744821695,
+            "accuracy_ci95_upper": 0.5535209030688838
+          },
+          {
+            "threshold": 0.55,
+            "signals": 10210,
+            "coverage": 0.3627127073785925,
+            "accuracy": 0.5574926542605289,
+            "accuracy_ci95_lower": 0.5478386324846745,
+            "accuracy_ci95_upper": 0.5671034296898005
+          },
+          {
+            "threshold": 0.6,
+            "signals": 3087,
+            "coverage": 0.10966641798998188,
+            "accuracy": 0.6090055069646907,
+            "accuracy_ci95_lower": 0.5916664376659692,
+            "accuracy_ci95_upper": 0.6260736208153165
+          },
+          {
+            "threshold": 0.65,
+            "signals": 972,
+            "coverage": 0.034530533944367475,
+            "accuracy": 0.6512345679012346,
+            "accuracy_ci95_lower": 0.6207317342813028,
+            "accuracy_ci95_upper": 0.6805467135060042
+          },
+          {
+            "threshold": 0.7,
+            "signals": 399,
+            "coverage": 0.014174571032718747,
+            "accuracy": 0.7368421052631579,
+            "accuracy_ci95_lower": 0.6915235411454995,
+            "accuracy_ci95_upper": 0.7776436606447322
+          },
+          {
+            "threshold": 0.75,
+            "signals": 246,
+            "coverage": 0.008739209208142385,
+            "accuracy": 0.7886178861788617,
+            "accuracy_ci95_lower": 0.7333589743358339,
+            "accuracy_ci95_upper": 0.8350014597981598
+          }
+        ],
+        "calibrated_thresholds": [
+          {
+            "threshold": 0.52,
+            "signals": 23981,
+            "coverage": 0.8519307968311486,
+            "accuracy": 0.5603185855468913,
+            "accuracy_ci95_lower": 0.5540273758798312,
+            "accuracy_ci95_upper": 0.5665904737301802
+          },
+          {
+            "threshold": 0.55,
+            "signals": 11398,
+            "coverage": 0.40491669331059715,
+            "accuracy": 0.5818564660466748,
+            "accuracy_ci95_lower": 0.5727750386354348,
+            "accuracy_ci95_upper": 0.5908827360090657
+          },
+          {
+            "threshold": 0.6,
+            "signals": 1065,
+            "coverage": 0.0378343813279335,
+            "accuracy": 0.6948356807511737,
+            "accuracy_ci95_lower": 0.6665208147106828,
+            "accuracy_ci95_upper": 0.7217500523811403
+          },
+          {
+            "threshold": 0.65,
+            "signals": 316,
+            "coverage": 0.011225976055987779,
+            "accuracy": 0.7658227848101266,
+            "accuracy_ci95_lower": 0.716109833921962,
+            "accuracy_ci95_upper": 0.8091504016317479
+          },
+          {
+            "threshold": 0.7,
+            "signals": 140,
+            "coverage": 0.004973533695690788,
+            "accuracy": 0.8785714285714286,
+            "accuracy_ci95_lower": 0.8141350629217808,
+            "accuracy_ci95_upper": 0.9227873853699492
+          },
+          {
+            "threshold": 0.75,
+            "signals": 22,
+            "coverage": 0.0007815552950371239,
+            "accuracy": 1.0,
+            "accuracy_ci95_lower": 0.8513451253913791,
+            "accuracy_ci95_upper": 1.0
+          }
+        ]
+      }
+    },
+    {
+      "fold": 2,
+      "old": {
+        "train_rows": 121988,
+        "calibration_rows": 18766,
+        "validation_rows": 28151,
+        "raw": {
+          "n": 28151,
+          "accuracy": 0.5233561862811268,
+          "balanced_accuracy": 0.5238979471738152,
+          "auc": 0.5306876168410746,
+          "log_loss": 0.6949476537317204,
+          "brier": 0.2508329059609379,
+          "macro_f1": 0.5233524325435319,
+          "up_rate": 0.48239849383680866
+        },
+        "calibrated": {
+          "n": 28151,
+          "accuracy": 0.512983552982132,
+          "balanced_accuracy": 0.4997216996729031,
+          "auc": 0.5306876168410746,
+          "log_loss": 0.6944713444313484,
+          "brier": 0.2506725348396135,
+          "macro_f1": 0.3801188710196185,
+          "up_rate": 0.9481723562218038
+        }
+      },
+      "corrected": {
+        "train_rows": 121980,
+        "calibration_rows": 18765,
+        "validation_rows": 28149,
+        "raw": {
+          "n": 28149,
+          "accuracy": 0.5258090873565668,
+          "balanced_accuracy": 0.5251225849151552,
+          "auc": 0.5345206438463181,
+          "log_loss": 0.6929992003711384,
+          "brier": 0.2499038817587448,
+          "macro_f1": 0.5251009223343963,
+          "up_rate": 0.523570997193506
+        },
+        "calibrated": {
+          "n": 28149,
+          "accuracy": 0.5138370812462254,
+          "balanced_accuracy": 0.5001049076318176,
+          "auc": 0.5345206438463181,
+          "log_loss": 0.6941226389146624,
+          "brier": 0.2505003890489436,
+          "macro_f1": 0.37492170377181405,
+          "up_rate": 0.956375004440655
+        },
+        "raw_thresholds": [
+          {
+            "threshold": 0.52,
+            "signals": 19761,
+            "coverage": 0.7020142811467548,
+            "accuracy": 0.5319062800465564,
+            "accuracy_ci95_lower": 0.524943662527507,
+            "accuracy_ci95_upper": 0.5388564950718973
+          },
+          {
+            "threshold": 0.55,
+            "signals": 10351,
+            "coverage": 0.3677217663149668,
+            "accuracy": 0.5461308086175248,
+            "accuracy_ci95_lower": 0.5365243101257362,
+            "accuracy_ci95_upper": 0.5557030797187013
+          },
+          {
+            "threshold": 0.6,
+            "signals": 3083,
+            "coverage": 0.10952431702724785,
+            "accuracy": 0.5556276354200455,
+            "accuracy_ci95_lower": 0.538029303368021,
+            "accuracy_ci95_upper": 0.5730875144458232
+          },
+          {
+            "threshold": 0.65,
+            "signals": 846,
+            "coverage": 0.030054353618245763,
+            "accuracy": 0.6146572104018913,
+            "accuracy_ci95_lower": 0.5814143836906033,
+            "accuracy_ci95_upper": 0.6468634885953751
+          },
+          {
+            "threshold": 0.7,
+            "signals": 330,
+            "coverage": 0.011723329425556858,
+            "accuracy": 0.7212121212121212,
+            "accuracy_ci95_lower": 0.6704992167862988,
+            "accuracy_ci95_upper": 0.76683412256511
+          },
+          {
+            "threshold": 0.75,
+            "signals": 170,
+            "coverage": 0.006039290916195957,
+            "accuracy": 0.7764705882352941,
+            "accuracy_ci95_lower": 0.7081306516869896,
+            "accuracy_ci95_upper": 0.8325919160921655
+          }
+        ],
+        "calibrated_thresholds": [
+          {
+            "threshold": 0.52,
+            "signals": 25295,
+            "coverage": 0.8986109630892749,
+            "accuracy": 0.5158331686103973,
+            "accuracy_ci95_lower": 0.5096726187983373,
+            "accuracy_ci95_upper": 0.5219889101022569
+          },
+          {
+            "threshold": 0.55,
+            "signals": 16648,
+            "coverage": 0.5914242068990018,
+            "accuracy": 0.5341182123978856,
+            "accuracy_ci95_lower": 0.5265337521804125,
+            "accuracy_ci95_upper": 0.5416869309680115
+          },
+          {
+            "threshold": 0.6,
+            "signals": 2426,
+            "coverage": 0.08618423389818466,
+            "accuracy": 0.5948062654575432,
+            "accuracy_ci95_lower": 0.5751358762853356,
+            "accuracy_ci95_upper": 0.6141768866235899
+          },
+          {
+            "threshold": 0.65,
+            "signals": 368,
+            "coverage": 0.013073288571530072,
+            "accuracy": 0.717391304347826,
+            "accuracy_ci95_lower": 0.6693246950357133,
+            "accuracy_ci95_upper": 0.7609662157934464
+          },
+          {
+            "threshold": 0.7,
+            "signals": 125,
+            "coverage": 0.004440655085438204,
+            "accuracy": 0.768,
+            "accuracy_ci95_lower": 0.6866866534318612,
+            "accuracy_ci95_upper": 0.8333322955404758
+          },
+          {
+            "threshold": 0.75,
+            "signals": 28,
+            "coverage": 0.0009947067391381577,
+            "accuracy": 0.8928571428571429,
+            "accuracy_ci95_lower": 0.7280414845132785,
+            "accuracy_ci95_upper": 0.9628816331707
+          }
+        ]
+      }
+    },
+    {
+      "fold": 3,
+      "old": {
+        "train_rows": 150143,
+        "calibration_rows": 9381,
+        "validation_rows": 18766,
+        "raw": {
+          "n": 18766,
+          "accuracy": 0.48278802088884154,
+          "balanced_accuracy": 0.4960701830426948,
+          "auc": 0.5286834067699326,
+          "log_loss": 0.7013568344111935,
+          "brier": 0.2540873060295047,
+          "macro_f1": 0.3870053565230352,
+          "up_rate": 0.9114355749760205
+        },
+        "calibrated": {
+          "n": 18766,
+          "accuracy": 0.5328786102525844,
+          "balanced_accuracy": 0.5256556536024108,
+          "auc": 0.5286834067699326,
+          "log_loss": 0.6911352240396151,
+          "brier": 0.2490027661688595,
+          "macro_f1": 0.5041640300390182,
+          "up_rate": 0.27549824150058616
+        }
+      },
+      "corrected": {
+        "train_rows": 150133,
+        "calibration_rows": 9381,
+        "validation_rows": 18765,
+        "raw": {
+          "n": 18765,
+          "accuracy": 0.48569144684252596,
+          "balanced_accuracy": 0.49836489139821005,
+          "auc": 0.5274120475723282,
+          "log_loss": 0.7009179214038276,
+          "brier": 0.25388756515337185,
+          "macro_f1": 0.39603264707052044,
+          "up_rate": 0.9010924593658407
+        },
+        "calibrated": {
+          "n": 18765,
+          "accuracy": 0.5309352517985612,
+          "balanced_accuracy": 0.5232648571648258,
+          "auc": 0.5274120475723282,
+          "log_loss": 0.6909941397631739,
+          "brier": 0.24893489611017658,
+          "macro_f1": 0.4971349978840457,
+          "up_rate": 0.25654143351985076
+        },
+        "raw_thresholds": [
+          {
+            "threshold": 0.52,
+            "signals": 16006,
+            "coverage": 0.8529709565680789,
+            "accuracy": 0.4873797326002749,
+            "accuracy_ci95_lower": 0.47964017136940107,
+            "accuracy_ci95_upper": 0.4951253501356594
+          },
+          {
+            "threshold": 0.55,
+            "signals": 9552,
+            "coverage": 0.5090327737809752,
+            "accuracy": 0.507642378559464,
+            "accuracy_ci95_lower": 0.497615494350196,
+            "accuracy_ci95_upper": 0.5176631182794885
+          },
+          {
+            "threshold": 0.6,
+            "signals": 2342,
+            "coverage": 0.12480682120969891,
+            "accuracy": 0.535866780529462,
+            "accuracy_ci95_lower": 0.5156266903766262,
+            "accuracy_ci95_upper": 0.5559894025900558
+          },
+          {
+            "threshold": 0.65,
+            "signals": 528,
+            "coverage": 0.028137490007993603,
+            "accuracy": 0.6761363636363636,
+            "accuracy_ci95_lower": 0.6350738299961672,
+            "accuracy_ci95_upper": 0.7146544525872113
+          },
+          {
+            "threshold": 0.7,
+            "signals": 111,
+            "coverage": 0.005915267785771383,
+            "accuracy": 0.954954954954955,
+            "accuracy_ci95_lower": 0.8988650882440173,
+            "accuracy_ci95_upper": 0.980608239917851
+          },
+          {
+            "threshold": 0.75,
+            "signals": 48,
+            "coverage": 0.002557953637090328,
+            "accuracy": 1.0,
+            "accuracy_ci95_lower": 0.9258998703338824,
+            "accuracy_ci95_upper": 0.9999999999999999
+          }
+        ],
+        "calibrated_thresholds": [
+          {
+            "threshold": 0.52,
+            "signals": 10737,
+            "coverage": 0.5721822541966427,
+            "accuracy": 0.5371146502747509,
+            "accuracy_ci95_lower": 0.5276716391231888,
+            "accuracy_ci95_upper": 0.5465311133385824
+          },
+          {
+            "threshold": 0.55,
+            "signals": 2695,
+            "coverage": 0.14361843858246737,
+            "accuracy": 0.5395176252319109,
+            "accuracy_ci95_lower": 0.5206564923353296,
+            "accuracy_ci95_upper": 0.5582662614647673
+          },
+          {
+            "threshold": 0.6,
+            "signals": 215,
+            "coverage": 0.01145750066613376,
+            "accuracy": 0.7255813953488373,
+            "accuracy_ci95_lower": 0.662369340160799,
+            "accuracy_ci95_upper": 0.7808739123870473
+          },
+          {
+            "threshold": 0.65,
+            "signals": 34,
+            "coverage": 0.0018118838262723156,
+            "accuracy": 0.9705882352941176,
+            "accuracy_ci95_lower": 0.8508442670731406,
+            "accuracy_ci95_upper": 0.9947890937237309
+          },
+          {
+            "threshold": 0.7,
+            "signals": 0,
+            "coverage": 0.0,
+            "accuracy": null,
+            "accuracy_ci95_lower": null,
+            "accuracy_ci95_upper": null
+          },
+          {
+            "threshold": 0.75,
+            "signals": 0,
+            "coverage": 0.0,
+            "accuracy": null,
+            "accuracy_ci95_lower": null,
+            "accuracy_ci95_upper": null
+          }
+        ]
+      }
+    }
+  ],
+  "triple_barrier_timeout_breakdown": {
+    "sign": {
+      "report": {
+        "horizon_bars": 12,
+        "profit_multiple": 0.3,
+        "stop_multiple": 0.3,
+        "rows_before": 256222,
+        "rows_dropped": 102369,
+        "rows_kept": 153853,
+        "up_fraction": 0.49397801797819996,
+        "missing_future_rows": 1932,
+        "both_barrier_rows": 100424,
+        "timeout_rows": 3148,
+        "timeout_up_rows": 3134,
+        "timeout_down_rows": 14,
+        "timeout_policy": "sign"
+      },
+      "label_counts": {
+        "0.0": 77853,
+        "0.5": 0,
+        "1.0": 76000
+      }
+    },
+    "neutral": {
+      "report": {
+        "horizon_bars": 12,
+        "profit_multiple": 0.3,
+        "stop_multiple": 0.3,
+        "rows_before": 256222,
+        "rows_dropped": 102369,
+        "rows_kept": 153853,
+        "up_fraction": 0.4838384691881211,
+        "missing_future_rows": 1932,
+        "both_barrier_rows": 100424,
+        "timeout_rows": 3148,
+        "timeout_up_rows": 3134,
+        "timeout_down_rows": 14,
+        "timeout_policy": "neutral"
+      },
+      "label_counts": {
+        "0.0": 77839,
+        "0.5": 3148,
+        "1.0": 72866
+      }
+    },
+    "drop": {
+      "report": {
+        "horizon_bars": 12,
+        "profit_multiple": 0.3,
+        "stop_multiple": 0.3,
+        "rows_before": 256222,
+        "rows_dropped": 105517,
+        "rows_kept": 150705,
+        "up_fraction": 0.4835008792010882,
+        "missing_future_rows": 1932,
+        "both_barrier_rows": 100424,
+        "timeout_rows": 3148,
+        "timeout_up_rows": 3134,
+        "timeout_down_rows": 14,
+        "timeout_policy": "drop"
+      },
+      "label_counts": {
+        "0.0": 77839,
+        "0.5": 0,
+        "1.0": 72866
+      }
+    }
+  }
+}

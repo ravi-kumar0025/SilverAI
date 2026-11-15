@@ -1,4 +1,12 @@
 {
+  "metadata": {
+    "dataset_id": "4be8732dbab3aaa6",
+    "commit": "cc1e500c68af57dff4101570f56b9428dea4fe69",
+    "config_sha256": "1735aeb39347d811307e01577a006102e5aa3745bd34e01ddc613e50b92f2aa1",
+    "seed": 42,
+    "holdout_status": "used_do_not_reuse",
+    "provenance": "pre-existing stored study; no holdout rerun"
+  },
   "instrument": "XAGUSD_SPOT",
   "symbol": "XAG/USD",
   "source": "Dukascopy",

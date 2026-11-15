@@ -1,32 +1,33 @@
-"""Central runtime configuration for the SilverAI evaluation contract."""
+"""Compatibility view of the single active configuration contract."""
 
 from __future__ import annotations
 
-import os
 import hashlib
 import json
+from dataclasses import dataclass
+
 from src.features.spot_features import SPOT_FEATURE_COLUMNS
+from src.spot_config import SPOT_CONFIG, load_spot_config
 
 
 APPROVED_FEATURES = SPOT_FEATURE_COLUMNS
-from dataclasses import dataclass
 
 
 @dataclass(frozen=True)
 class SilverAIConfig:
-    instrument: str = "XAG/USD Spot"
-    symbol: str = "XAG/USD"
-    candle_minutes: int = 5
-    forecast_horizon_bars: int = 12
-    timezone: str = "UTC"
-    evaluation_days: int = 5
-    neutral_quantile: float = 0.40
-    calibration_fraction: float = 0.20
-    random_seed: int = 42
-    classification_target: str = "binary_atr_scaled_direction"
-    regression_target: str | None = None
-    threshold_definition: str = "Up/Down outside k*ATR_pct; no-move rows dropped"
-    feature_names: tuple[str, ...] = APPROVED_FEATURES
+    instrument: str
+    symbol: str
+    candle_minutes: int
+    forecast_horizon_bars: int
+    timezone: str
+    evaluation_days: int
+    neutral_quantile: float
+    calibration_fraction: float
+    random_seed: int
+    classification_target: str
+    regression_target: str | None
+    threshold_definition: str
+    feature_names: tuple[str, ...]
 
     @property
     def forecast_horizon_minutes(self) -> int:
@@ -40,8 +41,7 @@ class SilverAIConfig:
             "evaluation_days": self.evaluation_days, "neutral_quantile": self.neutral_quantile,
             "calibration_fraction": self.calibration_fraction, "random_seed": self.random_seed,
             "classification_target": self.classification_target, "regression_target": self.regression_target,
-            "threshold_definition": self.threshold_definition,
-            "feature_names": list(self.feature_names),
+            "threshold_definition": self.threshold_definition, "feature_names": list(self.feature_names),
         }
 
     @property
@@ -51,25 +51,15 @@ class SilverAIConfig:
 
 
 def load_config() -> SilverAIConfig:
-    """Load safe, integer runtime overrides without scattering constants."""
-
-    candle_minutes = int(os.getenv("SILVERAI_CANDLE_MINUTES", "5"))
-    horizon_bars = int(os.getenv("SILVERAI_HORIZON_BARS", "12"))
-    evaluation_days = int(os.getenv("SILVERAI_EVALUATION_DAYS", "5"))
-    neutral_quantile = float(os.getenv("SILVERAI_NEUTRAL_QUANTILE", "0.40"))
-    calibration_fraction = float(os.getenv("SILVERAI_CALIBRATION_FRACTION", "0.20"))
-    if candle_minutes <= 0 or horizon_bars <= 0 or evaluation_days <= 0:
-        raise ValueError("SilverAI time configuration must contain positive integers.")
-    if not 0 < neutral_quantile < 1 or not 0 < calibration_fraction < 1:
-        raise ValueError("SilverAI quantile and calibration fraction must be between zero and one.")
+    spot = load_spot_config()
     return SilverAIConfig(
-        instrument=os.getenv("SILVERAI_INSTRUMENT", "XAGUSD_SPOT"),
-        symbol=os.getenv("SILVERAI_SYMBOL", "XAG/USD"),
-        candle_minutes=candle_minutes,
-        forecast_horizon_bars=horizon_bars,
-        evaluation_days=evaluation_days,
-        neutral_quantile=neutral_quantile,
-        calibration_fraction=calibration_fraction,
+        instrument=spot.instrument, symbol=spot.symbol, candle_minutes=spot.candle_minutes,
+        forecast_horizon_bars=spot.forecast_horizon_bars, timezone=spot.timezone,
+        evaluation_days=spot.evaluation_days, neutral_quantile=spot.neutral_quantile,
+        calibration_fraction=0.20, random_seed=spot.random_seed,
+        classification_target="binary_atr_scaled_direction", regression_target=None,
+        threshold_definition="Up/Down outside k*ATR_pct; no-move rows dropped",
+        feature_names=APPROVED_FEATURES,
     )
 
 

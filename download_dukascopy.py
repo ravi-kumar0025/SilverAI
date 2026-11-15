@@ -13,7 +13,7 @@ Run from the project root:
 RESUMABLE: finished chunks are kept in data/raw/dukascopy/chunks/. If anything
 fails, just run it again and it continues where it stopped.
 
-Output (UTC index, columns open/high/low/close/volume):
+Output (UTC index, columns open/high/low/close; spot volume is intentionally excluded):
     data/raw/dukascopy/<instrument>_1m.csv, _5m.csv, _15m.csv, _1h.csv
 """
 import argparse
@@ -102,27 +102,46 @@ def merge_instrument(inst: str) -> pd.DataFrame:
     df = pd.concat(parts, ignore_index=True)
     df["timestamp"] = pd.to_datetime(df["timestamp"], unit="ms", utc=True)
     df = df.drop_duplicates("timestamp").set_index("timestamp").sort_index()
-    cols = [c for c in ["open", "high", "low", "close", "volume"] if c in df.columns]
+    cols = [c for c in ["open", "high", "low", "close"] if c in df.columns]
     return df[cols].astype(float)
 
 
 def resample(df_1m: pd.DataFrame, rule: str) -> pd.DataFrame:
     """Candle stamped T covers [T, T+rule) and is only known at T+rule."""
     n_needed = int(pd.Timedelta(rule) / pd.Timedelta("1min"))
-    rules = {"open": "first", "high": "max", "low": "min",
-             "close": "last", "volume": "sum"}
+    rules = {"open": "first", "high": "max", "low": "min", "close": "last"}
     rules = {c: f for c, f in rules.items() if c in df_1m.columns}  # volume may be absent
     agg = df_1m.resample(rule, closed="left", label="left").agg(rules)
     count = df_1m["close"].resample(rule, closed="left", label="left").count()
     return agg[count == n_needed]        # complete candles only
 
 
+def ensure_output_paths(out_dir: Path, instruments: list[str], *, force: bool = False) -> None:
+    """Refuse final-file replacement unless the operator explicitly opts in."""
+    existing = [out_dir / f"{inst}_{name}.csv" for inst in instruments for name in ("1m", "5m", "15m", "1h")]
+    existing = [path for path in existing if path.exists()]
+    if existing and not force:
+        names = ", ".join(str(path) for path in existing[:5])
+        suffix = "..." if len(existing) > 5 else ""
+        raise FileExistsError(f"Refusing to overwrite existing CSVs: {names}{suffix}; pass --force to replace them.")
+
+
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--start", default="2023-11-01")
+    ap.add_argument("--start", default="2019-11-01")
     ap.add_argument("--end", default=date.today().isoformat())
     ap.add_argument("--instruments", nargs="+", default=DEFAULT_INSTRUMENTS)
+    ap.add_argument("--out-dir", default="data/raw/dukascopy", help="Output directory for chunks and CSVs.")
+    ap.add_argument("--force", action="store_true", help="Allow replacing existing final CSVs.")
     args = ap.parse_args()
+
+    global OUT, CHUNKS
+    OUT = Path(args.out_dir)
+    CHUNKS = OUT / "chunks"
+    try:
+        ensure_output_paths(OUT, args.instruments, force=args.force)
+    except FileExistsError as exc:
+        sys.exit(str(exc))
 
     start = datetime.strptime(args.start, "%Y-%m-%d").date()
     end = datetime.strptime(args.end, "%Y-%m-%d").date()

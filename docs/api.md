@@ -6,7 +6,7 @@ The FastAPI app exposes the XAG/USD spot terminal. Start it from the repository 
 python -m uvicorn backend.main:app --reload --host 0.0.0.0 --port 8000
 ```
 
-`GET /api/market/candles?limit=288` returns complete historical XAG/USD candles sourced from the Dukascopy 1-minute file and resampled in UTC. The response includes `data_status: historical`, `source`, `timezone`, and session statistics. The source has no volume column, so volume is not a model feature.
+`GET /api/market/candles?limit=288` returns complete historical XAG/USD candles sourced from the Dukascopy 1-minute file and resampled in UTC. The response includes `data_status: historical`, `source`, `timezone`, and session statistics. The source has no volume column; volume is unavailable, is not a model feature, and is not returned by the API.
 
 `GET /api/market/status` reports whether the configured market source is historical or genuinely live. The checked-in Dukascopy CSV provider is historical.
 

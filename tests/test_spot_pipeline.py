@@ -8,6 +8,7 @@ import pytest
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from src.data.spot_data import build_candles
+from download_dukascopy import ensure_output_paths
 from src.features.spot_features import SPOT_FEATURE_COLUMNS, generate_spot_features
 from src.spot_targets import make_spot_labels
 from src.models.spot_predict import load_spot_artifacts, predict_spot
@@ -27,6 +28,15 @@ def test_resampler_keeps_only_complete_candles_and_sets_known_at():
 
     incomplete = frame.drop(index=6)
     assert len(build_candles(incomplete, 5)) == 3
+
+
+def test_downloader_refuses_existing_outputs_without_force(tmp_path):
+    output = tmp_path / "dukascopy"
+    output.mkdir()
+    (output / "xagusd_1m.csv").write_text("existing", encoding="utf-8")
+    with pytest.raises(FileExistsError, match="Refusing to overwrite"):
+        ensure_output_paths(output, ["xagusd"])
+    ensure_output_paths(output, ["xagusd"], force=True)
 
 
 def test_spot_feature_schema_and_future_change_do_not_rewrite_past():
@@ -49,6 +59,22 @@ def test_atr_labels_drop_no_move_rows():
     labeled, report = make_spot_labels(frame, horizon_bars=3, k=.3)
     assert report["rows_dropped_no_move_or_warmup"] > 0
     assert set(labeled["label"].unique()).issubset({0.0, 1.0})
+
+
+def test_atr_labels_require_only_close_high_low_not_open():
+    timestamps = pd.date_range("2026-01-01", periods=100, freq="5min", tz="UTC")
+    close = pd.Series(25.0 + np.arange(100) * .01)
+    frame = pd.DataFrame({"timestamp": timestamps, "silver_close": close, "silver_high": close + .01, "silver_low": close - .01})
+    labeled, report = make_spot_labels(frame, horizon_bars=3, k=.3)
+    assert report["rows_kept"] == len(labeled)
+
+
+def test_target_labels_raise_clear_error_for_missing_required_price_column():
+    timestamps = pd.date_range("2026-01-01", periods=20, freq="5min", tz="UTC")
+    close = pd.Series(25.0 + np.arange(20) * .01)
+    frame = pd.DataFrame({"timestamp": timestamps, "silver_close": close, "silver_high": close + .01})
+    with pytest.raises(ValueError, match="low=silver_low"):
+        make_spot_labels(frame, horizon_bars=3, k=.3)
 
 
 def test_final_spot_artifact_uses_the_ordered_34_feature_contract():

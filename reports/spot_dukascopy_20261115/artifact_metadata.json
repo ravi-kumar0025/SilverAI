@@ -1,0 +1,12 @@
+{
+  "dataset_id": "4be8732dbab3aaa6",
+  "commit": "cc1e500c68af57dff4101570f56b9428dea4fe69",
+  "config_sha256": "1735aeb39347d811307e01577a006102e5aa3745bd34e01ddc613e50b92f2aa1",
+  "seed": 42,
+  "holdout_status": "used_do_not_reuse",
+  "artifacts": {
+    "spot_lightgbm.joblib": {"horizon_bars": 12, "k": 0.3},
+    "spot_sigmoid_calibrator.joblib": {"method": "sigmoid", "horizon_bars": 12, "k": 0.3}
+  },
+  "provenance": "metadata sidecar added without reopening the original holdout"
+}

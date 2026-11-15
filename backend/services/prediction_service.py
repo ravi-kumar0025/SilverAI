@@ -16,6 +16,7 @@ from src.prediction.store import PredictionStore, is_finalized_signal_record
 from src.evaluation.paper_trading import evaluate_paper_trades, paper_cost_sensitivity
 from src.models.spot_predict import load_spot_artifacts, predict_spot
 from src.config import CONFIG
+from src.spot_config import SPOT_CONFIG
 from src.evaluation.frozen_mode import build_manifest, load_manifest, verify_manifest, write_manifest
 from src.evaluation.frozen_mode import configuration_version
 from src.market_insights import summarize_market
@@ -61,6 +62,20 @@ class PredictionService:
             "prediction_db": str(self.store.path),
         }
 
+    def ingest_live_candle(self, candle: dict[str, Any]) -> dict[str, Any]:
+        """Accept one normalized closed candle from the Node bridge."""
+        provider = self.market_provider
+        ingest = getattr(provider, "ingest", None)
+        if not callable(ingest):
+            raise RuntimeError("The configured provider does not accept live candles.")
+        return ingest(candle)
+
+    def live_heartbeat(self) -> dict[str, Any]:
+        heartbeat = getattr(self.market_provider, "heartbeat", None)
+        if not callable(heartbeat):
+            raise RuntimeError("The configured provider does not accept live heartbeats.")
+        return heartbeat()
+
     def models(self) -> dict[str, Any]:
         artifacts = self._get_artifacts()
         metadata = artifacts.get("metadata", {})
@@ -71,6 +86,11 @@ class PredictionService:
                 "feature_names": list(artifacts["features"]),
                 "prediction_horizon_minutes": CONFIG.forecast_horizon_minutes,
                 "prediction_horizon_bars": CONFIG.forecast_horizon_bars,
+                "candidate_horizons_minutes": [SPOT_CONFIG.candle_minutes * bars for bars in SPOT_CONFIG.candidate_horizons_bars],
+                "confidence_threshold": SPOT_CONFIG.confidence_threshold,
+                "confidence_thresholds": list(SPOT_CONFIG.confidence_thresholds),
+                "costs": {"spread_bps": SPOT_CONFIG.spread_bps, "slippage_bps": SPOT_CONFIG.slippage_bps},
+                "holdout": {"start": SPOT_CONFIG.final_holdout_start, "end": SPOT_CONFIG.final_holdout_end, "status": SPOT_CONFIG.holdout_status},
                 "classification_target": "binary_atr_scaled_direction",
                 "regression_target": None,
                 "configuration": CONFIG.as_dict(),

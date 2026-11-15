@@ -44,3 +44,13 @@ export function signalsForCandle(candle, records, timeframeMinutes = 5) {
     return timestamp >= start && timestamp < end
   })
 }
+
+// Stable marker contract used by the chart renderer. Finalized records are
+// read-only; no marker is created for a forming candle or an unfinalized row.
+export function createSeriesMarkers(candle, records, timeframeMinutes = 5) {
+  return signalsForCandle(candle, records, timeframeMinutes).map(signal => ({
+    ...signal,
+    direction: signal.signal === 'BULLISH' ? 'Up' : signal.signal === 'BEARISH' ? 'Down' : 'No clear signal',
+    confidenceLabel: signal.confidence == null ? 'Unavailable' : `${signal.signal === 'BULLISH' ? 'Up' : signal.signal === 'BEARISH' ? 'Down' : 'No clear signal'}, ${(signal.confidence * 100).toFixed(0)}%`,
+  }))
+}

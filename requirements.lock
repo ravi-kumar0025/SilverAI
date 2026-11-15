@@ -1,0 +1,14 @@
+# Exact direct dependency lock for the verified Python 3.12 environment.
+# Keep this file synchronized with requirements.txt and requirements-dev.txt.
+fastapi==0.115.6
+uvicorn[standard]==0.34.0
+joblib==1.4.2
+matplotlib==3.9.4
+numpy==1.26.4
+pandas==2.2.3
+pytest==8.3.4
+scikit-learn==1.6.1
+seaborn==0.13.2
+lightgbm==4.7.0
+PyYAML==6.0.2
+httpx==0.28.1

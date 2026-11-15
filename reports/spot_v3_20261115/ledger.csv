@@ -1,0 +1,31 @@
+count,config,result
+1,"dev_only;timeframe=5m;horizon=12;label=atr_dead_zone;k=0.3;artifact=v3",completed;holdout_not_evaluated
+2,atr_1h_15m,completed_development_only
+3,triple_neutral_1h_15m,completed_development_only
+4,atr_2h_15m,completed_development_only
+5,triple_neutral_2h_15m,completed_development_only
+6,atr_4h_15m,completed_development_only
+7,triple_neutral_4h_15m,completed_development_only
+8,atr_1h_60m,completed_development_only
+9,triple_neutral_1h_60m,completed_development_only
+10,atr_2h_60m,completed_development_only
+11,triple_neutral_2h_60m,completed_development_only
+12,atr_4h_60m,completed_development_only
+13,triple_neutral_4h_60m,completed_development_only
+14,best_variant_extras,completed_development_only
+15,1m_barrier_resolution,completed_development_only
+16,TB_Neutral_1h_60m_live,completed_development_only
+17,TB_Neutral_1h_15m_live,completed_development_only
+18,live_style_baselines_costs,completed_development_only
+19,live_style_seed_stability,completed_development_only
+20,remaining_auc_by_hour,completed_development_only
+21,phase 2: selectivity (exploratory)::regime_vol_percentile,post-cap exploratory; confirmation set required; not selected
+22,phase 2: selectivity (exploratory)::regime_session,post-cap exploratory; confirmation set required; not selected
+23,phase 2: selectivity (exploratory)::regime_session_open_distance,post-cap exploratory; confirmation set required; not selected
+24,phase 2: selectivity (exploratory)::regime_time_since_extreme,post-cap exploratory; confirmation set required; not selected
+25,phase 2: selectivity (exploratory)::meta_act_abstain_logit,post-cap exploratory; confirmation set required; not selected
+26,phase 2: selectivity (exploratory)::meta_act_abstain_tree,post-cap exploratory; confirmation set required; not selected
+27,phase 2: selectivity (exploratory)::ablation_core,post-cap exploratory; confirmation set required; not selected
+28,phase 2: selectivity (exploratory)::ablation_cross_market,post-cap exploratory; confirmation set required; not selected
+29,phase 2: selectivity (exploratory)::ablation_session,post-cap exploratory; confirmation set required; not selected
+30,phase 2: selectivity (exploratory)::ablation_regime,post-cap exploratory; confirmation set required; not selected

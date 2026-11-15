@@ -24,8 +24,14 @@ const signalName = value => ({
   NEUTRAL: 'NO CLEAR SIGNAL', MIXED: 'NO CLEAR SIGNAL', INSUFFICIENT_DATA: 'NO CLEAR SIGNAL'
 }[value] || 'NO CLEAR SIGNAL')
 
+function storedMode() {
+  try { return localStorage.getItem('silverai-mode') === 'live' ? 'live' : 'historical' } catch { return 'historical' }
+}
+
 function App() {
   const [route, setRoute] = useState(location.hash.slice(1) || 'dashboard')
+  const [mode, setMode] = useState(storedMode)
+  const [liveUnavailable, setLiveUnavailable] = useState(false)
   const [theme, setTheme] = useState(() => localStorage.getItem('silverai-theme') || 'light')
   const [state, setState] = useState({
     market: null, insights: null, status: null, models: null, prediction: null,
@@ -53,6 +59,24 @@ function App() {
     setBusy(false)
   }
 
+  const switchMode = async checked => {
+    if (!checked) {
+      setLiveUnavailable(false)
+      setMode('historical')
+      return
+    }
+    try {
+      const live = await api.liveStatus()
+      if (!live?.is_live) throw new Error('Live unavailable')
+      setLiveUnavailable(false)
+      setMode('live')
+    } catch {
+      setLiveUnavailable(true)
+      setMode('historical')
+      setError('Live unavailable; staying in Historical mode.')
+    }
+  }
+
   useEffect(() => {
     load()
     const onHash = () => setRoute(location.hash.slice(1) || 'dashboard')
@@ -65,10 +89,35 @@ function App() {
     localStorage.setItem('silverai-theme', theme)
   }, [theme])
 
+  useEffect(() => {
+    try { localStorage.setItem('silverai-mode', mode) } catch { /* Storage is optional. */ }
+  }, [mode])
+
+  useEffect(() => {
+    if (mode !== 'live') return undefined
+    let active = true
+    const poll = async () => {
+      try {
+        const [live, candles, latest, history] = await Promise.all([api.liveStatus(), api.candles(1000), api.latest(), api.predictionHistory(200)])
+        if (!live?.is_live) throw new Error('Live unavailable')
+        if (active) setState(previous => ({ ...previous, status: live, market: candles, prediction: latest, history: history?.predictions || previous.history }))
+      } catch {
+        if (active) {
+          setLiveUnavailable(true)
+          setMode('historical')
+          setError('Live unavailable; staying in Historical mode.')
+        }
+      }
+    }
+    poll()
+    const timer = setInterval(poll, 20000)
+    return () => { active = false; clearInterval(timer) }
+  }, [mode])
+
   const latest = state.prediction?.predictions?.at(-1) || state.prediction
 
   const pages = {
-    dashboard: <Dashboard state={state} latest={latest} busy={busy} />,
+    dashboard: <Dashboard state={state} latest={latest} busy={busy} mode={mode} />,
     predictions: <Predictions state={state} latest={latest} />,
     analysis: <Analysis models={state.models} latest={latest} />,
     evaluation: <Evaluation metrics={state.metrics} />,
@@ -98,10 +147,10 @@ function App() {
         </nav>
 
         <div className="top-tools">
-          <span className="feed">
-            <i className={state.status?.is_live ? 'live' : ''} />
-            {state.status?.is_live ? 'Live' : 'Historical'}
-          </span>
+          <label className="mode-switch">
+            <span>{mode === 'live' ? 'LIVE' : 'HISTORICAL'}</span>
+            <input type="checkbox" checked={mode === 'live'} onChange={event => switchMode(event.target.checked)} />
+          </label>
           <button className="theme" onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}>
             {theme === 'dark' ? '☀' : '☾'}
           </button>
@@ -113,7 +162,7 @@ function App() {
 
       <main>
         {error && (
-          <div className="alert">
+          <div className="toast toast-error" role="status" aria-live="polite">
             {error}
             <button onClick={load}>Retry</button>
           </div>
@@ -121,7 +170,7 @@ function App() {
         {pages[route] || pages.dashboard}
         <footer>
           <span>XAG/USD · Dukascopy spot</span>
-          <span>{state.status?.is_live ? 'LIVE' : 'HISTORICAL'} · Paper trading only</span>
+          <span>Paper trading</span>
         </footer>
       </main>
     </div>
@@ -178,7 +227,12 @@ function Empty({ children }) {
   )
 }
 
-function Dashboard({ state, latest, busy }) {
+function Dashboard({ state, latest, busy, mode }) {
+  const stale = mode === 'live' && state.status && state.status.fresh === false
+  const companionMissing = mode === 'live' && state.status?.companion_missing?.length
+  const displayedLatest = stale || companionMissing
+    ? { signal: { signal: 'NO_CLEAR_SIGNAL' }, direction: 'No clear signal', reason: companionMissing ? 'companion_missing' : 'stale_data', candle_finalized: false }
+    : latest
   return (
     <>
       <PageHead
@@ -186,11 +240,11 @@ function Dashboard({ state, latest, busy }) {
         title="XAG/USD spot intelligence"
         text="XAG/USD spot with Dukascopy candles, model signals, and evaluation diagnostics."
       />
-      <MarketOverview market={state.market} status={state.status} models={state.models} busy={busy} />
-      <FinalSignalChartPanel market={state.market} predictions={state.history} models={state.models} />
+      <MarketOverview market={state.market} status={state.status} models={state.models} busy={busy} mode={mode} />
+      <FinalSignalChartPanel market={state.market} predictions={state.history} models={state.models} mode={mode} />
       <MarketInsightPanel insights={state.insights} />
       <div className="below-grid">
-        <SignalPanel prediction={latest} models={state.models} />
+        <SignalPanel prediction={displayedLatest} models={state.models} />
         <ScenarioPanel prediction={latest} />
       </div>
     </>
@@ -212,18 +266,27 @@ function MarketInsightPanel({ insights }) {
   )
 }
 
-function MarketOverview({ market, status, models, busy }) {
+function MarketOverview({ market, status, models, busy, mode }) {
   const s = market?.stats
   const changePositive = s?.change >= 0
+  const freshness = mode !== 'live' ? 'HISTORICAL' : status?.fresh ? 'FRESH' : 'STALE'
 
   return (
-    <section className="instrument-row">
+    <>
+      <div className="market-ribbon">
+        <span className="ribbon-live"><i className={mode === 'live' && status?.fresh ? 'pulse' : ''} />{mode === 'live' ? freshness : 'CLOSED'}</span>
+        <span>Dukascopy · XAG/USD</span>
+        <span>{models?.configuration?.candle_minutes || '—'}m context</span>
+        <span>{models?.prediction_horizon_minutes || '—'}m horizon</span>
+        <span className="ribbon-spacer" />
+      </div>
+      <section className="instrument-row">
       <div className="instrument-card primary">
         <div className="instrument-card-top">
           <div className="instrument-logo">Ag</div>
           <div>
             <div className="instrument-name">XAG/USD Spot</div>
-            <div className="instrument-symbol">XAG/USD · {models?.configuration?.candle_minutes || 5}m</div>
+            <div className="instrument-symbol">XAG/USD · {models?.configuration?.candle_minutes == null ? '—' : `${models.configuration.candle_minutes}m`}</div>
           </div>
         </div>
         <div className="instrument-price">{money(s?.close)}</div>
@@ -231,7 +294,7 @@ function MarketOverview({ market, status, models, busy }) {
           {s ? `${changePositive ? '+' : ''}${s.change.toFixed(3)} (${percent(s.change_pct)})` : '—'}
         </div>
         <div className="instrument-meta">
-          {status?.is_live ? 'Live data' : 'Historical'} · {busy ? 'Updating…' : date(market?.timestamp)}
+          {mode === 'live' ? 'Live data' : 'Historical'} · {freshness} · {busy ? 'Updating…' : date(market?.timestamp)}
         </div>
       </div>
 
@@ -247,7 +310,8 @@ function MarketOverview({ market, status, models, busy }) {
         <div className="instrument-label">Session Low</div>
         <div className="instrument-value">{money(s?.low)}</div>
       </div>
-    </section>
+      </section>
+    </>
   )
 }
 
@@ -273,9 +337,10 @@ function SignalPanel({ prediction, models }) {
 
       <div className="rows">
         <Row label="Prediction time" value={date(prediction?.prediction_timestamp || prediction?.candle_timestamp)} />
-        <Row label="Forecast horizon" value={`${models?.prediction_horizon_minutes || 15} minutes`} />
+        <Row label="Forecast horizon" value={models?.prediction_horizon_minutes == null ? 'Unavailable' : `${models.prediction_horizon_minutes} minutes`} />
+        <Row label="Signal status" value={prediction?.reason || prediction?.decision_reason || 'closed-candle result'} />
         <Row label="Calibration" value={models?.calibration_status === 'available' ? 'Calibrated' : 'Raw'} />
-        <Row label="Model" value={models?.classifier_name} />
+        <Row label="Model" value={models?.classifier_name || 'Unavailable'} />
       </div>
 
       <div className="probabilities">
@@ -401,7 +466,7 @@ function Analysis({ models, latest }) {
       <div className="analysis-hero">
         <div>
           <span className="kicker">ACTIVE CONFIGURATION</span>
-          <h2>{models?.configuration?.candle_minutes || 5}-minute context / {models?.prediction_horizon_minutes || 15}-minute forecast</h2>
+      <h2>{models?.configuration?.candle_minutes == null ? 'Unavailable' : `${models.configuration.candle_minutes}-minute context`} / {models?.prediction_horizon_minutes == null ? 'Unavailable' : `${models.prediction_horizon_minutes}-minute forecast`}</h2>
           <p>Feature generation uses the approved causal schema. Calibration: {models?.calibration_status || 'unavailable'}.</p>
         </div>
         <div className="analysis-count">
@@ -519,11 +584,11 @@ function ModelInfo({ models, frozen }) {
         <Row label="Config version" value={models?.configuration_version} />
         <Row label="Calibration" value={models?.calibration_status} />
         <Row label="Target" value={models?.classification_target} />
-        <Row label="Horizon" value={`${models?.prediction_horizon_minutes || '—'} min / ${models?.prediction_horizon_bars || '—'} bars`} />
+        <Row label="Horizon" value={models?.prediction_horizon_minutes == null ? 'Unavailable' : `${models.prediction_horizon_minutes} min / ${models.prediction_horizon_bars} bars`} />
       </Panel>
       <Panel title="FROZEN EVALUATION">
         <Row label="Status" value={frozen?.status} />
-        <Row label="Evaluation days" value={frozen?.evaluation_trading_days || 5} />
+        <Row label="Evaluation days" value={frozen?.evaluation_trading_days == null ? 'Unavailable' : frozen.evaluation_trading_days} />
         <Row label="Integrity" value={frozen?.integrity ? (frozen.integrity.valid ? 'Valid' : 'Invalid') : 'Not started'} />
         <Row label="Live provider required" value={frozen?.live_provider_required ? 'Yes' : 'Recorded'} />
       </Panel>
@@ -537,13 +602,19 @@ function Diagnostics({ state }) {
       <PageHead
         kicker="DIAGNOSTICS"
         title="Data quality and connection"
-        text="Historical mode works without credentials."
+        text="Historical mode works without credentials. Dukascopy spot data provides OHLC only; volume is unavailable."
       />
       <Panel title="PROVIDER STATUS">
         <Row label="Provider" value={state.status?.provider} />
         <Row label="Mode" value={state.status?.data_mode || state.status?.status} />
         <Row label="Instrument" value={state.status?.instrument} />
+        <Row label="Feed freshness" value={state.status?.fresh == null ? 'Unavailable' : state.status.fresh ? 'Fresh' : 'Stale'} />
+        <Row label="Heartbeat" value={date(state.status?.last_heartbeat)} />
         <Row label="Last update" value={date(state.status?.last_update)} />
+        <Row label="Accepted candles" value={state.status?.accepted_candles} />
+        <Row label="Dropped forming" value={state.status?.forming_discarded} />
+        <Row label="Dropped duplicates" value={state.status?.duplicate_discarded} />
+        <Row label="Gap events" value={state.status?.gap_events} />
         <Row label="Credentials" value={state.status?.is_live ? 'Configured' : 'Not required for historical'} />
       </Panel>
       <Panel title="DIAGNOSTICS">
@@ -567,8 +638,8 @@ function Settings({ models, status }) {
       <Panel title="ACTIVE CONFIGURATION">
         <Row label="Asset" value={models?.configuration?.instrument} />
         <Row label="Symbol" value={models?.configuration?.symbol} />
-        <Row label="Candle timeframe" value={`${models?.configuration?.candle_minutes || '—'} minutes`} />
-        <Row label="Forecast horizon" value={`${models?.prediction_horizon_minutes || '—'} minutes`} />
+        <Row label="Candle timeframe" value={models?.configuration?.candle_minutes == null ? 'Unavailable' : `${models.configuration.candle_minutes} minutes`} />
+        <Row label="Forecast horizon" value={models?.prediction_horizon_minutes == null ? 'Unavailable' : `${models.prediction_horizon_minutes} minutes`} />
         <Row label="Timezone" value={models?.configuration?.timezone} />
         <Row label="Data mode" value={status?.is_live ? 'Live' : 'Historical'} />
       </Panel>

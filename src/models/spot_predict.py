@@ -5,15 +5,15 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Any
 
-import joblib
 import numpy as np
 import pandas as pd
 
 from src.features.spot_features import SPOT_FEATURE_COLUMNS
+from src.models.artifact_contract import load_versioned_artifact
 from src.spot_config import SPOT_CONFIG
 
 
-DEFAULT_SPOT_MODEL_ROOT = Path(__file__).resolve().parents[2] / "reports" / "spot_dukascopy_20261115"
+DEFAULT_SPOT_MODEL_ROOT = SPOT_CONFIG.root_model
 
 
 def load_spot_artifacts(root: str | Path = DEFAULT_SPOT_MODEL_ROOT) -> dict[str, Any]:
@@ -22,12 +22,21 @@ def load_spot_artifacts(root: str | Path = DEFAULT_SPOT_MODEL_ROOT) -> dict[str,
     calibrator_path = root / "spot_sigmoid_calibrator.joblib"
     if not model_path.is_file():
         raise FileNotFoundError(f"Spot model artifact not found: {model_path}")
-    artifact = joblib.load(model_path)
+    try:
+        artifact = load_versioned_artifact(model_path, artifact_kind="spot_classifier")
+    except RuntimeError as exc:
+        raise RuntimeError(f"Refusing to load spot classifier: {exc}") from exc
     model = artifact.get("model") if isinstance(artifact, dict) else artifact
     features = tuple(artifact.get("features", SPOT_FEATURE_COLUMNS)) if isinstance(artifact, dict) else SPOT_FEATURE_COLUMNS
     if features != SPOT_FEATURE_COLUMNS:
         raise ValueError("Spot model feature order does not match the final 34-feature schema.")
-    calibrator = joblib.load(calibrator_path) if calibrator_path.is_file() else None
+    if calibrator_path.is_file():
+        try:
+            calibrator = load_versioned_artifact(calibrator_path, artifact_kind="spot_sigmoid_calibrator")
+        except RuntimeError as exc:
+            raise RuntimeError(f"Refusing to load spot calibrator: {exc}") from exc
+    else:
+        calibrator = None
     return {"model": model, "calibrator": calibrator, "features": features, "metadata": artifact if isinstance(artifact, dict) else {}, "dataset_id": SPOT_CONFIG.dataset_id, "model_version": SPOT_CONFIG.model_version}
 
 

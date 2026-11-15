@@ -7,13 +7,33 @@ dataset_manifest: data/dataset_manifest.json
 timezone: UTC
 candle_minutes: 5
 candidate_horizons_bars: [3, 6, 12]
+candidate_timeframes_minutes: [5, 15, 60]
 target_k_values: [0.2, 0.3, 0.5]
-target_k: 0.2
+target_k: 0.3
 forecast_horizon_bars: 12
 purge_bars: 3
 embargo_bars: 3
+validation_folds: 5
+label_methods: [atr_dead_zone, triple_barrier]
 holdout_fraction: 0.2
 confidence_threshold: 0.60
+confidence_thresholds: [0.52, 0.55, 0.60, 0.65, 0.70, 0.75]
+random_seed: 42
+evaluation_days: 5
+neutral_quantile: 0.40
+model_root: reports/spot_v3_20261115
+selection_path: reports/spot_v3_20261115/metrics.json
+prediction_db_path: data/spot_predictions.sqlite3
+frozen_evaluation_path: reports/frozen_evaluation.json
+holdout_status: used_do_not_reuse
+holdout_ledger_path: reports/holdout_ledger.json
+live_stale_after_seconds: 90
+price_columns:
+  timestamp: timestamp
+  open: silver_open
+  high: silver_high
+  low: silver_low
+  close: silver_close
 feature_groups:
   - silver_price
   - volatility
@@ -21,7 +41,7 @@ feature_groups:
   - cross_market
   - time_session
 feature_set_version: xagusd_spot_34_v1
-model_version: xagusd_5m_60m_atr_binary_lgbm_v1
+model_version: xagusd_5m_60m_atr_binary_lgbm_v3_dev
 final_holdout_start: 2026-10-01T00:00:00Z
 final_holdout_end: 2026-11-13T21:59:00Z
 costs:

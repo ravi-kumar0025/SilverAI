@@ -6,7 +6,7 @@ import json
 from pathlib import Path
 from typing import Any
 
-import joblib
+import hashlib
 import numpy as np
 import pandas as pd
 from lightgbm import LGBMClassifier
@@ -17,6 +17,7 @@ from src.data.spot_data import align_market_data, load_raw_instrument
 from src.features.spot_features import FEATURE_GROUPS, SPOT_FEATURE_COLUMNS, generate_spot_features
 from src.spot_config import SPOT_CONFIG
 from src.spot_targets import make_spot_labels
+from src.models.artifact_contract import dump_versioned_artifact, runtime_versions
 
 
 CORE_FEATURES = tuple(FEATURE_GROUPS["silver_price"] + FEATURE_GROUPS["volatility"] + FEATURE_GROUPS["trend_momentum"] + FEATURE_GROUPS["time_session"])
@@ -121,6 +122,11 @@ def _rsi_rule(validation: pd.DataFrame) -> dict[str, Any]:
 
 
 def run_study(output_dir: str | Path = "reports/spot_dukascopy_20261115") -> dict[str, Any]:
+    versions = runtime_versions()
+    if versions["python"] != "3.12" or versions["scikit-learn"] != "1.6.1":
+        raise RuntimeError(f"Spot artifact regeneration requires Python 3.12 and scikit-learn 1.6.1; running {versions}")
+    if SPOT_CONFIG.holdout_status == "used_do_not_reuse":
+        raise RuntimeError("The original holdout is permanently closed; configure a newly frozen holdout before running the study.")
     output = Path(output_dir); output.mkdir(parents=True, exist_ok=True)
     raw_reports = {}; 
     for instrument in ("xagusd", "xauusd", "eurusd"): _, raw_reports[instrument] = load_raw_instrument(instrument)
@@ -154,10 +160,10 @@ def run_study(output_dir: str | Path = "reports/spot_dukascopy_20261115") -> dic
     calibration_probability = calibration_model.predict_proba(calibration_block[list(SPOT_FEATURE_COLUMNS)])[:, 1]
     calibrator = _fit_calibrator(calibration_probability, calibration_block.label.astype(int).to_numpy())
     calibrated_holdout = _calibrated(calibrator, holdout_probability)
-    result = {"instrument": SPOT_CONFIG.instrument, "symbol": SPOT_CONFIG.symbol, "source": SPOT_CONFIG.data_source, "price_side": SPOT_CONFIG.price_side, "dataset_id": SPOT_CONFIG.dataset_id, "feature_set_version": SPOT_CONFIG.feature_set_version, "model_version": SPOT_CONFIG.model_version, "raw_data_quality": raw_reports, "alignment": alignment_report, "feature_count": len(SPOT_FEATURE_COLUMNS), "features": list(SPOT_FEATURE_COLUMNS), "core_features": list(CORE_FEATURES), "cross_market_features": list(CROSS_FEATURES), "candidate_results": candidate_results, "selected_candidate": selected_key, "final_holdout": {"start": SPOT_CONFIG.final_holdout_start, "end": SPOT_CONFIG.final_holdout_end, "rows": len(holdout), "raw": holdout_metrics, "calibrated": _metrics(holdout.label.astype(int).to_numpy(), calibrated_holdout), "threshold_table": _threshold_table(holdout.label.astype(int).to_numpy(), calibrated_holdout)}, "label_definition": "log(close[t+H]/close[t]); Up if fwd_ret > k*ATR_pct, Down if below -k*ATR_pct; no-move rows dropped", "leakage_checks": {"holdout_used_for_selection": False, "previous_holdout_used_for_selection": True, "cross_market_fill_limit_bars": 2, "purge_bars": SPOT_CONFIG.purge_bars, "embargo_bars": SPOT_CONFIG.embargo_bars, "candle_known_at": "timestamp + candle interval"}, "baseline_note": "Previous SI results were 3-class and are not comparable to this binary spot study."}
+    result = {"metadata": {"runtime_versions": versions, "config_sha256": hashlib.sha256((Path(__file__).resolve().parents[2] / "config.yaml").read_bytes()).hexdigest(), "holdout_status": SPOT_CONFIG.holdout_status, "seed": SPOT_CONFIG.random_seed}, "instrument": SPOT_CONFIG.instrument, "symbol": SPOT_CONFIG.symbol, "source": SPOT_CONFIG.data_source, "price_side": SPOT_CONFIG.price_side, "dataset_id": SPOT_CONFIG.dataset_id, "feature_set_version": SPOT_CONFIG.feature_set_version, "model_version": SPOT_CONFIG.model_version, "raw_data_quality": raw_reports, "alignment": alignment_report, "feature_count": len(SPOT_FEATURE_COLUMNS), "features": list(SPOT_FEATURE_COLUMNS), "core_features": list(CORE_FEATURES), "cross_market_features": list(CROSS_FEATURES), "candidate_results": candidate_results, "selected_candidate": selected_key, "final_holdout": {"start": SPOT_CONFIG.final_holdout_start, "end": SPOT_CONFIG.final_holdout_end, "rows": len(holdout), "raw": holdout_metrics, "calibrated": _metrics(holdout.label.astype(int).to_numpy(), calibrated_holdout), "threshold_table": _threshold_table(holdout.label.astype(int).to_numpy(), calibrated_holdout)}, "label_definition": "log(close[t+H]/close[t]); Up if fwd_ret > k*ATR_pct, Down if below -k*ATR_pct; no-move rows dropped", "leakage_checks": {"holdout_used_for_selection": False, "previous_holdout_used_for_selection": True, "cross_market_fill_limit_bars": 2, "purge_bars": SPOT_CONFIG.purge_bars, "embargo_bars": SPOT_CONFIG.embargo_bars, "candle_known_at": "timestamp + candle interval"}, "baseline_note": "Previous SI results were 3-class and are not comparable to this binary spot study."}
     output.joinpath("metrics.json").write_text(json.dumps(result, indent=2, default=str), encoding="utf-8")
-    joblib.dump({"model": final_model, "features": list(SPOT_FEATURE_COLUMNS), "instrument": SPOT_CONFIG.instrument, "symbol": SPOT_CONFIG.symbol, "horizon_bars": horizon, "k": k, "dataset_id": SPOT_CONFIG.dataset_id, "model_version": SPOT_CONFIG.model_version}, output / "spot_lightgbm.joblib")
-    joblib.dump(calibrator, output / "spot_sigmoid_calibrator.joblib")
+    dump_versioned_artifact({"model": final_model, "features": list(SPOT_FEATURE_COLUMNS), "instrument": SPOT_CONFIG.instrument, "symbol": SPOT_CONFIG.symbol, "horizon_bars": horizon, "k": k, "dataset_id": SPOT_CONFIG.dataset_id, "model_version": SPOT_CONFIG.model_version}, output / "spot_lightgbm.joblib", artifact_kind="spot_classifier")
+    dump_versioned_artifact(calibrator, output / "spot_sigmoid_calibrator.joblib", artifact_kind="spot_sigmoid_calibrator")
     return result
 
 

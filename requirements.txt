@@ -1,4 +1,4 @@
-# Python 3.10 is the verified interpreter for this repository.
+# Python 3.12 is the required artifact-generation and test interpreter.
 fastapi==0.115.6
 uvicorn[standard]==0.34.0
 joblib==1.4.2

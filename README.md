@@ -17,6 +17,8 @@ The canonical data lives under `data/raw/dukascopy/`:
 
 The source files contain bid OHLC and no volume. The pipeline does not invent volume. Candle `T` becomes known at `T + resolution`; features and live inference use only closed candles. Gold and EUR/USD may be forward-filled for at most two candles; XAG/USD is never filled.
 
+The resumable downloader defaults to `2019-11-01` for a future history extension. It was not run in this checkout because network access is unavailable; the current manifest and dataset remain the 2023-11-01 onward corpus until the owner runs it and rebuilds the manifest.
+
 ## Research pipeline
 
 ```text
@@ -35,10 +37,30 @@ The API and rolling inference contract use the same ordered 34-feature schema. A
 ## Run
 
 ```powershell
-python -m pip install -r requirements.txt
-pytest -q
-python -m src.experiments.spot_dukascopy_study
+# Backend, from the repository root (no --reload)
+.\.venv\Scripts\python.exe -m uvicorn backend.main:app --host 127.0.0.1 --port 8000
+
+# Live helper, in a second terminal; requires the owner-supplied module
+$env:SILVERAI_DUKASCOPY_MODULE = "dukascopy-node"
+node scripts/live_feed_logger.mjs
+
+# Frontend, in a third terminal
+cd frontend
+npm run dev
 ```
+
+Verification commands:
+
+```powershell
+.\.venv\Scripts\python.exe -m pytest -q
+cd frontend
+npm test
+npm run build
+```
+
+The downloader is intentionally not part of the startup path. If it is run
+later, use `\.venv\Scripts\python.exe download_dukascopy.py --out-dir <directory>`;
+it refuses to replace existing CSVs unless `--force` is explicitly supplied.
 
 Configuration is in [`config.yaml`](config.yaml). Environment defaults are documented in [`.env.example`](.env.example). The live-source decision and verification gate are in [`docs/spot_live_source.md`](docs/spot_live_source.md).
 
