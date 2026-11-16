@@ -110,7 +110,7 @@ function App() {
       }
     }
     poll()
-    const timer = setInterval(poll, 20000)
+    const timer = setInterval(poll, 10000)
     return () => { active = false; clearInterval(timer) }
   }, [mode])
 
@@ -231,7 +231,14 @@ function Dashboard({ state, latest, busy, mode }) {
   const stale = mode === 'live' && state.status && state.status.fresh === false
   const companionMissing = mode === 'live' && state.status?.companion_missing?.length
   const displayedLatest = stale || companionMissing
-    ? { signal: { signal: 'NO_CLEAR_SIGNAL' }, direction: 'No clear signal', reason: companionMissing ? 'companion_missing' : 'stale_data', candle_finalized: false }
+    ? {
+        ...(latest || {}),
+        signal: { signal: 'NO_CLEAR_SIGNAL' },
+        direction: 'No clear signal',
+        reason: companionMissing ? 'companion_missing' : 'stale_data',
+        stale: true,
+        candle_finalized: Boolean(latest?.candle_finalized),
+      }
     : latest
   return (
     <>
@@ -341,6 +348,10 @@ function SignalPanel({ prediction, models }) {
         <Row label="Signal status" value={prediction?.reason || prediction?.decision_reason || 'closed-candle result'} />
         <Row label="Calibration" value={models?.calibration_status === 'available' ? 'Calibrated' : 'Raw'} />
         <Row label="Model" value={models?.classifier_name || 'Unavailable'} />
+        <Row label="Last close" value={prediction?.close_price == null ? '—' : Number(prediction.close_price).toFixed(3)} />
+        <Row label="Predicted price (+1h)" value={prediction?.predicted_price == null ? 'Unavailable' : Number(prediction.predicted_price).toFixed(3)} />
+        <Row label="Expected return" value={prediction?.predicted_return == null ? 'Unavailable' : percent(prediction.predicted_return)} />
+        <Row label="10–90% range" value={prediction?.price_low == null || prediction?.price_high == null ? 'Unavailable' : `${Number(prediction.price_low).toFixed(3)} – ${Number(prediction.price_high).toFixed(3)}`} />
       </div>
 
       <div className="probabilities">
@@ -408,9 +419,10 @@ function Predictions({ state, latest }) {
         <div className="journal">
           {state.history.length ? state.history.map(row => {
             const finalSignal = normalizeFinalSignal(row)
+            const storedSignal = row.final_signal ? signalName(row.final_signal) : null
             return (
               <div className="journal-row" key={row.prediction_id}>
-                <span>{finalSignal ? signalName(finalSignal.signal) : row.candle_finalized ? 'UNAVAILABLE' : 'PENDING'}</span>
+                <span>{finalSignal ? signalName(finalSignal.signal) : storedSignal || (row.candle_finalized ? 'NO CLEAR SIGNAL' : 'PENDING')}</span>
                 <b>{date(row.candle_timestamp)}</b>
                 <em>{row.outcome_status}{row.actual_direction ? ` · actual ${row.actual_direction}` : ''}</em>
               </div>
@@ -584,6 +596,7 @@ function ModelInfo({ models, frozen }) {
         <Row label="Config version" value={models?.configuration_version} />
         <Row label="Calibration" value={models?.calibration_status} />
         <Row label="Target" value={models?.classification_target} />
+        <Row label="Regression target" value={models?.regression_target || 'Unavailable'} />
         <Row label="Horizon" value={models?.prediction_horizon_minutes == null ? 'Unavailable' : `${models.prediction_horizon_minutes} min / ${models.prediction_horizon_bars} bars`} />
       </Panel>
       <Panel title="FROZEN EVALUATION">
@@ -619,6 +632,7 @@ function Diagnostics({ state }) {
       </Panel>
       <Panel title="DIAGNOSTICS">
         <Row label="Recorded events" value={state.diagnostics?.count || 0} />
+        {!state.diagnostics?.items?.length && <Row label="Status" value="No diagnostic failures recorded." />}
         {state.diagnostics?.items?.map((item, index) => (
           <Row key={index} label={item.kind} value={item.error} />
         ))}

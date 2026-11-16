@@ -22,12 +22,13 @@ random_seed: 42
 evaluation_days: 5
 neutral_quantile: 0.40
 model_root: reports/spot_v3_20261115
+regression_model_root: reports/spot_v3_20261116_regression
 selection_path: reports/spot_v3_20261115/metrics.json
 prediction_db_path: data/spot_predictions.sqlite3
 frozen_evaluation_path: reports/frozen_evaluation.json
 holdout_status: used_do_not_reuse
 holdout_ledger_path: reports/holdout_ledger.json
-live_stale_after_seconds: 90
+live_stale_after_seconds: 180
 price_columns:
   timestamp: timestamp
   open: silver_open

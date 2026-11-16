@@ -10,6 +10,7 @@ import pandas as pd
 
 from src.features.spot_features import SPOT_FEATURE_COLUMNS
 from src.models.artifact_contract import load_versioned_artifact
+from src.models.spot_regression import load_regression_artifacts, predict_regression
 from src.spot_config import SPOT_CONFIG
 
 
@@ -37,7 +38,12 @@ def load_spot_artifacts(root: str | Path = DEFAULT_SPOT_MODEL_ROOT) -> dict[str,
             raise RuntimeError(f"Refusing to load spot calibrator: {exc}") from exc
     else:
         calibrator = None
-    return {"model": model, "calibrator": calibrator, "features": features, "metadata": artifact if isinstance(artifact, dict) else {}, "dataset_id": SPOT_CONFIG.dataset_id, "model_version": SPOT_CONFIG.model_version}
+    regression = None
+    try:
+        regression = load_regression_artifacts(SPOT_CONFIG.root_regression_model)
+    except (FileNotFoundError, RuntimeError, ValueError):
+        regression = None
+    return {"model": model, "calibrator": calibrator, "regression": regression, "features": features, "metadata": artifact if isinstance(artifact, dict) else {}, "dataset_id": SPOT_CONFIG.dataset_id, "model_version": SPOT_CONFIG.model_version}
 
 
 def validate_spot_features(frame: pd.DataFrame, features: tuple[str, ...] = SPOT_FEATURE_COLUMNS) -> pd.DataFrame:
@@ -77,6 +83,10 @@ def predict_spot(frame: pd.DataFrame, artifacts: dict[str, Any]) -> pd.DataFrame
     result["prediction_horizon_minutes"] = SPOT_CONFIG.forecast_horizon_minutes
     result["model_name"] = "spot_lightgbm"
     result["confidence_threshold"] = SPOT_CONFIG.confidence_threshold
+    if artifacts.get("regression") is not None and set(SPOT_FEATURE_COLUMNS).issubset(frame.columns) and ("silver_close" in frame.columns or "close" in frame.columns):
+        regression = predict_regression(frame, artifacts["regression"])
+        for column in regression.columns:
+            result[column] = regression[column].to_numpy()
     return result.reset_index(drop=True)
 
 

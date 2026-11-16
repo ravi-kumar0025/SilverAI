@@ -1,8 +1,10 @@
 const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000').replace(/\/$/, '')
 
 async function request(path, options = {}) {
+  const isGet = !options.method || options.method.toUpperCase() === 'GET'
   const response = await fetch(`${API_BASE_URL}${path}`, {
     headers: { Accept: 'application/json', ...options.headers },
+    cache: isGet ? 'no-store' : options.cache,
     ...options,
   })
   if (!response.ok) {

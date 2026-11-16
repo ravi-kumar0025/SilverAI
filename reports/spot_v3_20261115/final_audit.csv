@@ -1,0 +1,15 @@
+check,status,detail
+dataset_id,PASS,4be8732dbab3aaa6
+holdout_status,PASS,used_do_not_reuse
+hash:xagusd_1m.csv,PASS,c3f4b6818437adae25fd1dcb8269da737bfb6cfbcac4d9c4ee4b26c05e730673
+hash:xauusd_1m.csv,PASS,5a4ad05d76016b1391d00dd4db200f10953ada38827695b012682cece4425c6c
+hash:eurusd_1m.csv,PASS,1c40da92e1b7793ea081b75080a338ead4e33b804ea948c095c9075493dc69ab
+classifier_artifact,PASS,34
+regression_artifacts,PASS,"['mean', 'q10', 'q50', 'q90']"
+feature_count,PASS,34
+regression_metrics,PASS,stored CSV
+report_figures,PASS,figures_index.md
+report_figures_complete,FAIL,"['fig_3_7_feature_groups_heatmap.png', 'fig_4_5_reliability.png']"
+live_endpoint,PASS,"{'provider': 'dukascopy-live-log', 'status': 'connected', 'data_mode': 'live', 'instrument': 'XAGUSD_SPOT', 'contract': 'XAG/USD', 'interval': 'm1', 'price_type': 'bid', 'volumes': False, 'reconnect_attempts': 0, 'forming_discarded': 0, 'duplicate_discarded': 7, 'gap_events': 0, 'outage_events': 1, 'accepted_candles': 12, 'companion_missing': [], 'is_live': True, 'fresh': True, 'last_update': '2026-11-16T05:47:00+00:00', 'last_heartbeat': '2026-11-16T05:48:51.088058+00:00', 'age_seconds': 137.615013, 'stale_after_seconds': 180, 'source_status': {'receiver': {'provider': 'dukascopy-realtime', 'status': 'connected', 'data_mode': 'live', 'instrument': 'XAGUSD_SPOT', 'contract': 'XAG/USD', 'interval': 'm1', 'price_type': 'bid', 'volumes': False, 'reconnect_attempts': 0, 'forming_discarded': 0, 'duplicate_discarded': 7, 'gap_events': 0, 'outage_events': 1, 'accepted_candles': 12, 'companion_missing': ['eurusd'], 'is_live': True, 'fresh': False, 'last_update': '2026-11-16T05:37:00+00:00', 'last_heartbeat': '2026-11-16T05:48:51.088058+00:00', 'age_seconds': 737.591217, 'stale_after_seconds': 180}, 'log_tail': {'provider': 'dukascopy-live-log', 'data_mode': 'live', 'is_live': True, 'fresh': True, 'last_update': '2026-11-16T05:47:00+00:00', 'age_seconds': 137.615013, 'stale_after_seconds': 180, 'companion_missing': []}}}"
+live_companions,PASS,[]
+live_freshness_observed,PASS,137.615013

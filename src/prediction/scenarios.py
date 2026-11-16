@@ -125,7 +125,7 @@ def _evidence(
         )
     if threshold_pct is None:
         limitations.append(
-            "No regression neutral-band threshold was supplied; regression direction uses sign only."
+            "Trained regression estimates are displayed as an expected 1-hour return and price range."
         )
     if not supporting:
         supporting.append("No direct model evidence supports this scenario.")

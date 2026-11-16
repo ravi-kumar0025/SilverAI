@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 import logging
+import csv
+import json
 from pathlib import Path
 from typing import Any
 
@@ -12,6 +14,8 @@ from backend.core.config import DATA_MODE, FROZEN_EVALUATION_PATH, MODEL_ROOT, P
 from src.data.live_provider import ConfiguredLiveProvider
 from src.data.market_data import HistoricalCsvProvider, provider_status
 from src.data.spot_data import align_market_data, load_candles
+from src.data.live_log_source import LiveLogSource
+from src.features.spot_features import generate_spot_features
 from src.prediction.store import PredictionStore, is_finalized_signal_record
 from src.evaluation.paper_trading import evaluate_paper_trades, paper_cost_sensitivity
 from src.models.spot_predict import load_spot_artifacts, predict_spot
@@ -38,7 +42,10 @@ class PredictionService:
         self._artifacts: dict[str, Any] | None = None
         self._latest: dict[str, Any] | None = None
         self.store = PredictionStore(PREDICTION_DB_PATH)
-        self.market_provider = ConfiguredLiveProvider() if DATA_MODE == "live" else HistoricalCsvProvider()
+        self._live_scored: set[str] = set()
+        self._historical_frames: dict[str, pd.DataFrame] | None = None
+        self._live_logs = LiveLogSource()
+        self.market_provider = ConfiguredLiveProvider(on_candle=self._on_live_candle) if DATA_MODE == "live" else HistoricalCsvProvider()
         self._diagnostics: list[dict[str, Any]] = []
 
     def _get_artifacts(self) -> dict[str, Any]:
@@ -46,6 +53,55 @@ class PredictionService:
             logger.info("Loading selected SilverAI model artifacts")
             self._artifacts = {"kind": "spot", **load_spot_artifacts(self.model_root)}
         return self._artifacts
+
+    def _on_live_candle(self, candle: dict[str, Any]) -> None:
+        """Score each newly completed 5m live bar once, using all companions."""
+        if candle.get("symbol") not in {"xagusd", "xauusd", "eurusd"}:
+            return
+        source = self._live_logs
+        frames = {}
+        if self._historical_frames is None:
+            self._historical_frames = {symbol: load_candles(symbol, 5)[0] for symbol in ("xagusd", "xauusd", "eurusd")}
+        for symbol in ("xagusd", "xauusd", "eurusd"):
+            historical = self._historical_frames[symbol]
+            live = source.candles(symbol, 5)
+            parts = [historical] if live.empty else [historical, live]
+            frames[symbol] = pd.concat(parts, ignore_index=True).drop_duplicates("timestamp", keep="last").sort_values("timestamp")
+        if frames["xagusd"].empty:
+            return
+        # Settle eligible forecasts from the silver path even if a companion
+        # is temporarily missing; companion data is required for new scoring,
+        # not for evaluating an already-persisted forecast.
+        outcome_candles = frames["xagusd"].rename(columns={"timestamp": "datetime_et"})[["datetime_et", "close"]]
+        self.store.evaluate(outcome_candles)
+        if any(frame.empty for frame in frames.values()):
+            return
+        target = frames["xagusd"].set_index("timestamp").rename(columns=lambda name: f"silver_{name}")
+        for symbol in ("xauusd", "eurusd"):
+            companion = frames[symbol].set_index("timestamp").rename(columns=lambda name: f"{symbol}_{name}")
+            target = target.join(companion, how="left")
+        target = target.reset_index()
+        features = generate_spot_features(target, SPOT_CONFIG.feature_groups)
+        latest = features.tail(1)
+        timestamp = str(latest.iloc[0]["timestamp"])
+        if timestamp in self._live_scored:
+            return
+        try:
+            self.predict(latest.to_dict(orient="records"), finalized=True)
+            self._live_scored.add(timestamp)
+        except (FileNotFoundError, RuntimeError, ValueError, KeyError) as exc:
+            item = {"kind": "live_prediction_failure", "candle_timestamp": timestamp, "error": str(exc)}
+            if item not in self._diagnostics:
+                self._diagnostics.append(item)
+
+    def poll_live_logs(self) -> None:
+        """Tail stored live logs so forecasts do not depend on POST delivery."""
+        if DATA_MODE != "live":
+            return
+        latest = self._live_logs.candles("xagusd", 5)
+        if latest.empty:
+            return
+        self._on_live_candle({"symbol": "xagusd", "timestamp": str(latest.iloc[-1]["timestamp"])})
 
     def health(self) -> dict[str, Any]:
         try:
@@ -57,7 +113,7 @@ class PredictionService:
             "status": "ok",
             "models_available": True,
             "classifier_name": "spot_lightgbm" if artifacts.get("kind") == "spot" else artifacts["classifier_name"],
-            "regressor_name": None if artifacts.get("kind") == "spot" else artifacts["regressor_name"],
+            "regressor_name": "spot_return_lgbm" if artifacts.get("regression") else None,
             "provider": self.market_status(),
             "prediction_db": str(self.store.path),
         }
@@ -70,11 +126,11 @@ class PredictionService:
             raise RuntimeError("The configured provider does not accept live candles.")
         return ingest(candle)
 
-    def live_heartbeat(self) -> dict[str, Any]:
+    def live_heartbeat(self, *, connected: bool = True) -> dict[str, Any]:
         heartbeat = getattr(self.market_provider, "heartbeat", None)
         if not callable(heartbeat):
             raise RuntimeError("The configured provider does not accept live heartbeats.")
-        return heartbeat()
+        return heartbeat(connected=connected)
 
     def models(self) -> dict[str, Any]:
         artifacts = self._get_artifacts()
@@ -82,7 +138,7 @@ class PredictionService:
         if artifacts.get("kind") == "spot":
             return {
                 "classifier_name": "spot_lightgbm",
-                "regressor_name": None,
+                "regressor_name": "spot_return_lgbm" if artifacts.get("regression") else None,
                 "feature_names": list(artifacts["features"]),
                 "prediction_horizon_minutes": CONFIG.forecast_horizon_minutes,
                 "prediction_horizon_bars": CONFIG.forecast_horizon_bars,
@@ -92,7 +148,7 @@ class PredictionService:
                 "costs": {"spread_bps": SPOT_CONFIG.spread_bps, "slippage_bps": SPOT_CONFIG.slippage_bps},
                 "holdout": {"start": SPOT_CONFIG.final_holdout_start, "end": SPOT_CONFIG.final_holdout_end, "status": SPOT_CONFIG.holdout_status},
                 "classification_target": "binary_atr_scaled_direction",
-                "regression_target": None,
+                "regression_target": "forward_log_return_12_bars" if artifacts.get("regression") else None,
                 "configuration": CONFIG.as_dict(),
                 "configuration_version": CONFIG.version,
                 "calibration_status": "available" if artifacts.get("calibrator") is not None else "unavailable",
@@ -127,10 +183,12 @@ class PredictionService:
                     "signal": {"signal": signal},
                     "trade_decision": "ACTIONABLE_LONG" if signal == "UP" else "ACTIONABLE_SHORT" if signal == "DOWN" else "WAIT",
                     "decision_reason": "Confidence threshold and closed-candle gates are applied to the binary spot model.",
-                    "model_metadata": {"classifier_name": "spot_lightgbm", "regressor_name": None, "feature_count": len(artifacts["features"]), "feature_names": list(artifacts["features"]), "calibration_status": "available" if artifacts.get("calibrator") is not None else "unavailable", "dataset_id": artifacts.get("dataset_id"), "model_version": artifacts.get("model_version")},
+                    "model_metadata": {"classifier_name": "spot_lightgbm", "regressor_name": "spot_return_lgbm" if artifacts.get("regression") else None, "feature_count": len(artifacts["features"]), "feature_names": list(artifacts["features"]), "calibration_status": "available" if artifacts.get("calibrator") is not None else "unavailable", "dataset_id": artifacts.get("dataset_id"), "model_version": artifacts.get("model_version")},
                     "warnings": ["Historical Dukascopy data; not a live signal."] if not finalized else [],
                     "candle_finalized": finalized,
                 }
+                if "predicted_return" in row:
+                    prediction.update({"predicted_return": float(row["predicted_return"]), "predicted_price": float(row["predicted_price"]), "price_low": float(row["price_low"]), "price_high": float(row["price_high"]), "expected_direction": row["regression_direction"], "model_metadata": {**prediction["model_metadata"], "regressor_name": "spot_return_lgbm", "regression_target": "forward_log_return_12_bars"}})
                 predictions.append(prediction)
             if finalized:
                 for observation, prediction in zip(observations, predictions):
@@ -141,7 +199,7 @@ class PredictionService:
                             "contract": CONFIG.symbol,
                             "features": observation,
                             "candle_finalized": True,
-                            "close_price": observation.get("close"),
+                            "close_price": observation.get("close", observation.get("silver_close")),
                         })
                     except (TypeError, ValueError, OSError) as exc:
                         self._diagnostics.append({"kind": "persistence_failure", "error": str(exc)})
@@ -154,7 +212,17 @@ class PredictionService:
 
     def latest(self) -> dict[str, Any] | None:
         history = self.store.list_finalized_signals(limit=1)
-        return history[0] if history else None
+        if not history:
+            return None
+        row = history[0]
+        row["class_probabilities"] = {"down": row.get("probability_down"), "neutral": row.get("probability_neutral"), "up": row.get("probability_up")}
+        row["calibrated_probabilities"] = {"down": row.get("calibrated_probability_down"), "neutral": row.get("calibrated_probability_neutral"), "up": row.get("calibrated_probability_up")}
+        row["signal"] = {"signal": row.get("final_signal")}
+        row["prediction_timestamp"] = row.get("candle_timestamp")
+        row["forecast_horizon_minutes"] = row.get("horizon_minutes")
+        row["forecast_horizon_bars"] = row.get("horizon_bars")
+        row["confidence"] = row.get("confidence")
+        return row
 
     def prediction_history(self, status: str | None = None, limit: int = 100) -> list[dict[str, Any]]:
         return self.store.list(status=status, limit=limit)
@@ -163,7 +231,14 @@ class PredictionService:
         return self.store.evaluate(candles)
 
     def market_status(self) -> dict[str, Any]:
-        return provider_status(self.market_provider)
+        status = provider_status(self.market_provider)
+        if DATA_MODE == "live":
+            log_status = self._live_logs.status()
+            provider_update = pd.to_datetime(status.get("last_update"), utc=True, errors="coerce")
+            log_update = pd.to_datetime(log_status.get("last_update"), utc=True, errors="coerce")
+            if pd.notna(log_update) and (pd.isna(provider_update) or log_update >= provider_update):
+                status = {**status, **log_status, "provider": "dukascopy-live-log", "source_status": {"receiver": status, "log_tail": log_status}}
+        return status
 
     def paper_trading(self) -> dict[str, Any]:
         rows = self.store.list(status="evaluated")
@@ -186,24 +261,28 @@ class PredictionService:
             "directional_accuracy": (correct / completed) if completed else None,
             "coverage": "historical replay only",
         }
-        report_root = Path(__file__).resolve().parents[2] / "reports" / "spot_dukascopy_20261115"
+        report_root = Path(__file__).resolve().parents[2] / "reports" / "spot_v3_20261115"
         spot_metrics = report_root / "metrics.json"
         if spot_metrics.is_file():
-            result["spot_report"] = {"path": "reports/spot_dukascopy_20261115/metrics.json", "status": "available"}
-        if "classification_metrics" not in result or "regression_metrics" not in result:
+            result["spot_report"] = {"path": "reports/spot_v3_20261115/metrics.json", "status": "available"}
             try:
-                metadata = self._get_artifacts().get("metadata", {})
-                if "classification_metrics" not in result:
-                    result["classification_metrics"] = [
-                        {"dataset": "validation", **row} for row in metadata.get("classification_comparison", [])
-                    ]
-                if "regression_metrics" not in result:
-                    result["regression_metrics"] = [
-                        {"dataset": "validation", **row} for row in metadata.get("regression_comparison", [])
-                    ]
-                result["report_source"] = "saved training metadata fallback"
-            except (FileNotFoundError, OSError, ValueError):
-                result["report_source"] = "unavailable"
+                report = json.loads(spot_metrics.read_text(encoding="utf-8"))
+                rows = []
+                for fold, item in enumerate(report.get("corrected_folds", []), 1):
+                    for model_name in ("raw", "calibrated"):
+                        metric = item.get(model_name, {})
+                        rows.append({"dataset": f"development_fold_{fold}", "model": f"spot_lightgbm_{model_name}", "accuracy": metric.get("accuracy"), "balanced_accuracy": metric.get("balanced_accuracy"), "macro_f1": metric.get("macro_f1"), "signal_frequency": metric.get("up_rate"), "neutral_coverage": None})
+                result["classification_metrics"] = rows
+            except (OSError, ValueError, json.JSONDecodeError):
+                result["classification_metrics"] = []
+        regression_csv = Path(__file__).resolve().parents[2] / "reports" / "spot_v3_20261116_regression" / "regression_metrics.csv"
+        if regression_csv.is_file():
+            try:
+                with regression_csv.open(newline="", encoding="utf-8") as handle:
+                    result["regression_metrics"] = [{"dataset": f"development_{row.pop('fold')}", "model": "spot_return_lgbm", "mae": float(row["mae_vs_naive"]), "rmse": float(row["rmse_vs_naive"]), "r2": float(row["r2_vs_zero"])} for row in csv.DictReader(handle)]
+            except (OSError, ValueError):
+                result["regression_metrics"] = []
+        result["report_source"] = "stored versioned reports"
         return result
 
     def diagnostics(self) -> dict[str, Any]:

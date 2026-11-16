@@ -12,6 +12,7 @@ const API_URL = (process.env.SILVERAI_API_URL || 'http://127.0.0.1:8000').replac
 const MODULE_NAME = process.env.SILVERAI_DUKASCOPY_MODULE || 'dukascopy-node'
 const POLL_MS = Number(process.env.SILVERAI_POLL_MS || 20000)
 const SYMBOLS = ['xagusd', 'xauusd', 'eurusd']
+const LOG_DIR = process.env.SILVERAI_LIVE_LOG_DIR || 'data/live_log'
 
 const sleep = ms => new Promise(resolve => setTimeout(resolve, ms))
 const minute = value => {
@@ -39,6 +40,18 @@ function quoteTime(quote) {
 }
 
 function addQuote(accumulators, symbol, quote) {
+  // dukascopy-node returns [timestamp, open, high, low, close] tuples.
+  // Keep support for object-shaped responses used by replay/test adapters.
+  if (Array.isArray(quote)) {
+    const [rawTimestamp, open, high, low, close] = quote
+    const timestamp = new Date(rawTimestamp)
+    if (![open, high, low, close].every(Number.isFinite) || close <= 0 || !Number.isFinite(timestamp.getTime())) return
+    const bucket = minute(timestamp).toISOString()
+    const key = `${symbol}:${bucket}`
+    accumulators.set(key, { symbol, timestamp: bucket, open, high, low, close })
+    return
+  }
+
   const timestamp = new Date(quoteTime(quote))
   const price = quotePrice(quote)
   if (!Number.isFinite(timestamp.getTime()) || !Number.isFinite(price) || price <= 0) return
@@ -61,6 +74,12 @@ async function post(path, body) {
   return response.json()
 }
 
+async function appendLog(symbol, pollId, sentMs, recvMs, candles) {
+  const fs = await import('node:fs/promises')
+  await fs.mkdir(LOG_DIR, { recursive: true })
+  await fs.appendFile(`${LOG_DIR}/${symbol}_m1_raw.jsonl`, `${JSON.stringify({ poll_id: pollId, sent_ms: sentMs, recv_ms: recvMs, candles })}\n`)
+}
+
 async function loadRealtimeRates(getRealTimeRates, symbol) {
   return getRealTimeRates({ instrument: symbol, timeframe: 'm1', priceType: 'bid', volumes: false })
 }
@@ -73,10 +92,14 @@ async function main() {
   let backoff = POLL_MS
   for (;;) {
     try {
+      const pollId = `${Date.now()}`
+      const sentMs = Date.now()
       const now = new Date()
       for (const symbol of SYMBOLS) {
         const response = await loadRealtimeRates(getRealTimeRates, symbol)
-        for (const quote of extractQuotes(response)) addQuote(accumulators, symbol, quote)
+        const rawQuotes = extractQuotes(response)
+        await appendLog(symbol, pollId, sentMs, Date.now(), rawQuotes)
+        for (const quote of rawQuotes) addQuote(accumulators, symbol, quote)
       }
       const currentMinute = minute(now).getTime()
       for (const [key, candle] of [...accumulators]) {
@@ -89,7 +112,7 @@ async function main() {
       await sleep(POLL_MS)
     } catch (error) {
       console.error(`[live-bridge] ${new Date().toISOString()} ${error.message}`)
-      try { await post('/api/live/heartbeat', {}) } catch {}
+      try { await post('/api/live/heartbeat', { connected: false }) } catch {}
       await sleep(Math.min(backoff, 300000))
       backoff = Math.min(backoff * 2, 300000)
     }

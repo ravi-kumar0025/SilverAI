@@ -17,6 +17,7 @@ from matplotlib.patches import FancyBboxPatch
 import numpy as np
 import pandas as pd
 import joblib
+import yaml
 
 ROOT = Path(__file__).resolve().parents[1]
 REPORT = ROOT / "reports" / "spot_v3_20261115"
@@ -25,9 +26,11 @@ TABLES = REPORT / "tables"
 MANIFEST = ROOT / "data" / "dataset_manifest.json"
 CONFIG = ROOT / "config.yaml"
 DATA = ROOT / "data" / "raw" / "dukascopy"
-DATASET_ID = "4be8732dbab3aaa6"
-HOLDOUT_START = pd.Timestamp("2026-10-01T00:00:00Z")
-HOLDOUT_END = pd.Timestamp("2026-11-13T21:59:00Z")
+CONFIG_VALUES = yaml.safe_load(CONFIG.read_text(encoding="utf-8"))
+DATASET_ID = json.loads(MANIFEST.read_text(encoding="utf-8")).get("dataset_id")
+assert DATASET_ID == "4be8732dbab3aaa6", DATASET_ID
+HOLDOUT_START = pd.Timestamp(CONFIG_VALUES["final_holdout_start"])
+HOLDOUT_END = pd.Timestamp(CONFIG_VALUES["final_holdout_end"])
 PALETTE = {"blue": "#0072B2", "orange": "#E69F00", "green": "#009E73", "red": "#D55E00", "purple": "#CC79A7", "ink": "#1F2937", "grid": "#D9E2EC"}
 
 
@@ -57,13 +60,16 @@ def raw_frame(symbol: str) -> pd.DataFrame | None:
 
 
 def architecture() -> None:
-    fig, ax = plt.subplots(figsize=(6.5, 3.6)); ax.axis("off")
-    labels = ["Dukascopy\nOHLC", "Closed-candle\nbuilder", "34-feature\nschema", "ATR labels", "Classifier +\ncalibrator", "Threshold\n/ signal", "Live bridge", "API + UI"]
-    xs = np.linspace(.07, .93, len(labels))
-    for x, label in zip(xs, labels):
-        ax.add_patch(FancyBboxPatch((x-.055, .38), .11, .24, boxstyle="round,pad=.02", fc="#F5F9FC", ec=PALETTE["blue"], lw=1.4))
-        ax.text(x, .5, label, ha="center", va="center", fontsize=9, color=PALETTE["ink"])
-    for left, right in zip(xs[:-1], xs[1:]): ax.annotate("", (right-.06, .5), (left+.06, .5), arrowprops={"arrowstyle": "->", "color": PALETTE["ink"], "lw": 1})
+    fig, ax = plt.subplots(figsize=(6.5, 4.6)); ax.axis("off")
+    labels = ["Dukascopy\nOHLC", "Closed-candle\nbuilder", "34-feature\nschema", "Labels", "Classifier +\ncalibrator", "Return + quantile\nregressors", "Threshold\n/ forecast", "Live bridge", "API + UI"]
+    positions = [(x, .63) for x in np.linspace(.12, .88, 5)] + [(x, .28) for x in np.linspace(.22, .78, 4)]
+    for (x, y), label in zip(positions, labels):
+        ax.add_patch(FancyBboxPatch((x-.085, y-.10), .17, .20, boxstyle="round,pad=.02", fc="#F5F9FC", ec=PALETTE["blue"], lw=1.2))
+        ax.text(x, y, label, ha="center", va="center", fontsize=7.5, color=PALETTE["ink"])
+    for left, right in zip(positions[:4], positions[1:5]): ax.annotate("", (right[0]-.09, right[1]), (left[0]+.09, left[1]), arrowprops={"arrowstyle": "->", "color": PALETTE["ink"], "lw": .9})
+    for left, right in zip(positions[5:8], positions[6:9]): ax.annotate("", (right[0]-.09, right[1]), (left[0]+.09, left[1]), arrowprops={"arrowstyle": "->", "color": PALETTE["ink"], "lw": .9})
+    ax.annotate("", (.22, .38), (.80, .53), arrowprops={"arrowstyle": "->", "color": PALETTE["ink"], "lw": .9, "connectionstyle": "arc3,rad=-.15"})
+    ax.annotate("", (.78, .53), (.78, .38), arrowprops={"arrowstyle": "->", "color": PALETTE["ink"], "lw": .9})
     ax.set_title("SilverAI spot research pipeline", fontsize=12, weight="bold")
     save(fig, "fig_3_1_architecture.png", "canonical pipeline")
 
@@ -152,6 +158,65 @@ def results(metrics: dict, step0: dict) -> None:
             ax.set_title("Stored confident-signal accuracy by fold"); ax.set_xlabel("Fold"); ax.set_ylabel("Accuracy"); ax.legend(frameon=False,ncol=3,fontsize=8); save(fig,"fig_4_4_thresholds.png","development artifact")
 
 
+def regression_results() -> bool:
+    path = ROOT / "reports" / "spot_v3_20261116_regression" / "regression_metrics.csv"
+    if not path.is_file(): return False
+    table = pd.read_csv(path)
+    table.to_csv(TABLES / "regression_metrics.csv", index=False)
+    fig, axes = plt.subplots(1, 2, figsize=(6.5, 3.5))
+    axes[0].bar(table["fold"].astype(str), table["r2_vs_zero"], color=PALETTE["blue"])
+    axes[0].axhline(0, color=PALETTE["red"], ls="--", lw=1)
+    axes[0].set_title("Regression R² vs zero-return"); axes[0].set_xlabel("Fold"); axes[0].set_ylabel("R²")
+    axes[1].plot(table["fold"].astype(str), table["sign_accuracy"], "o-", color=PALETTE["orange"], label="sign accuracy")
+    axes[1].plot(table["fold"].astype(str), table["band_coverage"], "o-", color=PALETTE["green"], label="10–90% coverage")
+    axes[1].axhline(.5, color=PALETTE["red"], ls="--", lw=1); axes[1].set_ylim(0, 1)
+    axes[1].set_title("Regression sign and interval coverage"); axes[1].set_xlabel("Fold"); axes[1].set_ylabel("Rate"); axes[1].legend(frameon=False, fontsize=8)
+    for ax in axes: ax.grid(axis="y", color=PALETTE["grid"], lw=.7)
+    save(fig, "fig_4_9_regression_results.png", "development artifact; 1-hour return target")
+    return True
+
+
+def session_regime() -> bool:
+    """Plot stored hour-of-day AUC; do not infer a regime edge from it."""
+    path = REPORT / "remaining_auc_by_hour.csv"
+    if not path.is_file():
+        return False
+    table = pd.read_csv(path)
+    required = {"variant", "fold", "hour", "auc"}
+    if not required.issubset(table.columns) or table.empty:
+        return False
+    table.to_csv(TABLES / "session_regime_auc_by_hour.csv", index=False)
+    summary = table.groupby(["variant", "hour"], as_index=False)["auc"].mean()
+    fig, ax = plt.subplots(figsize=(6.5, 3.7))
+    for variant, group in summary.groupby("variant"):
+        ax.plot(group["hour"], group["auc"], marker="o", ms=3, lw=1, label=str(variant))
+    ax.axhline(.5, color=PALETTE["red"], ls="--", lw=1)
+    ax.set_title("Stored AUC by UTC hour")
+    ax.set_xlabel("UTC hour")
+    ax.set_ylabel("ROC AUC")
+    ax.set_xticks(sorted(summary["hour"].unique()))
+    ax.grid(axis="y", color=PALETTE["grid"], lw=.7)
+    ax.legend(frameon=False, fontsize=7)
+    save(fig, "fig_4_6_session_regime.png", "development artifact; stored hourly AUC only")
+    return True
+
+
+def stored_classifier_diagnostics(metrics: dict) -> list[str]:
+    generated = []
+    folds = metrics.get("corrected_folds", [])
+    if folds:
+        table = pd.DataFrame([{"fold": i, "raw_auc": f["raw"].get("auc"), "calibrated_auc": f["calibrated"].get("auc")} for i, f in enumerate(folds, 1)])
+        table.to_csv(TABLES / "auc_per_fold.csv", index=False)
+        fig, ax = plt.subplots(figsize=(6.5, 3.5)); ax.plot(table.fold, table.raw_auc, "o-", label="raw", color=PALETTE["blue"]); ax.plot(table.fold, table.calibrated_auc, "o-", label="calibrated", color=PALETTE["orange"]); ax.axhline(.5, color=PALETTE["red"], ls="--", lw=1); ax.set_title("Per-fold AUC"); ax.set_xlabel("Fold"); ax.set_ylabel("ROC AUC"); ax.legend(frameon=False); ax.grid(axis="y", color=PALETTE["grid"], lw=.7); save(fig, "fig_4_2_auc_curves.png", "development artifact"); generated.append("fig_4_2_auc_curves.png")
+    costs = REPORT / "costs.csv"
+    if costs.is_file():
+        table = pd.read_csv(costs); table.to_csv(TABLES / "cost_sensitivity.csv", index=False); fig, ax = plt.subplots(figsize=(6.5, 3.5)); ax.plot(table.cost_multiple, table.net_return, "o-", color=PALETTE["red"]); ax.axhline(0, color=PALETTE["ink"], lw=1); ax.set_title("Stored cost sensitivity"); ax.set_xlabel("Cost multiple"); ax.set_ylabel("Net return (stored units)"); ax.grid(axis="y", color=PALETTE["grid"], lw=.7); save(fig, "fig_4_7_profit_costs.png", "development artifact"); generated.append("fig_4_7_profit_costs.png")
+    seed = REPORT / "seed_stability.csv"
+    if seed.is_file():
+        table = pd.read_csv(seed); table.to_csv(TABLES / "seed_stability.csv", index=False); fig, ax = plt.subplots(figsize=(6.5, 3.5)); ax.plot(table.seed, table.accuracy, "o-", color=PALETTE["blue"]); ax.axhline(.5, color=PALETTE["red"], ls="--", lw=1); ax.set_title("Stored seed stability"); ax.set_xlabel("Seed"); ax.set_ylabel("Accuracy"); ax.grid(axis="y", color=PALETTE["grid"], lw=.7); save(fig, "fig_4_8_seed_stability.png", "development artifact"); generated.append("fig_4_8_seed_stability.png")
+    return generated
+
+
 def main() -> None:
     manifest=json.loads(MANIFEST.read_text(encoding="utf-8")); assert manifest.get("dataset_id")==DATASET_ID, manifest.get("dataset_id"); print(f"dataset_id={DATASET_ID}")
     FIGURES.mkdir(parents=True,exist_ok=True); TABLES.mkdir(parents=True,exist_ok=True)
@@ -165,11 +230,15 @@ def main() -> None:
     class_balance(metrics); generated.append("fig_3_5_class_balance.png")
     walk_forward(metrics); generated.append("fig_3_6_walk_forward.png")
     results(metrics,step0); generated += ["fig_4_1_accuracy.png"]
+    if regression_results(): generated.append("fig_4_9_regression_results.png")
+    generated += stored_classifier_diagnostics(metrics)
     if (FIGURES/"fig_4_3_horizon_label_comparison.png").is_file(): generated.append("fig_4_3_horizon_label_comparison.png")
     else: missing.append("fig_4_3_horizon_label_comparison.png")
     if (FIGURES/"fig_4_4_thresholds.png").is_file(): generated.append("fig_4_4_thresholds.png")
     else: missing.append("fig_4_4_thresholds.png")
-    missing += ["fig_3_7_feature_groups_heatmap.png","fig_4_2_auc_curves.png","fig_4_5_reliability.png","fig_4_6_session_regime.png","fig_4_7_profit_costs.png","fig_4_8_seed_stability.png"]
+    if not session_regime():
+        missing.append("fig_4_6_session_regime.png")
+    missing += ["fig_3_7_feature_groups_heatmap.png", "fig_4_5_reliability.png"]
     (TABLES/"experiment_ledger.csv").write_text((REPORT/"ledger.csv").read_text(encoding="utf-8"),encoding="utf-8")
     payload=joblib.load(REPORT/"spot_lightgbm.joblib")["payload"]
     (TABLES/"feature_list.csv").write_text("feature\n"+"\n".join(payload["features"])+"\n",encoding="utf-8")

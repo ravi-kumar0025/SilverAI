@@ -32,6 +32,8 @@ data/raw/dukascopy/*_1m.csv
 
 The 34 core features cover silver price action, volatility, trend/momentum, cross-market relationships, and UTC session context. Horizons are 15, 30, and 60 minutes (`H = 3, 6, 12` on 5-minute candles); the dead-zone multiplier is tested at `k = 0.2, 0.3, 0.5`. The final selected artifact uses `H=12` and `k=0.2`, a 60-minute horizon.
 
+The system also includes trained regression models that predict the 1-hour return, converted to a price forecast with a 10-90% range; estimates only.
+
 The API and rolling inference contract use the same ordered 34-feature schema. A closed candle produces a binary Up/Down probability; confidence below the configured threshold becomes `No signal`. The model artifact is available for reproducible research inference, but the report does not promote it as a reliable live trading model.
 
 ## Run
@@ -70,4 +72,4 @@ Only source code, the canonical Dukascopy dataset, the current spot report, and 
 
 ## Status
 
-The current spot report is an evidence package, not a promoted production model. Historical data is always labelled historical in the app; no live readiness is implied.
+The current spot report is an evidence package, not a promoted production model. The live bridge and forecast persistence path are verified for paper trading, with a 180-second configurable freshness window. The model remains research-only; no live profitability or production-trading claim is implied. See `reports/spot_v3_20261115/readiness_summary.md` for the current audit and explicitly missing report sources.

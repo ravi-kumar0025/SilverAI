@@ -1,4 +1,4 @@
-const FINAL_SIGNALS = new Set(['BULLISH', 'BEARISH', 'NEUTRAL'])
+const FINAL_SIGNALS = new Set(['BULLISH', 'BEARISH', 'NEUTRAL', 'UP', 'DOWN', 'NO_CLEAR_SIGNAL'])
 
 function finiteNumber(value) {
   const number = Number(value)
@@ -17,7 +17,7 @@ export function normalizeFinalSignal(record) {
   const timestamp = record.candle_timestamp
   if (!FINAL_SIGNALS.has(signal) || !timestamp || !Number.isFinite(Date.parse(timestamp))) return null
   const scenarios = parsePayload(record.scenario_payload)
-  const scenarioName = signal === 'BULLISH' ? 'Bullish' : signal === 'BEARISH' ? 'Bearish' : 'Neutral'
+  const scenarioName = signal === 'BULLISH' || signal === 'UP' ? 'Bullish' : signal === 'BEARISH' || signal === 'DOWN' ? 'Bearish' : 'Neutral'
   const evidence = scenarios?.scenarios?.[scenarioName]?.supporting_evidence
   return {
     id: record.prediction_id || `${signal}-${timestamp}`,
@@ -48,9 +48,11 @@ export function signalsForCandle(candle, records, timeframeMinutes = 5) {
 // Stable marker contract used by the chart renderer. Finalized records are
 // read-only; no marker is created for a forming candle or an unfinalized row.
 export function createSeriesMarkers(candle, records, timeframeMinutes = 5) {
-  return signalsForCandle(candle, records, timeframeMinutes).map(signal => ({
+  return signalsForCandle(candle, records, timeframeMinutes)
+    .filter(signal => signal.signal !== 'NO_CLEAR_SIGNAL' && signal.signal !== 'NEUTRAL')
+    .map(signal => ({
     ...signal,
     direction: signal.signal === 'BULLISH' ? 'Up' : signal.signal === 'BEARISH' ? 'Down' : 'No clear signal',
     confidenceLabel: signal.confidence == null ? 'Unavailable' : `${signal.signal === 'BULLISH' ? 'Up' : signal.signal === 'BEARISH' ? 'Down' : 'No clear signal'}, ${(signal.confidence * 100).toFixed(0)}%`,
-  }))
+    }))
 }

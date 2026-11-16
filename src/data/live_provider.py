@@ -46,7 +46,7 @@ class LiveFeedState:
     gap_events: int = 0
     outage_events: int = 0
     accepted_candles: int = 0
-    stale_after_seconds: int = 90
+    stale_after_seconds: int = SPOT_CONFIG.live_stale_after_seconds
     _last_by_symbol: dict[str, datetime] = field(default_factory=dict, repr=False)
     _seen: set[tuple[str, str]] = field(default_factory=set, repr=False)
 
@@ -104,6 +104,10 @@ class DukascopyRealtimeSource:
         self.state.heartbeat(now)
         if connected:
             self.state.connected = True
+        else:
+            if self.state.connected:
+                self.state.outage_events += 1
+            self.state.connected = False
         return self.status(now)
 
     def ingest(self, payload: Mapping[str, Any], *, now: Any = None) -> dict[str, Any]:

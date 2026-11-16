@@ -13,6 +13,25 @@ MODEL_ROOT = SPOT_CONFIG.root_model
 SELECTION_PATH = SPOT_CONFIG.root_selection
 PREDICTION_DB_PATH = SPOT_CONFIG.root_prediction_db
 FROZEN_EVALUATION_PATH = SPOT_CONFIG.root_frozen_evaluation
+
+
+def _load_project_env() -> None:
+    """Load simple KEY=VALUE settings without requiring an extra dependency."""
+    env_path = PROJECT_ROOT / ".env"
+    if not env_path.is_file():
+        return
+    for raw_line in env_path.read_text(encoding="utf-8").splitlines():
+        line = raw_line.strip()
+        if not line or line.startswith("#") or "=" not in line:
+            continue
+        key, value = line.split("=", 1)
+        key = key.strip()
+        value = value.strip().strip('"').strip("'")
+        if key:
+            os.environ.setdefault(key, value)
+
+
+_load_project_env()
 _cors_value = os.getenv(
     "SILVERAI_CORS_ORIGINS", "http://localhost:3000,http://localhost:5173"
 )

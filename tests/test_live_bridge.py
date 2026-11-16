@@ -1,7 +1,12 @@
 from datetime import timedelta
 
+import pandas as pd
+
 from src.data.live_provider import ReplaySource
+from src.data.live_log_source import LiveLogSource
 from src.prediction.store import PredictionStore
+from src.spot_config import SPOT_CONFIG
+from backend.services.prediction_service import PredictionService
 
 
 def _event(timestamp, close=50.0, **extra):
@@ -35,15 +40,43 @@ def test_replay_uses_live_guards_for_forming_duplicates_and_gaps():
 
 def test_replay_freshness_stale_and_exact_boundary_use_injected_clock():
     event = [_event("2026-01-01T10:00:00Z")]
-    fresh = ReplaySource(event, now="2026-01-01T10:01:29Z")
-    boundary = ReplaySource(event, now="2026-01-01T10:01:30Z")
-    stale = ReplaySource(event, now="2026-01-01T10:01:31Z")
+    base = pd.Timestamp("2026-01-01T10:00:00Z")
+    threshold = SPOT_CONFIG.live_stale_after_seconds
+    fresh = ReplaySource(event, now=(base + pd.Timedelta(seconds=threshold - 1)).isoformat())
+    boundary = ReplaySource(event, now=(base + pd.Timedelta(seconds=threshold)).isoformat())
+    stale = ReplaySource(event, now=(base + pd.Timedelta(seconds=threshold + 1)).isoformat())
     assert fresh.run()
     assert boundary.run()
     assert stale.run()
     assert fresh.status()["fresh"] is True
     assert boundary.status()["fresh"] is True
     assert stale.status()["fresh"] is False
+
+
+def test_live_cycle_evaluates_pending_silver_forecasts_without_companions():
+    class EmptyCompanionSource:
+        def candles(self, symbol, minutes):
+            return pd.DataFrame(columns=["timestamp", "open", "high", "low", "close"])
+
+    class RecordingStore:
+        def __init__(self):
+            self.frames = []
+
+        def evaluate(self, frame):
+            self.frames.append(frame.copy())
+            return 1
+
+    service = PredictionService.__new__(PredictionService)
+    service._historical_frames = {
+        "xagusd": pd.DataFrame([{"timestamp": pd.Timestamp("2026-01-01T10:00:00Z"), "open": 50.0, "high": 51.0, "low": 49.0, "close": 50.5}]),
+        "xauusd": pd.DataFrame(columns=["timestamp", "open", "high", "low", "close"]),
+        "eurusd": pd.DataFrame(columns=["timestamp", "open", "high", "low", "close"]),
+    }
+    service._live_logs = EmptyCompanionSource()
+    service.store = RecordingStore()
+    service._on_live_candle({"symbol": "xagusd"})
+    assert len(service.store.frames) == 1
+    assert list(service.store.frames[0].columns) == ["datetime_et", "close"]
 
 
 def _prediction(timestamp, signal="BULLISH"):
@@ -92,4 +125,19 @@ def test_replay_callback_only_sees_closed_unique_candles():
         {"timestamp": "2026-01-01T10:00:00+00:00", "direction": "Up"},
         {"timestamp": "2026-01-01T10:02:00+00:00", "direction": "Up"},
     ]
+
+
+def test_live_log_source_discards_forming_deduplicates_and_builds_complete_5m(tmp_path):
+    import json
+    rows = []
+    for minute in range(5):
+        rows.append({"poll_id": "p1", "recv_ms": 1_800_000_600_000, "candles": [[1_800_000_000_000 + minute * 60_000, 50, 50.1, 49.9, 50 + minute * .01]]})
+    rows.append({"poll_id": "p2", "recv_ms": 1_800_000_600_000, "candles": [[1_800_000_000_000, 50, 50.2, 49.8, 51]]})
+    rows.append({"poll_id": "p3", "recv_ms": 1_800_000_000_000, "candles": [[1_800_000_300_000, 50, 50, 50, 50]]})
+    (tmp_path / "xagusd_m1_raw.jsonl").write_text("\n".join(json.dumps(row) for row in rows), encoding="utf-8")
+    source = LiveLogSource(tmp_path, clock="2027-01-15T08:10:00Z")
+    candles = source.candles()
+    assert len(candles) == 1
+    assert candles.iloc[0].close == 50.04
+    assert source.status()["fresh"] is False
 

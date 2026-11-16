@@ -5,3 +5,6 @@ The original holdout was not read or evaluated. These artifacts use only rows be
 Development rows: 187686; selected candidate: H=12, k=0.3; dataset_id: 4be8732dbab3aaa6; model_version: xagusd_5m_60m_atr_binary_lgbm_v3_dev.
 
 See `metrics.json` for old-vs-corrected fold metrics, raw/calibrated threshold coverage, and triple-barrier timeout variants.
+## Trained regression family
+
+The deployed indicator includes trained LightGBM regressors for the 1-hour forward log return and 10%/50%/90% conditional return quantiles. Predicted price is derived only as `close_now * exp(predicted_return)`; estimates only. Development-only fold results are in `tables/regression_metrics.csv` and the versioned artifacts are in `reports/spot_v3_20261116_regression/`. The stored results do not demonstrate improvement over the zero-return/no-change forecast.

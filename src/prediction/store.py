@@ -13,7 +13,7 @@ import pandas as pd
 from src.config import CONFIG
 
 
-FINAL_SIGNAL_NAMES = frozenset({"BULLISH", "BEARISH", "NEUTRAL"})
+FINAL_SIGNAL_NAMES = frozenset({"BULLISH", "BEARISH", "NEUTRAL", "UP", "DOWN", "NO_CLEAR_SIGNAL"})
 
 
 def is_finalized_signal_record(record: dict[str, Any]) -> bool:
@@ -62,6 +62,10 @@ class PredictionStore:
                     probability_neutral REAL,
                     probability_up REAL,
                     predicted_return REAL,
+                    predicted_price REAL,
+                    price_low REAL,
+                    price_high REAL,
+                    expected_direction TEXT,
                     raw_probability_down REAL,
                     raw_probability_neutral REAL,
                     raw_probability_up REAL,
@@ -94,6 +98,7 @@ class PredictionStore:
                 "calibrated_probability_down": "REAL", "calibrated_probability_neutral": "REAL", "calibrated_probability_up": "REAL",
                 "configuration_version": "TEXT", "final_signal": "TEXT", "candle_finalized": "INTEGER NOT NULL DEFAULT 0", "scenario_payload": "TEXT", "candle_data_ref": "TEXT",
                 "outcome_timestamp": "TEXT",
+                "predicted_price": "REAL", "price_low": "REAL", "price_high": "REAL", "expected_direction": "TEXT",
             }
             for column, kind in migrations.items():
                 if column not in columns:
@@ -143,7 +148,11 @@ class PredictionStore:
             "probability_down": probabilities.get("down"),
             "probability_neutral": probabilities.get("neutral"),
             "probability_up": probabilities.get("up"),
-            "predicted_return": prediction.get("predicted_return_15m"),
+            "predicted_return": prediction.get("predicted_return", prediction.get("predicted_return_15m")),
+            "predicted_price": prediction.get("predicted_price"),
+            "price_low": prediction.get("price_low"),
+            "price_high": prediction.get("price_high"),
+            "expected_direction": prediction.get("expected_direction"),
             "raw_probability_down": probabilities.get("down"),
             "raw_probability_neutral": probabilities.get("neutral"),
             "raw_probability_up": probabilities.get("up"),
@@ -169,14 +178,14 @@ class PredictionStore:
                 """INSERT OR IGNORE INTO predictions
                 (prediction_id, instrument, contract, candle_timestamp, created_at,
                  close_price, predicted_direction, probability_down, probability_neutral,
-                 probability_up, predicted_return, confidence, confidence_kind, model_version,
+                 probability_up, predicted_return, predicted_price, price_low, price_high, expected_direction, confidence, confidence_kind, model_version,
                  horizon_minutes, horizon_bars, feature_payload, raw_probability_down,
                  raw_probability_neutral, raw_probability_up, calibrated_probability_down,
                  calibrated_probability_neutral, calibrated_probability_up, configuration_version,
                  final_signal, candle_finalized, scenario_payload, candle_data_ref)
                 VALUES (:prediction_id, :instrument, :contract, :candle_timestamp, :created_at,
                  :close_price, :predicted_direction, :probability_down, :probability_neutral,
-                 :probability_up, :predicted_return, :confidence, :confidence_kind, :model_version,
+                 :probability_up, :predicted_return, :predicted_price, :price_low, :price_high, :expected_direction, :confidence, :confidence_kind, :model_version,
                  :horizon_minutes, :horizon_bars, :feature_payload, :raw_probability_down,
                  :raw_probability_neutral, :raw_probability_up, :calibrated_probability_down,
                  :calibrated_probability_neutral, :calibrated_probability_up, :configuration_version,

@@ -1,0 +1,143 @@
+{
+  "runtime_versions": {
+    "python": "3.12",
+    "joblib": "1.4.2",
+    "numpy": "1.26.4",
+    "pandas": "2.2.3",
+    "scikit-learn": "1.6.1",
+    "lightgbm": "4.7.0"
+  },
+  "dataset_id": "4be8732dbab3aaa6",
+  "checks": [
+    {
+      "check": "dataset_id",
+      "status": "PASS",
+      "detail": "4be8732dbab3aaa6"
+    },
+    {
+      "check": "holdout_status",
+      "status": "PASS",
+      "detail": "used_do_not_reuse"
+    },
+    {
+      "check": "hash:xagusd_1m.csv",
+      "status": "PASS",
+      "detail": "c3f4b6818437adae25fd1dcb8269da737bfb6cfbcac4d9c4ee4b26c05e730673"
+    },
+    {
+      "check": "hash:xauusd_1m.csv",
+      "status": "PASS",
+      "detail": "5a4ad05d76016b1391d00dd4db200f10953ada38827695b012682cece4425c6c"
+    },
+    {
+      "check": "hash:eurusd_1m.csv",
+      "status": "PASS",
+      "detail": "1c40da92e1b7793ea081b75080a338ead4e33b804ea948c095c9075493dc69ab"
+    },
+    {
+      "check": "classifier_artifact",
+      "status": "PASS",
+      "detail": "34"
+    },
+    {
+      "check": "regression_artifacts",
+      "status": "PASS",
+      "detail": "['mean', 'q10', 'q50', 'q90']"
+    },
+    {
+      "check": "feature_count",
+      "status": "PASS",
+      "detail": "34"
+    },
+    {
+      "check": "regression_metrics",
+      "status": "PASS",
+      "detail": "stored CSV"
+    },
+    {
+      "check": "report_figures",
+      "status": "PASS",
+      "detail": "figures_index.md"
+    },
+    {
+      "check": "report_figures_complete",
+      "status": "FAIL",
+      "detail": "['fig_3_7_feature_groups_heatmap.png', 'fig_4_5_reliability.png']"
+    },
+    {
+      "check": "live_endpoint",
+      "status": "PASS",
+      "detail": "{'provider': 'dukascopy-live-log', 'status': 'connected', 'data_mode': 'live', 'instrument': 'XAGUSD_SPOT', 'contract': 'XAG/USD', 'interval': 'm1', 'price_type': 'bid', 'volumes': False, 'reconnect_attempts': 0, 'forming_discarded': 0, 'duplicate_discarded': 7, 'gap_events': 0, 'outage_events': 1, 'accepted_candles': 12, 'companion_missing': [], 'is_live': True, 'fresh': True, 'last_update': '2026-11-16T05:47:00+00:00', 'last_heartbeat': '2026-11-16T05:48:51.088058+00:00', 'age_seconds': 137.615013, 'stale_after_seconds': 180, 'source_status': {'receiver': {'provider': 'dukascopy-realtime', 'status': 'connected', 'data_mode': 'live', 'instrument': 'XAGUSD_SPOT', 'contract': 'XAG/USD', 'interval': 'm1', 'price_type': 'bid', 'volumes': False, 'reconnect_attempts': 0, 'forming_discarded': 0, 'duplicate_discarded': 7, 'gap_events': 0, 'outage_events': 1, 'accepted_candles': 12, 'companion_missing': ['eurusd'], 'is_live': True, 'fresh': False, 'last_update': '2026-11-16T05:37:00+00:00', 'last_heartbeat': '2026-11-16T05:48:51.088058+00:00', 'age_seconds': 737.591217, 'stale_after_seconds': 180}, 'log_tail': {'provider': 'dukascopy-live-log', 'data_mode': 'live', 'is_live': True, 'fresh': True, 'last_update': '2026-11-16T05:47:00+00:00', 'age_seconds': 137.615013, 'stale_after_seconds': 180, 'companion_missing': []}}}"
+    },
+    {
+      "check": "live_companions",
+      "status": "PASS",
+      "detail": "[]"
+    },
+    {
+      "check": "live_freshness_observed",
+      "status": "PASS",
+      "detail": "137.615013"
+    }
+  ],
+  "live_observation": {
+    "provider": "dukascopy-live-log",
+    "status": "connected",
+    "data_mode": "live",
+    "instrument": "XAGUSD_SPOT",
+    "contract": "XAG/USD",
+    "interval": "m1",
+    "price_type": "bid",
+    "volumes": false,
+    "reconnect_attempts": 0,
+    "forming_discarded": 0,
+    "duplicate_discarded": 7,
+    "gap_events": 0,
+    "outage_events": 1,
+    "accepted_candles": 12,
+    "companion_missing": [],
+    "is_live": true,
+    "fresh": true,
+    "last_update": "2026-11-16T05:47:00+00:00",
+    "last_heartbeat": "2026-11-16T05:48:51.088058+00:00",
+    "age_seconds": 137.615013,
+    "stale_after_seconds": 180,
+    "source_status": {
+      "receiver": {
+        "provider": "dukascopy-realtime",
+        "status": "connected",
+        "data_mode": "live",
+        "instrument": "XAGUSD_SPOT",
+        "contract": "XAG/USD",
+        "interval": "m1",
+        "price_type": "bid",
+        "volumes": false,
+        "reconnect_attempts": 0,
+        "forming_discarded": 0,
+        "duplicate_discarded": 7,
+        "gap_events": 0,
+        "outage_events": 1,
+        "accepted_candles": 12,
+        "companion_missing": [
+          "eurusd"
+        ],
+        "is_live": true,
+        "fresh": false,
+        "last_update": "2026-11-16T05:37:00+00:00",
+        "last_heartbeat": "2026-11-16T05:48:51.088058+00:00",
+        "age_seconds": 737.591217,
+        "stale_after_seconds": 180
+      },
+      "log_tail": {
+        "provider": "dukascopy-live-log",
+        "data_mode": "live",
+        "is_live": true,
+        "fresh": true,
+        "last_update": "2026-11-16T05:47:00+00:00",
+        "age_seconds": 137.615013,
+        "stale_after_seconds": 180,
+        "companion_missing": []
+      }
+    }
+  }
+}

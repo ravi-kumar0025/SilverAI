@@ -1,6 +1,6 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
-import { finalizedSignals, normalizeFinalSignal, signalsForCandle } from '../src/chartSignals.mjs'
+import { createSeriesMarkers, finalizedSignals, normalizeFinalSignal, signalsForCandle } from '../src/chartSignals.mjs'
 
 const candle = { time: '2026-01-01T09:30:00-05:00', open: 50, high: 51, low: 49, close: 50.5, volume: 10 }
 
@@ -28,4 +28,9 @@ test('maps a finalized marker to its containing candle and preserves refresh-saf
   const record = { prediction_id: 'b1', final_signal: 'BULLISH', candle_finalized: 1, candle_timestamp: candle.time, close_price: 50.5 }
   assert.equal(signalsForCandle(candle, [record], 5)[0].id, 'b1')
   assert.equal(signalsForCandle({ ...candle, time: '2026-01-01T09:35:00-05:00' }, [record], 5).length, 0)
+})
+
+test('does not draw abstention markers on the price chart', () => {
+  const record = { prediction_id: 'n1', final_signal: 'NO_CLEAR_SIGNAL', candle_finalized: 1, candle_timestamp: candle.time, close_price: 50.5, confidence: 0.53 }
+  assert.deepEqual(createSeriesMarkers(candle, [record], 5), [])
 })

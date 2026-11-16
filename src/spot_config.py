@@ -40,6 +40,7 @@ class SpotConfig:
     evaluation_days: int
     neutral_quantile: float
     model_root: Path
+    regression_model_root: Path
     selection_path: Path
     prediction_db_path: Path
     frozen_evaluation_path: Path
@@ -66,6 +67,10 @@ class SpotConfig:
     @property
     def root_model(self) -> Path:
         return ROOT / self.model_root
+
+    @property
+    def root_regression_model(self) -> Path:
+        return ROOT / self.regression_model_root
 
     @property
     def root_selection(self) -> Path:
@@ -108,7 +113,7 @@ def load_spot_config(path: str | Path = CONFIG_PATH) -> SpotConfig:
         spread_bps=float(raw["costs"]["spread_bps"]), slippage_bps=float(raw["costs"]["slippage_bps"]),
         confidence_thresholds=tuple(float(x) for x in raw["confidence_thresholds"]),
         random_seed=int(raw["random_seed"]), evaluation_days=int(raw["evaluation_days"]),
-        neutral_quantile=float(raw["neutral_quantile"]), model_root=Path(raw["model_root"]),
+        neutral_quantile=float(raw["neutral_quantile"]), model_root=Path(raw["model_root"]), regression_model_root=Path(raw["regression_model_root"]),
         selection_path=Path(raw["selection_path"]), prediction_db_path=Path(raw["prediction_db_path"]),
         frozen_evaluation_path=Path(raw["frozen_evaluation_path"]), holdout_status=str(raw["holdout_status"]),
         holdout_ledger_path=Path(raw["holdout_ledger_path"]),

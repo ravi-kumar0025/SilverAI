@@ -6,11 +6,14 @@ import logging
 from functools import lru_cache
 from typing import Any
 
+import pandas as pd
 from fastapi import APIRouter, HTTPException, Request, status
 from pydantic import BaseModel, ConfigDict, Field, create_model
 from src.data.spot_data import build_candles, load_candles, load_raw_instrument
+from src.data.live_log_source import LiveLogSource
 from src.config import CONFIG
 from src.features.spot_features import SPOT_FEATURE_COLUMNS
+from backend.core.config import DATA_MODE
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api")
@@ -59,6 +62,12 @@ class LiveCandle(BaseModel):
     low: float
     close: float
     forming: bool = False
+
+
+class LiveHeartbeat(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    connected: bool = True
 
 
 def _service(request: Request):
@@ -143,6 +152,9 @@ def latest(request: Request) -> dict[str, Any]:
             "trade_decision": "WAIT",
             "candle_finalized": False,
         }
+    status_report = getattr(_service(request), "market_status", lambda: {})()
+    if status_report.get("is_live") and not status_report.get("fresh", True):
+        result = {**result, "reason": "stale_data", "stale": True, "signal": {"signal": "NO_CLEAR_SIGNAL"}, "trade_decision": "WAIT"}
     return result
 
 
@@ -160,6 +172,10 @@ def market_candles(limit: int = 288, timeframe_minutes: int = CONFIG.candle_minu
         else:
             raw, _ = load_raw_instrument("xagusd")
             frame = build_candles(raw, timeframe_minutes).rename(columns={"timestamp": "datetime_et"})
+        if DATA_MODE == "live" and timeframe_minutes == 5:
+            live = LiveLogSource().candles("xagusd", 5).rename(columns={"timestamp": "datetime_et"})
+            if not live.empty:
+                frame = pd.concat([frame, live], ignore_index=True).drop_duplicates("datetime_et", keep="last").sort_values("datetime_et")
         frame = frame.tail(limit)
     except (FileNotFoundError, OSError, ValueError) as exc:
         raise HTTPException(status_code=503, detail="Historical market data is unavailable.") from exc
@@ -182,7 +198,7 @@ def market_candles(limit: int = 288, timeframe_minutes: int = CONFIG.candle_minu
         "symbol": CONFIG.symbol,
         "source": "Dukascopy xagusd_1m.csv" if timeframe_minutes == 5 else f"Dukascopy xagusd_1m.csv resampled to {timeframe_minutes}m",
         "timeframe_minutes": timeframe_minutes,
-        "data_status": "historical",
+        "data_status": "live" if DATA_MODE == "live" else "historical",
         "timezone": "UTC",
         "timestamp": last["time"],
         "candles": candles,
@@ -229,9 +245,9 @@ def ingest_live_candle(payload: LiveCandle, request: Request) -> dict[str, Any]:
 
 
 @router.post("/live/heartbeat")
-def live_heartbeat(request: Request) -> dict[str, Any]:
+def live_heartbeat(request: Request, payload: LiveHeartbeat | None = None) -> dict[str, Any]:
     try:
-        return {"heartbeat": True, "status": _service(request).live_heartbeat()}
+        return {"heartbeat": True, "status": _service(request).live_heartbeat(connected=True if payload is None else payload.connected)}
     except RuntimeError as exc:
         raise HTTPException(status_code=503, detail=str(exc)) from exc
 
