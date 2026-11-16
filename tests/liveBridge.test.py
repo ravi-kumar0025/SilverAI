@@ -2,11 +2,11 @@ from datetime import timedelta
 
 import pandas as pd
 
-from src.data.live_provider import ReplaySource
-from src.data.live_log_source import LiveLogSource
+from src.data.live_market_provider import ReplaySource
+from src.data.live_log_market_source import LiveLogSource
 from src.prediction.store import PredictionStore
-from src.spot_config import SPOT_CONFIG
-from backend.services.prediction_service import PredictionService
+from src.market_model_config import SPOT_CONFIG
+from backend.services.prediction_pipeline_service import PredictionService
 
 
 def _event(timestamp, close=50.0, **extra):

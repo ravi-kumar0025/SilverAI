@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd
 
 from src.evaluation.selectivity import selective_metrics
-from src.spot_targets import make_triple_barrier_labels, sample_uniqueness_weights
+from src.directional_labels import make_triple_barrier_labels, sample_uniqueness_weights
 
 
 def _frame(rows=30):

@@ -14,8 +14,8 @@ from typing import Any, Iterable, Protocol
 
 import pandas as pd
 
-from src.data.spot_data import load_candles
-from src.config import CONFIG
+from src.data.market_candle_builder import load_candles
+from src.project_config import CONFIG
 
 
 def validate_ohlcv(frame: pd.DataFrame) -> pd.DataFrame:

@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react'
 import { createRoot } from 'react-dom/client'
-import { api } from './services/api'
+import { api } from './services/backend_api_client.js'
 import FinalSignalChartPanel from './ChartPanel.jsx'
 import { normalizeFinalSignal } from './chartSignals.mjs'
 import './styles.css'
@@ -21,7 +21,7 @@ const percent = value => value == null || !Number.isFinite(Number(value)) ? '—
 const date = value => value ? new Date(value).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' }) : '—'
 const signalName = value => ({
   BULLISH: 'UP', BEARISH: 'DOWN', UP: 'UP', DOWN: 'DOWN',
-  NEUTRAL: 'NO CLEAR SIGNAL', MIXED: 'NO CLEAR SIGNAL', INSUFFICIENT_DATA: 'NO CLEAR SIGNAL'
+  NEUTRAL: 'NEUTRAL', MIXED: 'NO CLEAR SIGNAL', INSUFFICIENT_DATA: 'NO CLEAR SIGNAL'
 }[value] || 'NO CLEAR SIGNAL')
 
 function storedMode() {
@@ -44,19 +44,22 @@ function App() {
     setBusy(true)
     setError('')
     const results = await Promise.allSettled([
-      api.candles(1000), api.marketInsights(), api.marketStatus(), api.models(),
+      api.candles(1000), api.marketStatus(), api.models(),
       api.latest().catch(() => null), api.predictionHistory(200),
       api.evaluationMetrics(), api.paperTrading(), api.frozenEvaluation(), api.diagnostics()
     ])
     const value = index => results[index].status === 'fulfilled' ? results[index].value : null
     const failures = results.filter(r => r.status === 'rejected').map(r => r.reason?.message).filter(Boolean)
     setState({
-      market: value(0), insights: value(1), status: value(2), models: value(3), prediction: value(4),
-      history: value(5)?.predictions || [], metrics: value(6), paper: value(7),
-      frozen: value(8), diagnostics: value(9)
+      market: value(0), insights: null, status: value(1), models: value(2), prediction: value(3),
+      history: value(4)?.predictions || [], metrics: value(5), paper: value(6),
+      frozen: value(7), diagnostics: value(8)
     })
     if (failures.length) setError(failures.join(' · '))
     setBusy(false)
+    api.marketInsights()
+      .then(insights => setState(previous => ({ ...previous, insights })))
+      .catch(() => undefined)
   }
 
   const switchMode = async checked => {
@@ -72,8 +75,12 @@ function App() {
       setMode('live')
     } catch {
       setLiveUnavailable(true)
-      setMode('historical')
-      setError('Live unavailable; staying in Historical mode.')
+      setMode('live')
+      setState(previous => ({
+        ...previous,
+        status: { ...(previous.status || {}), is_live: true, fresh: false, provider: 'unavailable' }
+      }))
+      setError('Live feed unavailable; keeping Live mode and waiting for the backend/bridge.')
     }
   }
 
@@ -98,14 +105,32 @@ function App() {
     let active = true
     const poll = async () => {
       try {
-        const [live, candles, latest, history] = await Promise.all([api.liveStatus(), api.candles(1000), api.latest(), api.predictionHistory(200)])
+        const [live, candles, latest, history, metrics, paper] = await Promise.all([
+          api.liveStatus(),
+          api.candles(1000),
+          api.latest(),
+          api.predictionHistory(200),
+          api.evaluationMetrics().catch(() => null),
+          api.paperTrading().catch(() => null),
+        ])
         if (!live?.is_live) throw new Error('Live unavailable')
-        if (active) setState(previous => ({ ...previous, status: live, market: candles, prediction: latest, history: history?.predictions || previous.history }))
+        if (active) setState(previous => ({
+          ...previous,
+          status: live,
+          market: candles,
+          prediction: latest,
+          history: history?.predictions || previous.history,
+          metrics: metrics || previous.metrics,
+          paper: paper || previous.paper,
+        }))
       } catch {
         if (active) {
           setLiveUnavailable(true)
-          setMode('historical')
-          setError('Live unavailable; staying in Historical mode.')
+          setState(previous => ({
+            ...previous,
+            status: { ...(previous.status || {}), is_live: true, fresh: false, provider: 'unavailable' }
+          }))
+          setError('Live feed unavailable; keeping Live mode and waiting for the backend/bridge.')
         }
       }
     }
@@ -327,7 +352,7 @@ function SignalPanel({ prediction, models }) {
   const cls = signal === 'UP' ? 'up' : signal === 'DOWN' ? 'down' : 'neutral'
   const probabilities = prediction?.calibrated_probabilities || prediction?.class_probabilities || {}
 
-  const expected = prediction?.predicted_return_15m
+  const expected = prediction?.predicted_return
   const confidence = prediction?.confidence
   return (
     <Panel title="FINAL ANALYTICAL SIGNAL" className={`monitor ${cls}`}>
@@ -349,13 +374,14 @@ function SignalPanel({ prediction, models }) {
         <Row label="Calibration" value={models?.calibration_status === 'available' ? 'Calibrated' : 'Raw'} />
         <Row label="Model" value={models?.classifier_name || 'Unavailable'} />
         <Row label="Last close" value={prediction?.close_price == null ? '—' : Number(prediction.close_price).toFixed(3)} />
-        <Row label="Predicted price (+1h)" value={prediction?.predicted_price == null ? 'Unavailable' : Number(prediction.predicted_price).toFixed(3)} />
+        <Row label="Predicted price (+15m)" value={prediction?.predicted_price == null ? 'Unavailable' : Number(prediction.predicted_price).toFixed(3)} />
         <Row label="Expected return" value={prediction?.predicted_return == null ? 'Unavailable' : percent(prediction.predicted_return)} />
+        <Row label="Regression direction" value={prediction?.expected_direction || 'Unavailable'} />
         <Row label="10–90% range" value={prediction?.price_low == null || prediction?.price_high == null ? 'Unavailable' : `${Number(prediction.price_low).toFixed(3)} – ${Number(prediction.price_high).toFixed(3)}`} />
       </div>
 
       <div className="probabilities">
-        {[['UP', probabilities.up, 'up'], ['DOWN', probabilities.down, 'down']].map(([label, value, color]) => (
+        {[['UP', probabilities.up, 'up'], ['NEUTRAL', probabilities.neutral, 'neutral'], ['DOWN', probabilities.down, 'down']].map(([label, value, color]) => (
           <div key={label}>
             <span>{label}</span>
             <b>{percent(value)}</b>
@@ -374,9 +400,10 @@ function ScenarioPanel({ prediction }) {
   if (!scenarios) {
     const probabilities = prediction?.calibrated_probabilities || prediction?.class_probabilities || {}
     return (
-      <Panel title="BINARY SPOT MODEL">
+      <Panel title="THREE-CLASS SPOT MODEL">
         <div className="rows">
           <Row label="Up probability" value={percent(probabilities.up)} />
+          <Row label="Neutral probability" value={percent(probabilities.neutral)} />
           <Row label="Down probability" value={percent(probabilities.down)} />
           <Row label="Confidence" value={percent(prediction?.confidence)} />
           <Row label="Decision" value={prediction ? signalName(prediction.signal?.signal) : 'No signal'} />
@@ -526,7 +553,7 @@ function Evaluation({ metrics }) {
       <PageHead
         kicker="EVALUATION"
         title="Model evaluation"
-        text="Metrics come from backend reports and historical records."
+        text="Validation metrics and live-test records for the active 15-minute three-class model."
       />
       <div className="stats-grid">
         <Stat label="PREDICTIONS" value={metrics?.predictions_total} />
@@ -534,18 +561,18 @@ function Evaluation({ metrics }) {
         <Stat label="PENDING" value={metrics?.pending_outcomes} />
         <Stat label="ACCURACY" value={metrics?.directional_accuracy == null ? '—' : percent(metrics.directional_accuracy)} />
       </div>
-      <Panel title="CLASSIFICATION AND BASELINES">
+      <Panel title="ACTIVE MODEL VALIDATION">
         <MetricTable
           rows={metrics?.classification_metrics}
           columns={['dataset', 'model', 'accuracy', 'balanced_accuracy', 'macro_f1', 'signal_frequency', 'neutral_coverage']}
         />
       </Panel>
-      <Panel title="REGRESSION">
+      {metrics?.regression_metrics?.length > 0 && <Panel title="ACTIVE MODEL REGRESSION">
         <MetricTable
-          rows={metrics?.regression_metrics}
+          rows={metrics.regression_metrics}
           columns={['dataset', 'model', 'mae', 'rmse', 'r2']}
         />
-      </Panel>
+      </Panel>}
     </>
   )
 }
@@ -591,12 +618,16 @@ function ModelInfo({ models, frozen }) {
         text="Active model contract supplied by the backend."
       />
       <Panel title="MODEL ARTIFACTS">
-        <Row label="Classifier" value={models?.classifier_name} />
-        <Row label="Regressor" value={models?.regressor_name} />
+        <Row label="Model version" value={models?.model_version || models?.classifier_name} />
         <Row label="Config version" value={models?.configuration_version} />
         <Row label="Calibration" value={models?.calibration_status} />
         <Row label="Target" value={models?.classification_target} />
-        <Row label="Regression target" value={models?.regression_target || 'Unavailable'} />
+        <Row label="ATR k" value={models?.selected_atr_k} />
+        <Row label="Neutral threshold" value={models?.neutral_confidence_threshold == null ? 'Unavailable' : percent(models.neutral_confidence_threshold)} />
+        {models?.regressor_name && <>
+          <Row label="Regressor" value={models.regressor_name} />
+          <Row label="Regression target" value={models.regression_target || 'Unavailable'} />
+        </>}
         <Row label="Horizon" value={models?.prediction_horizon_minutes == null ? 'Unavailable' : `${models.prediction_horizon_minutes} min / ${models.prediction_horizon_bars} bars`} />
       </Panel>
       <Panel title="FROZEN EVALUATION">

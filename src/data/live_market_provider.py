@@ -13,8 +13,8 @@ from typing import Any, Callable, Iterable, Mapping
 
 import pandas as pd
 
-from src.config import CONFIG
-from src.spot_config import SPOT_CONFIG
+from src.project_config import CONFIG
+from src.market_model_config import SPOT_CONFIG
 
 
 LIVE_SYMBOLS = {"xagusd", "xauusd", "eurusd"}

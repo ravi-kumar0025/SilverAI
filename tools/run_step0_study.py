@@ -12,11 +12,11 @@ from sklearn.metrics import accuracy_score, brier_score_loss, log_loss, roc_auc_
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from src.data.spot_data import align_market_data
+from src.data.market_candle_builder import align_market_data
 from src.evaluation.selectivity import selective_metrics
-from src.features.spot_features import SPOT_FEATURE_COLUMNS, generate_spot_features
-from src.spot_config import SPOT_CONFIG
-from src.spot_targets import make_spot_labels, make_triple_barrier_labels
+from src.features.market_features import SPOT_FEATURE_COLUMNS, generate_spot_features
+from src.market_model_config import SPOT_CONFIG
+from src.directional_labels import make_spot_labels, make_triple_barrier_labels
 
 OUT = Path("reports/spot_v3_20261115")
 THRESHOLDS = (0.52, 0.55, 0.58, 0.60, 0.65)

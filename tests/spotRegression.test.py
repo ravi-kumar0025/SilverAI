@@ -1,8 +1,8 @@
 import numpy as np
 import pandas as pd
 
-from src.features.spot_features import SPOT_FEATURE_COLUMNS
-from src.models.spot_regression import predict_regression
+from src.features.market_features import SPOT_FEATURE_COLUMNS
+from src.models.return_regression import predict_regression
 
 
 class _Model:

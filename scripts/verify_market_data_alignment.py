@@ -10,7 +10,7 @@ import yaml
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
-from src.features.spot_features import SPOT_FEATURE_COLUMNS  # noqa: E402
+from src.features.market_features import SPOT_FEATURE_COLUMNS  # noqa: E402
 
 
 def main() -> int:
@@ -25,7 +25,7 @@ def main() -> int:
     checks.append(("manifest dataset_id matches metrics", bool(manifest.get("dataset_id") and manifest.get("dataset_id") == metrics.get("dataset_id")), str(metrics_path)))
     checks.append(("spot identity", config.get("instrument") == "XAGUSD_SPOT" and config.get("symbol") == "XAG/USD", "config.yaml"))
     checks.append(("Dukascopy bid UTC", config.get("data_source") == "Dukascopy" and config.get("price_side") == "bid" and config.get("timezone") == "UTC", "config.yaml"))
-    checks.append(("34-feature contract", len(SPOT_FEATURE_COLUMNS) == 34 and metrics.get("feature_count") == 34, "src/features/spot_features.py"))
+    checks.append(("34-feature contract", len(SPOT_FEATURE_COLUMNS) == 34 and metrics.get("feature_count") == 34, "src/features/market_features.py"))
     checks.append(("no volume-derived feature names", not any("volume" in feature.lower() for feature in SPOT_FEATURE_COLUMNS), str(SPOT_FEATURE_COLUMNS)))
     checks.append(("report has metadata id", report_path.is_file() and f"dataset_id: {manifest.get('dataset_id')}" in report_path.read_text(encoding="utf-8"), str(report_path)))
     forbidden = ("COMEX", "SI_1m", "silver_5m", "model_comparison", "roll-adjusted", "America/New_York", "17-feature", "three-class", "relative_volume", "volume_change")

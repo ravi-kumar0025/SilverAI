@@ -9,7 +9,7 @@ from typing import Any
 
 import pandas as pd
 
-from src.spot_config import ROOT, SPOT_CONFIG
+from src.market_model_config import ROOT, SPOT_CONFIG
 
 
 class LiveLogSource:

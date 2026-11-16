@@ -5,7 +5,7 @@ import pandas as pd
 import pytest
 
 from src.features.rolling import RollingFeatureBuilder
-from src.features.spot_features import SPOT_FEATURE_COLUMNS, generate_spot_features
+from src.features.market_features import SPOT_FEATURE_COLUMNS, generate_spot_features
 
 
 def _candles(count=205):

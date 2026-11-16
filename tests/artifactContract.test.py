@@ -1,4 +1,4 @@
-from src.models.artifact_contract import dump_versioned_artifact, load_versioned_artifact, runtime_versions
+from src.models.model_artifact_contract import dump_versioned_artifact, load_versioned_artifact, runtime_versions
 
 
 def test_versioned_artifact_round_trip_and_runtime_metadata(tmp_path):

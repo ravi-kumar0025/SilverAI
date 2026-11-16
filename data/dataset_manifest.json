@@ -13,10 +13,10 @@
   "volume_present": false,
   "files": {
     "xagusd_1m.csv": {
-      "sha256": "c3f4b6818437adae25fd1dcb8269da737bfb6cfbcac4d9c4ee4b26c05e730673",
-      "rows": 1334781,
+      "sha256": "53ea0f77274fe783ce9b78507ad86e1aa17315a3a930ca779592b998feee1723",
+      "rows": 1337083,
       "start": "2023-11-01 00:00:00+00:00",
-      "end": "2026-11-13 21:59:00+00:00",
+      "end": "2026-11-16 14:21:00+00:00",
       "columns": [
         "timestamp",
         "open",
@@ -26,10 +26,10 @@
       ]
     },
     "xauusd_1m.csv": {
-      "sha256": "5a4ad05d76016b1391d00dd4db200f10953ada38827695b012682cece4425c6c",
-      "rows": 1334790,
+      "sha256": "ffc662840d4b43a539d29d5861921c1147e701c79a3cc12ba1e8d8863d3fb160",
+      "rows": 1337090,
       "start": "2023-11-01 00:00:00+00:00",
-      "end": "2026-11-13 21:59:00+00:00",
+      "end": "2026-11-16 14:20:00+00:00",
       "columns": [
         "timestamp",
         "open",
@@ -39,10 +39,10 @@
       ]
     },
     "eurusd_1m.csv": {
-      "sha256": "1c40da92e1b7793ea081b75080a338ead4e33b804ea948c095c9075493dc69ab",
-      "rows": 1342487,
+      "sha256": "233e0821144ee8be4d69f242275b42c7ce7d2ce783e22bdbe6a930bbec046c47",
+      "rows": 1344788,
       "start": "2023-11-01 00:00:00+00:00",
-      "end": "2026-11-13 21:59:00+00:00",
+      "end": "2026-11-16 14:21:00+00:00",
       "columns": [
         "timestamp",
         "open",
@@ -54,13 +54,13 @@
   },
   "date_range": {
     "start": "2023-11-01 00:00:00+00:00",
-    "end": "2026-11-13 21:59:00+00:00"
+    "end": "2026-11-16 14:21:00+00:00"
   },
   "resampling": {
     "closed": "left",
     "label": "left",
     "complete_candle_rule": "exactly timeframe rows"
   },
-  "git_commit_at_generation": "e2dee2b78f5650d9abeb1de2f9640b778fbfc659",
-  "dataset_id": "4be8732dbab3aaa6"
+  "git_commit_at_generation": "bdba62cded1f87061d6f2633b1980e99160cd0fb",
+  "dataset_id": "3b0693b8941795ee"
 }

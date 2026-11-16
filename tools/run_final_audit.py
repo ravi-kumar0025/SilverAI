@@ -11,8 +11,8 @@ import pandas as pd
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
-from src.features.spot_features import SPOT_FEATURE_COLUMNS
-from src.spot_config import SPOT_CONFIG
+from src.features.market_features import SPOT_FEATURE_COLUMNS
+from src.market_model_config import SPOT_CONFIG
 
 
 def main() -> int:

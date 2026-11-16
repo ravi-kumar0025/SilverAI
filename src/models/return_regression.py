@@ -8,8 +8,8 @@ from typing import Any
 import numpy as np
 import pandas as pd
 
-from src.features.spot_features import SPOT_FEATURE_COLUMNS
-from src.models.artifact_contract import load_versioned_artifact
+from src.features.market_features import SPOT_FEATURE_COLUMNS
+from src.models.model_artifact_contract import load_versioned_artifact
 
 
 def load_regression_artifacts(root: str | Path) -> dict[str, Any]:

@@ -1,75 +1,69 @@
-# SilverAI — XAG/USD spot research terminal
+# SilverAI - XAG/USD 15-minute research terminal
 
-SilverAI is a research and presentation project for XAG/USD spot using Dukascopy UTC bid data. It builds complete 5-minute candles from 1-minute files, aligns XAG/USD with XAU/USD and EUR/USD, creates causal features, and evaluates binary Up/Down signals with walk-forward validation.
+SilverAI is a research and paper-trading terminal for XAG/USD spot. It uses UTC bid OHLC from Dukascopy, builds complete 5-minute candles, aligns XAG/USD with XAU/USD and EUR/USD, and generates a causal 34-feature input for the active 15-minute model.
 
-The model is not a trading guarantee. The checked-in spot study reports per-fold metrics, calibration results, baselines, label audits, and leakage controls. A result above roughly 60% should be treated as a possible leakage or validation problem until independently verified.
+The active artifact is `xagusd_5m_15m_multiclass_regression_v1`:
 
-## Current dataset
+- `pred_1/classifier.joblib`: base Down/Neutral/Up LightGBM classifier.
+- `pred_2/calibrated_predictor.joblib`: calibrated classifier, selected neutral threshold, and 15-minute mean plus 10/50/90% return regressors.
+- Selected `k`: `0.5`; neutral confidence threshold: `0.34`.
+- Forecast horizon: 15 minutes, or three 5-minute bars.
 
-The canonical data lives under `data/raw/dukascopy/`:
+The model is research-only. Current untouched-test results are recorded in `reports/spot_15m_20261116_multiclass/metadata.json`; they do not establish profitability or live trading readiness.
+
+## Current data
+
+The canonical raw data is under `data/raw/dukascopy/`:
 
 | File | Role |
 | --- | --- |
-| `xagusd_1m.csv` | XAG/USD target, merged 1-minute UTC data |
-| `xauusd_1m.csv` | XAU/USD cross-market data |
-| `eurusd_1m.csv` | EUR/USD cross-market data |
-| `*_5m.csv`, `*_15m.csv`, `*_1h.csv` | Regenerable complete-candle resolutions |
+| `xagusd_1m.csv` | XAG/USD target bid OHLC |
+| `xauusd_1m.csv` | XAU/USD cross-market bid OHLC |
+| `eurusd_1m.csv` | EUR/USD cross-market bid OHLC |
+| `*_5m.csv`, `*_15m.csv`, `*_1h.csv` | Regenerable complete candles |
 
-The source files contain bid OHLC and no volume. The pipeline does not invent volume. Candle `T` becomes known at `T + resolution`; features and live inference use only closed candles. Gold and EUR/USD may be forward-filled for at most two candles; XAG/USD is never filled.
+Dataset identity is recorded in `data/dataset_manifest.json`. The current canonical dataset ID is `3b0693b8941795ee`, covering 2023-11-01 through 2026-11-16 14:21 UTC. Training records any closed live-log extension used during the run in model metadata. No volume is invented or used.
 
-The resumable downloader defaults to `2019-11-01` for a future history extension. It was not run in this checkout because network access is unavailable; the current manifest and dataset remain the 2023-11-01 onward corpus until the owner runs it and rebuilds the manifest.
-
-## Research pipeline
+## Active pipeline
 
 ```text
-data/raw/dukascopy/*_1m.csv
-  -> src.data.spot_data
-  -> src.features.spot_features (34 switchable features)
-  -> src.spot_targets (ATR-scaled binary labels)
-  -> src.experiments.spot_dukascopy_study
-  -> reports/spot_dukascopy_20261115
+data/raw/dukascopy + data/live_log
+  -> complete 5-minute UTC candles
+  -> 34 causal features
+  -> purged chronological train/calibration/validation/test split
+  -> Down/Neutral/Up classifier + train-only calibration
+  -> 15-minute return and 10/50/90% quantile regressors
+  -> FastAPI + React paper-trading terminal
 ```
 
-The 34 core features cover silver price action, volatility, trend/momentum, cross-market relationships, and UTC session context. Horizons are 15, 30, and 60 minutes (`H = 3, 6, 12` on 5-minute candles); the dead-zone multiplier is tested at `k = 0.2, 0.3, 0.5`. The final selected artifact uses `H=12` and `k=0.2`, a 60-minute horizon.
-
-The system also includes trained regression models that predict the 1-hour return, converted to a price forecast with a 10-90% range; estimates only.
-
-The API and rolling inference contract use the same ordered 34-feature schema. A closed candle produces a binary Up/Down probability; confidence below the configured threshold becomes `No signal`. The model artifact is available for reproducible research inference, but the report does not promote it as a reliable live trading model.
+Incomplete feature rows are excluded before training so training and production inference share the same valid-input contract. The final test block is untouched by selection. The chart displays candles without signal-marker dots; signals and regression details remain available in the dashboard and prediction pages.
 
 ## Run
 
-```powershell
-# Backend, from the repository root (no --reload)
-.\.venv\Scripts\python.exe -m uvicorn backend.main:app --host 127.0.0.1 --port 8000
+Use the same Python 3.13 runtime used to serialize the artifacts:
 
-# Live helper, in a second terminal; requires the owner-supplied module
+```powershell
+# Backend
+& "C:\Users\ravik\AppData\Local\Programs\Python\Python313\python.exe" -m uvicorn backend.server:app --host 127.0.0.1 --port 8000
+
+# Live bridge, second terminal
 $env:SILVERAI_DUKASCOPY_MODULE = "dukascopy-node"
 node scripts/live_feed_logger.mjs
 
-# Frontend, in a third terminal
+# Frontend, third terminal
 cd frontend
-npm run dev
+npm run dev -- --host 127.0.0.1
 ```
 
-Verification commands:
+The downloader is separate from startup. After changing canonical raw files, rebuild `data/dataset_manifest.json` before retraining.
+
+## Verification
 
 ```powershell
-.\.venv\Scripts\python.exe -m pytest -q
+& "C:\Users\ravik\AppData\Local\Programs\Python\Python313\python.exe" -m py_compile backend\services\prediction_pipeline_service.py scripts\train_spot_15m_multiclass.py
 cd frontend
 npm test
 npm run build
 ```
 
-The downloader is intentionally not part of the startup path. If it is run
-later, use `\.venv\Scripts\python.exe download_dukascopy.py --out-dir <directory>`;
-it refuses to replace existing CSVs unless `--force` is explicitly supplied.
-
-Configuration is in [`config.yaml`](config.yaml). Environment defaults are documented in [`.env.example`](.env.example). The live-source decision and verification gate are in [`docs/spot_live_source.md`](docs/spot_live_source.md).
-
-## Repository policy
-
-Only source code, the canonical Dukascopy dataset, the current spot report, and reproducibility documentation are retained. Raw download chunks, old SI/futures datasets, old models, notebooks, caches, and frontend build output are disposable and should not be committed.
-
-## Status
-
-The current spot report is an evidence package, not a promoted production model. The live bridge and forecast persistence path are verified for paper trading, with a 180-second configurable freshness window. The model remains research-only; no live profitability or production-trading claim is implied. See `reports/spot_v3_20261115/readiness_summary.md` for the current audit and explicitly missing report sources.
+The API reports the active model through `/api/models`, persists only closed-candle forecasts, and keeps live/paper status separate from historical evaluation. A live five-day test requires a verified provider, continuous closed-candle operation, reconnection handling, and fresh runtime evidence.

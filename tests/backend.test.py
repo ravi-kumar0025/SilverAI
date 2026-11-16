@@ -9,9 +9,9 @@ from fastapi.testclient import TestClient
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from backend.main import app
-from backend.routes.api import FeatureObservation
-from src.features.spot_features import SPOT_FEATURE_COLUMNS
+from backend.server import app
+from backend.routes.prediction_api_routes import FeatureObservation
+from src.features.market_features import SPOT_FEATURE_COLUMNS
 
 
 FEATURES = {
@@ -51,7 +51,7 @@ class FakePredictionService:
 
 def test_backend_endpoints_and_latest(monkeypatch):
     fake = FakePredictionService()
-    monkeypatch.setattr(app.state, "prediction_service", fake)
+    monkeypatch.setattr(app.state, "prediction_pipeline_service", fake)
     client = TestClient(app)
 
     assert client.get("/api/health").json()["models_available"] is True
@@ -75,7 +75,7 @@ def test_backend_endpoints_and_latest(monkeypatch):
 
 
 def test_backend_rejects_missing_and_extra_features(monkeypatch):
-    monkeypatch.setattr(app.state, "prediction_service", FakePredictionService())
+    monkeypatch.setattr(app.state, "prediction_pipeline_service", FakePredictionService())
     client = TestClient(app)
 
     missing = dict(FEATURES)
@@ -91,7 +91,7 @@ def test_latest_reports_stale_reason_without_changing_status_code(monkeypatch):
         def market_status(self):
             return {"is_live": True, "fresh": False, "last_update": "2026-01-01T10:00:00+00:00"}
 
-    monkeypatch.setattr(app.state, "prediction_service", StaleService())
+    monkeypatch.setattr(app.state, "prediction_pipeline_service", StaleService())
     response = TestClient(app).get("/api/predictions/latest")
     assert response.status_code == 200
     assert response.json()["direction"] == "No clear signal"
@@ -99,7 +99,7 @@ def test_latest_reports_stale_reason_without_changing_status_code(monkeypatch):
 
 
 def test_prediction_history_returns_persisted_final_signal_fields(monkeypatch):
-    monkeypatch.setattr(app.state, "prediction_service", FakePredictionService())
+    monkeypatch.setattr(app.state, "prediction_pipeline_service", FakePredictionService())
     response = TestClient(app).get("/api/predictions?limit=10")
     assert response.status_code == 200
     assert response.json()["predictions"][0]["final_signal"] == "BULLISH"
@@ -107,7 +107,7 @@ def test_prediction_history_returns_persisted_final_signal_fields(monkeypatch):
 
 
 def test_backend_cors_and_schema_contract(monkeypatch):
-    monkeypatch.setattr(app.state, "prediction_service", FakePredictionService())
+    monkeypatch.setattr(app.state, "prediction_pipeline_service", FakePredictionService())
     client = TestClient(app)
     response = client.get(
         "/api/health",
@@ -122,7 +122,7 @@ def test_backend_hides_model_loading_failure(monkeypatch):
         def predict(self, observations):
             raise FileNotFoundError("private model path")
 
-    monkeypatch.setattr(app.state, "prediction_service", FailingService())
+    monkeypatch.setattr(app.state, "prediction_pipeline_service", FailingService())
     response = TestClient(app).post("/api/predict", json=FEATURES)
     assert response.status_code == 503
     assert response.json()["detail"] == "Prediction models are unavailable."
@@ -131,7 +131,7 @@ def test_backend_hides_model_loading_failure(monkeypatch):
 
 def test_confirmed_candle_endpoint_preserves_closed_candle_boundary(monkeypatch):
     fake = FakePredictionService()
-    monkeypatch.setattr(app.state, "prediction_service", fake)
+    monkeypatch.setattr(app.state, "prediction_pipeline_service", fake)
     payload = {
         "timestamp": "2026-01-01T09:30:00+00:00",
         "close": 50.0,

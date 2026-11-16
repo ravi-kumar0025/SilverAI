@@ -1273,6 +1273,7 @@ footer {
 .mode-switch input { accent-color: var(--accent); }
 .candle-forming, .body-forming { stroke: #8b95a5; fill: #8b95a5; opacity: 0.45; }
 .forming-label { fill: #8b95a5; font-size: 11px; font-weight: 700; }
+.signal-marker { display: none !important; }
 .signal-marker circle { animation: marker-cue 1s ease-out; }
 @keyframes marker-cue { 0% { opacity: .35; transform: scale(.72); } 55% { opacity: 1; } 100% { opacity: 1; transform: scale(1); } }
 .research-note { margin: -8px 0 16px; padding: 10px 13px; border: 1px solid color-mix(in srgb, var(--accent) 22%, var(--line)); border-radius: 9px; color: var(--muted); background: color-mix(in srgb, var(--accent) 5%, var(--surface)); font-size: 12px; }

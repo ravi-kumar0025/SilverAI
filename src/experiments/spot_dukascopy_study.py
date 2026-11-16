@@ -13,11 +13,11 @@ from lightgbm import LGBMClassifier
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import accuracy_score, balanced_accuracy_score, brier_score_loss, f1_score, log_loss, roc_auc_score
 
-from src.data.spot_data import align_market_data, load_raw_instrument
-from src.features.spot_features import FEATURE_GROUPS, SPOT_FEATURE_COLUMNS, generate_spot_features
-from src.spot_config import SPOT_CONFIG
-from src.spot_targets import make_spot_labels
-from src.models.artifact_contract import dump_versioned_artifact, runtime_versions
+from src.data.market_candle_builder import align_market_data, load_raw_instrument
+from src.features.market_features import FEATURE_GROUPS, SPOT_FEATURE_COLUMNS, generate_spot_features
+from src.market_model_config import SPOT_CONFIG
+from src.directional_labels import make_spot_labels
+from src.models.model_artifact_contract import dump_versioned_artifact, runtime_versions
 
 
 CORE_FEATURES = tuple(FEATURE_GROUPS["silver_price"] + FEATURE_GROUPS["volatility"] + FEATURE_GROUPS["trend_momentum"] + FEATURE_GROUPS["time_session"])

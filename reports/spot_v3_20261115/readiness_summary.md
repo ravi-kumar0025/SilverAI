@@ -1,6 +1,6 @@
 # SilverAI evaluation-readiness summary
 
-Generated from `final_audit.json` by `final_verify.py`.
+Generated from `final_audit.json` by `verify_project_integrity.py`.
 Dataset ID: `4be8732dbab3aaa6`
 Checks: **13 passed, 1 failed**
 Runtime versions: `{"joblib": "1.4.2", "lightgbm": "4.7.0", "numpy": "1.26.4", "pandas": "2.2.3", "python": "3.12", "scikit-learn": "1.6.1"}`

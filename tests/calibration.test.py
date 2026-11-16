@@ -1,6 +1,6 @@
 import numpy as np
 
-from src.models.calibration import ChronologicalProbabilityCalibrator, calibration_metrics, expected_calibration_error, stable_feature_schema_hash
+from src.models.probability_calibration import ChronologicalProbabilityCalibrator, calibration_metrics, expected_calibration_error, stable_feature_schema_hash
 
 
 def test_calibrator_uses_valid_probabilities_and_returns_distribution():

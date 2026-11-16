@@ -379,7 +379,7 @@ def build():
     page_break(doc)
     heading(doc, "Appendix A Reproducibility and Readiness", 1)
     heading(doc, "A.1 Commands", 2)
-    for cmd in [".\\.venv\\Scripts\\python.exe -m uvicorn backend.main:app --host 127.0.0.1 --port 8000", "node scripts/live_feed_logger.mjs", "cd frontend; npm run dev", ".\\.venv\\Scripts\\python.exe -m pytest -q", "npm test -- --run", "npm run build", ".\\.venv\\Scripts\\python.exe scripts\\check_alignment.py", ".\\.venv\\Scripts\\python.exe scripts\\final_verify.py"]:
+    for cmd in [".\\.venv\\Scripts\\python.exe -m uvicorn backend.server:app --host 127.0.0.1 --port 8000", "node scripts/live_feed_logger.mjs", "cd frontend; npm run dev", ".\\.venv\\Scripts\\python.exe -m pytest -q", "npm test -- --run", "npm run build", ".\\.venv\\Scripts\\python.exe scripts\\verify_market_data_alignment.py", ".\\.venv\\Scripts\\python.exe scripts\\verify_project_integrity.py"]:
         p = doc.add_paragraph(style="No Spacing"); p.paragraph_format.left_indent = Inches(0.25); p.add_run(cmd).font.name = "Consolas"
     heading(doc, "A.2 Readiness Record", 2)
     checks = audit.get("checks", [])

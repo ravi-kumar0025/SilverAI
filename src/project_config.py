@@ -6,8 +6,8 @@ import hashlib
 import json
 from dataclasses import dataclass
 
-from src.features.spot_features import SPOT_FEATURE_COLUMNS
-from src.spot_config import SPOT_CONFIG, load_spot_config
+from src.features.market_features import SPOT_FEATURE_COLUMNS
+from src.market_model_config import SPOT_CONFIG, load_spot_config
 
 
 APPROVED_FEATURES = SPOT_FEATURE_COLUMNS
@@ -57,8 +57,8 @@ def load_config() -> SilverAIConfig:
         forecast_horizon_bars=spot.forecast_horizon_bars, timezone=spot.timezone,
         evaluation_days=spot.evaluation_days, neutral_quantile=spot.neutral_quantile,
         calibration_fraction=0.20, random_seed=spot.random_seed,
-        classification_target="binary_atr_scaled_direction", regression_target=None,
-        threshold_definition="Up/Down outside k*ATR_pct; no-move rows dropped",
+        classification_target="15-minute_down_neutral_up", regression_target="log(close[t+3]/close[t])",
+        threshold_definition="Calibrated top-class confidence with validation-selected neutral emission threshold",
         feature_names=APPROVED_FEATURES,
     )
 

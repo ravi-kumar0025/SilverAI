@@ -9,10 +9,10 @@ from typing import Any
 import pandas as pd
 from fastapi import APIRouter, HTTPException, Request, status
 from pydantic import BaseModel, ConfigDict, Field, create_model
-from src.data.spot_data import build_candles, load_candles, load_raw_instrument
-from src.data.live_log_source import LiveLogSource
-from src.config import CONFIG
-from src.features.spot_features import SPOT_FEATURE_COLUMNS
+from src.data.market_candle_builder import build_candles, load_candles, load_raw_instrument
+from src.data.live_log_market_source import LiveLogSource
+from src.project_config import CONFIG
+from src.features.market_features import SPOT_FEATURE_COLUMNS
 from backend.core.config import DATA_MODE
 
 logger = logging.getLogger(__name__)
@@ -71,7 +71,7 @@ class LiveHeartbeat(BaseModel):
 
 
 def _service(request: Request):
-    return request.app.state.prediction_service
+    return request.app.state.prediction_pipeline_service
 
 
 def _prediction_error(exc: Exception) -> HTTPException:

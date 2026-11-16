@@ -1,4 +1,4 @@
-"""Inference helpers for the final binary XAG/USD spot artifact."""
+"""Inference helpers for the active XAG/USD spot artifacts."""
 
 from __future__ import annotations
 
@@ -8,17 +8,46 @@ from typing import Any
 import numpy as np
 import pandas as pd
 
-from src.features.spot_features import SPOT_FEATURE_COLUMNS
-from src.models.artifact_contract import load_versioned_artifact
-from src.models.spot_regression import load_regression_artifacts, predict_regression
-from src.spot_config import SPOT_CONFIG
+from src.features.market_features import SPOT_FEATURE_COLUMNS
+from src.models.model_artifact_contract import load_versioned_artifact
+from src.models.return_regression import load_regression_artifacts, predict_regression
+from src.market_model_config import SPOT_CONFIG
 
 
 DEFAULT_SPOT_MODEL_ROOT = SPOT_CONFIG.root_model
+DEFAULT_MULTICLASS_MODEL_ROOT = Path(__file__).resolve().parents[2] / "reports" / "spot_15m_20261116_multiclass"
 
 
 def load_spot_artifacts(root: str | Path = DEFAULT_SPOT_MODEL_ROOT) -> dict[str, Any]:
     root = Path(root)
+    multiclass_path = root / "pred_2" / "calibrated_predictor.joblib"
+    if not multiclass_path.is_file() and DEFAULT_MULTICLASS_MODEL_ROOT != root:
+        candidate = DEFAULT_MULTICLASS_MODEL_ROOT / "pred_2" / "calibrated_predictor.joblib"
+        if candidate.is_file():
+            root = DEFAULT_MULTICLASS_MODEL_ROOT
+            multiclass_path = candidate
+    if multiclass_path.is_file():
+        try:
+            bundle = load_versioned_artifact(
+                multiclass_path,
+                artifact_kind="spot_15m_multiclass_calibrated_predictor",
+            )
+        except RuntimeError as exc:
+            raise RuntimeError(f"Refusing to load multiclass spot predictor: {exc}") from exc
+        metadata = dict(bundle.get("metadata") or {})
+        features = tuple(bundle.get("features") or metadata.get("features") or SPOT_FEATURE_COLUMNS)
+        if features != SPOT_FEATURE_COLUMNS:
+            raise ValueError("Multiclass model feature order does not match the 34-feature schema.")
+        return {
+            "kind": "spot_15m_multiclass",
+            "model": bundle["model"],
+            "calibrator": bundle.get("calibrator"),
+            "regression": bundle.get("regression"),
+            "features": features,
+            "metadata": metadata,
+            "dataset_id": metadata.get("data", {}).get("xagusd", {}).get("dataset_id", SPOT_CONFIG.dataset_id),
+            "model_version": metadata.get("model_version", "xagusd_5m_15m_multiclass_v1"),
+        }
     model_path = root / "spot_lightgbm.joblib"
     calibrator_path = root / "spot_sigmoid_calibrator.joblib"
     if not model_path.is_file():
@@ -69,6 +98,33 @@ def _calibrate(calibrator: Any, probability: np.ndarray) -> np.ndarray:
 def predict_spot(frame: pd.DataFrame, artifacts: dict[str, Any]) -> pd.DataFrame:
     features = validate_spot_features(frame, tuple(artifacts["features"]))
     model = artifacts["model"]
+    if artifacts.get("kind") == "spot_15m_multiclass":
+        raw = np.asarray(model.predict_proba(features), dtype=float)
+        calibrator = artifacts.get("calibrator")
+        calibrated = calibrator.transform(raw) if calibrator is not None else raw
+        metadata = artifacts.get("metadata") or {}
+        threshold = float(metadata.get("selected_neutral_confidence_threshold", 0.4))
+        confidence = calibrated.max(axis=1)
+        predicted_class = calibrated.argmax(axis=1)
+        emitted_class = np.where(confidence >= threshold, predicted_class, 1)
+        names = np.asarray(["DOWN", "NEUTRAL", "UP"])
+        result = pd.DataFrame(index=frame.index)
+        if "timestamp" in frame.columns:
+            result["timestamp"] = frame["timestamp"].to_numpy()
+        result["probability_down"], result["probability_neutral"], result["probability_up"] = raw[:, 0], raw[:, 1], raw[:, 2]
+        result["calibrated_probability_down"], result["calibrated_probability_neutral"], result["calibrated_probability_up"] = calibrated[:, 0], calibrated[:, 1], calibrated[:, 2]
+        result["predicted_direction"] = emitted_class - 1
+        result["predicted_direction_name"] = names[emitted_class]
+        result["confidence"] = confidence
+        result["prediction_horizon_minutes"] = int(metadata.get("prediction_horizon_minutes", 15))
+        result["prediction_horizon_bars"] = int(metadata.get("horizon_bars", 3))
+        result["model_name"] = metadata.get("model_version", "xagusd_5m_15m_multiclass_v1")
+        result["confidence_threshold"] = threshold
+        if artifacts.get("regression") is not None and ("silver_close" in frame.columns or "close" in frame.columns):
+            regression = predict_regression(frame, artifacts["regression"])
+            for column in regression.columns:
+                result[column] = regression[column].to_numpy()
+        return result.reset_index(drop=True)
     probability_up = np.asarray(model.predict_proba(features)[:, 1], dtype=float)
     calibrated_up = _calibrate(artifacts.get("calibrator"), probability_up)
     result = pd.DataFrame(index=frame.index)
@@ -90,4 +146,4 @@ def predict_spot(frame: pd.DataFrame, artifacts: dict[str, Any]) -> pd.DataFrame
     return result.reset_index(drop=True)
 
 
-__all__ = ["DEFAULT_SPOT_MODEL_ROOT", "load_spot_artifacts", "predict_spot", "validate_spot_features"]
+__all__ = ["DEFAULT_MULTICLASS_MODEL_ROOT", "DEFAULT_SPOT_MODEL_ROOT", "load_spot_artifacts", "predict_spot", "validate_spot_features"]

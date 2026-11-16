@@ -10,7 +10,7 @@ from pathlib import Path
 from typing import Any, Iterable
 
 import pandas as pd
-from src.config import CONFIG
+from src.project_config import CONFIG
 
 
 FINAL_SIGNAL_NAMES = frozenset({"BULLISH", "BEARISH", "NEUTRAL", "UP", "DOWN", "NO_CLEAR_SIGNAL"})
@@ -198,24 +198,44 @@ class PredictionStore:
             ).fetchone()
         return dict(saved)
 
-    def list(self, status: str | None = None, limit: int = 100) -> list[dict[str, Any]]:
+    def list(
+        self,
+        status: str | None = None,
+        limit: int = 100,
+        model_version: str | None = None,
+    ) -> list[dict[str, Any]]:
         query = "SELECT * FROM predictions"
         args: list[Any] = []
+        filters: list[str] = []
         if status:
-            query += " WHERE outcome_status=?"
+            filters.append("outcome_status=?")
             args.append(status)
+        if model_version:
+            filters.append("model_version=?")
+            args.append(model_version)
+        if filters:
+            query += " WHERE " + " AND ".join(filters)
         query += " ORDER BY candle_timestamp DESC LIMIT ?"
         args.append(limit)
         with self._connect() as db:
             return [dict(row) for row in db.execute(query, args).fetchall()]
 
-    def list_finalized_signals(self, limit: int = 100) -> list[dict[str, Any]]:
+    def list_finalized_signals(
+        self,
+        limit: int = 100,
+        model_version: str | None = None,
+    ) -> list[dict[str, Any]]:
         """Return only valid final analytical signals from closed candles."""
 
         placeholders = ",".join("?" for _ in FINAL_SIGNAL_NAMES)
-        query = f"SELECT * FROM predictions WHERE candle_finalized=1 AND final_signal IN ({placeholders}) ORDER BY candle_timestamp DESC"
+        query = f"SELECT * FROM predictions WHERE candle_finalized=1 AND final_signal IN ({placeholders})"
+        args: list[Any] = list(FINAL_SIGNAL_NAMES)
+        if model_version:
+            query += " AND model_version=?"
+            args.append(model_version)
+        query += " ORDER BY candle_timestamp DESC"
         with self._connect() as db:
-            rows = [dict(row) for row in db.execute(query, tuple(FINAL_SIGNAL_NAMES)).fetchall()]
+            rows = [dict(row) for row in db.execute(query, args).fetchall()]
         return [row for row in rows if is_finalized_signal_record(row)][:limit]
 
     def evaluate(self, candles: pd.DataFrame) -> int:

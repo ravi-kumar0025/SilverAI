@@ -11,8 +11,8 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from backend.core.config import CORS_ORIGINS
 from backend.core.config import DATA_MODE
-from backend.routes.api import router
-from backend.services.prediction_service import PredictionService
+from backend.routes.prediction_api_routes import router
+from backend.services.prediction_pipeline_service import PredictionService
 
 
 logging.basicConfig(
@@ -26,7 +26,7 @@ async def lifespan(application: FastAPI):
     if DATA_MODE == "live":
         async def poll() -> None:
             while True:
-                await asyncio.to_thread(application.state.prediction_service.poll_live_logs)
+                await asyncio.to_thread(application.state.prediction_pipeline_service.poll_live_logs)
                 await asyncio.sleep(5)
         task = asyncio.create_task(poll())
     try:
@@ -50,5 +50,5 @@ app.add_middleware(
     allow_methods=["GET", "POST"],
     allow_headers=["Content-Type"],
 )
-app.state.prediction_service = PredictionService()
+app.state.prediction_pipeline_service = PredictionService()
 app.include_router(router)

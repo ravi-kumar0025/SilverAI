@@ -10,7 +10,7 @@ from pathlib import Path
 import httpx
 import pandas as pd
 
-from src.data.spot_data import load_raw_instrument
+from src.data.market_candle_builder import load_raw_instrument
 
 
 def main() -> None:

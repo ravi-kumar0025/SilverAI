@@ -2,32 +2,14 @@
 
 ## Training source
 
-Training uses Dukascopy bid OHLC data downloaded through `dukascopy-node`.
-The historical files are UTC and do not contain volume, so the spot model does
-not use volume features.
+Training uses Dukascopy bid OHLC for XAG/USD, XAU/USD, and EUR/USD. The active model consumes complete 5-minute candles and forecasts the next 15 minutes. Spot files contain no volume, so no volume feature is invented.
 
 ## Live source
 
-The owner runs `scripts/live_feed_logger.mjs`, which calls
-`getRealTimeRates` for `xagusd`, `xauusd`, and `eurusd` using bid OHLC and
-appends the raw one-minute events to `data/live_log/*.jsonl`. `LiveLogSource`
-discards forming candles, de-duplicates events, requires complete five-minute
-candles, and feeds the same feature/inference path as replay tests.
+The owner runs `scripts/live_feed_logger.mjs`, which calls `getRealTimeRates` for `xagusd`, `xauusd`, and `eurusd` and appends raw one-minute events to `data/live_log/*.jsonl`. `LiveLogSource` discards forming candles, de-duplicates events, requires complete five-minute candles, and feeds the same 34-feature path used in training.
 
-## Current gate status
+When a closed 5-minute candle arrives, the active classifier emits calibrated Down/Neutral/Up probabilities and the active regressor emits the 15-minute expected return and 10/50/90% range. Outcomes are evaluated only after three complete future bars.
 
-The bridge has been verified to ingest live candles with companions and to
-generate persisted forecasts. Freshness is injectable and config-driven by
-`config.yaml` (`live_stale_after_seconds: 180`); the UI reports `STALE` when
-that limit is exceeded. A two-minute provider delay is accepted within this
-window, but the system must still be treated as paper trading and research-only.
-The live helper must be running for continuous updates.
+Freshness is controlled by `live_stale_after_seconds` and is shown as `STALE` when exceeded. Missing companions, gaps, and reconnect failures are reported rather than guessed. The system remains paper-only and research-only until continuous provider verification, reconnection evidence, and a full live test are complete.
 
-When a new closed candle arrives, pending forecasts whose complete one-hour
-future window is available are evaluated automatically. Missing or gapped
-future candles remain `pending` rather than being guessed.
-
-## Rejected source
-
-`yfinance` is rejected as the live source because it is not the same Dukascopy
-bid feed used for training and may be delayed or differently constructed.
+`yfinance` remains rejected because it is not the same Dukascopy bid feed used for training.

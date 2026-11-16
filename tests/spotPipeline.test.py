@@ -7,11 +7,11 @@ import pytest
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from src.data.spot_data import build_candles
-from download_dukascopy import ensure_output_paths
-from src.features.spot_features import SPOT_FEATURE_COLUMNS, generate_spot_features
-from src.spot_targets import make_spot_labels
-from src.models.spot_predict import load_spot_artifacts, predict_spot
+from src.data.market_candle_builder import build_candles
+from download_dukascopy_market_data import ensure_output_paths
+from src.features.market_features import SPOT_FEATURE_COLUMNS, generate_spot_features
+from src.directional_labels import make_spot_labels
+from src.models.multiclass_prediction import load_spot_artifacts, predict_spot
 
 
 def _minute_frame(n=20):
@@ -83,5 +83,5 @@ def test_final_spot_artifact_uses_the_ordered_34_feature_contract():
     frame = pd.DataFrame({"timestamp": ["2026-01-01T09:30:00+00:00"], **{feature: [0.01] for feature in SPOT_FEATURE_COLUMNS}})
     result = predict_spot(frame, artifacts)
     assert tuple(artifacts["features"]) == SPOT_FEATURE_COLUMNS
-    assert result.loc[0, "predicted_direction_name"] in {"UP", "DOWN"}
+    assert result.loc[0, "predicted_direction_name"] in {"UP", "DOWN", "NEUTRAL"}
     assert 0 <= result.loc[0, "calibrated_probability_up"] <= 1

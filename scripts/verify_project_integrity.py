@@ -8,16 +8,16 @@ from pathlib import Path
 import sys
 from urllib.request import urlopen
 
-# Make both `python -m scripts.final_verify` and `python scripts/final_verify.py`
+# Make both `python -m scripts.final_verify` and `python scripts/verify_project_integrity.py`
 # resolve the repository's package imports identically.
 ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-from src.models.artifact_contract import load_versioned_artifact, runtime_versions
-from src.models.spot_regression import load_regression_artifacts
-from src.features.spot_features import SPOT_FEATURE_COLUMNS
-from src.spot_config import SPOT_CONFIG
+from src.models.model_artifact_contract import load_versioned_artifact, runtime_versions
+from src.models.return_regression import load_regression_artifacts
+from src.features.market_features import SPOT_FEATURE_COLUMNS
+from src.market_model_config import SPOT_CONFIG
 
 OUT = ROOT / "reports" / "spot_v3_20261115"
 MANIFEST = ROOT / "data" / "dataset_manifest.json"

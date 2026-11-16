@@ -8,7 +8,7 @@ from typing import Any
 import numpy as np
 import pandas as pd
 
-from src.spot_config import SPOT_CONFIG, SpotConfig
+from src.market_model_config import SPOT_CONFIG, SpotConfig
 
 
 INSTRUMENTS = ("xagusd", "xauusd", "eurusd")

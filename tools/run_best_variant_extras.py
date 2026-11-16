@@ -5,10 +5,10 @@ import numpy as np, pandas as pd
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import accuracy_score
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
-from src.spot_targets import make_triple_barrier_labels
-from src.features.spot_features import SPOT_FEATURE_COLUMNS, generate_spot_features
-from src.spot_config import SPOT_CONFIG
-from src.data.spot_data import align_market_data
+from src.directional_labels import make_triple_barrier_labels
+from src.features.market_features import SPOT_FEATURE_COLUMNS, generate_spot_features
+from src.market_model_config import SPOT_CONFIG
+from src.data.market_candle_builder import align_market_data
 from tools.run_step0_study import folds, model, calibrate, calibrated, OUT
 
 def fit_rows(frame, seed):

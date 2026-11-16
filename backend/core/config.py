@@ -5,11 +5,12 @@ from __future__ import annotations
 import os
 from pathlib import Path
 
-from src.spot_config import SPOT_CONFIG
+from src.market_model_config import SPOT_CONFIG
 
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
-MODEL_ROOT = SPOT_CONFIG.root_model
+MULTICLASS_MODEL_ROOT = PROJECT_ROOT / "reports" / "spot_15m_20261116_multiclass"
+MODEL_ROOT = MULTICLASS_MODEL_ROOT if (MULTICLASS_MODEL_ROOT / "pred_2" / "calibrated_predictor.joblib").is_file() else SPOT_CONFIG.root_model
 SELECTION_PATH = SPOT_CONFIG.root_selection
 PREDICTION_DB_PATH = SPOT_CONFIG.root_prediction_db
 FROZEN_EVALUATION_PATH = SPOT_CONFIG.root_frozen_evaluation

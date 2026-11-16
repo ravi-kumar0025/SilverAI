@@ -11,8 +11,8 @@ from typing import Any
 
 import pandas as pd
 
-from src.config import CONFIG
-from src.data.market_data import Candle, ClosedCandleBuilder, MarketUpdate
+from src.project_config import CONFIG
+from src.data.market_data_contracts import Candle, ClosedCandleBuilder, MarketUpdate
 
 
 class ClosedCandleOrchestrator:

@@ -1,6 +1,6 @@
 import pandas as pd
 
-from src.data.market_data import HistoricalCsvProvider, validate_candles
+from src.data.market_data_contracts import HistoricalCsvProvider, validate_candles
 from src.evaluation.baselines import classification_baselines
 from src.evaluation.paper_trading import evaluate_paper_trades
 

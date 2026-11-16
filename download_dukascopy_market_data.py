@@ -7,8 +7,8 @@ Requirements (once):
     - pip install pandas
 
 Run from the project root:
-    py download_dukascopy.py
-    py download_dukascopy.py --start 2023-11-01 --end 2026-11-14
+    py download_dukascopy_market_data.py
+    py download_dukascopy_market_data.py --start 2023-11-01 --end 2026-11-14
 
 RESUMABLE: finished chunks are kept in data/raw/dukascopy/chunks/. If anything
 fails, just run it again and it continues where it stopped.

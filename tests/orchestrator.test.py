@@ -2,7 +2,7 @@ from datetime import timedelta
 
 import pandas as pd
 
-from src.data.market_data import MarketUpdate
+from src.data.market_data_contracts import MarketUpdate
 from src.prediction.orchestrator import ClosedCandleOrchestrator
 
 

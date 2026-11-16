@@ -2,7 +2,7 @@ from datetime import datetime, timedelta
 
 import pandas as pd
 
-from backend.services.prediction_service import PredictionService
+from backend.services.prediction_pipeline_service import PredictionService
 from src.prediction.store import PredictionStore, is_finalized_signal_record
 
 

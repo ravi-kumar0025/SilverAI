@@ -16,13 +16,13 @@ import pandas as pd
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
-from src.data.spot_data import align_market_data
+from src.data.market_candle_builder import align_market_data
 from src.evaluation.selectivity import selective_metrics
 from src.experiments.spot_dukascopy_study import _calibrated, _fit_calibrator, _metrics, _model, _folds
-from src.features.spot_features import SPOT_FEATURE_COLUMNS, generate_spot_features
-from src.models.artifact_contract import dump_versioned_artifact, runtime_versions
-from src.spot_config import SPOT_CONFIG
-from src.spot_targets import make_spot_labels, make_triple_barrier_labels
+from src.features.market_features import SPOT_FEATURE_COLUMNS, generate_spot_features
+from src.models.model_artifact_contract import dump_versioned_artifact, runtime_versions
+from src.market_model_config import SPOT_CONFIG
+from src.directional_labels import make_spot_labels, make_triple_barrier_labels
 
 
 OUTPUT = ROOT / "reports" / "spot_v3_20261115"

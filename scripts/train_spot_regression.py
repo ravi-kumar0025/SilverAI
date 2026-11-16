@@ -12,10 +12,10 @@ from lightgbm import LGBMRegressor
 from scipy.stats import spearmanr
 from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
 
-from src.data.spot_data import align_market_data
-from src.features.spot_features import SPOT_FEATURE_COLUMNS, generate_spot_features
-from src.models.artifact_contract import dump_versioned_artifact, runtime_versions
-from src.spot_config import SPOT_CONFIG
+from src.data.market_candle_builder import align_market_data
+from src.features.market_features import SPOT_FEATURE_COLUMNS, generate_spot_features
+from src.models.model_artifact_contract import dump_versioned_artifact, runtime_versions
+from src.market_model_config import SPOT_CONFIG
 
 
 ROOT = Path(__file__).resolve().parents[1]

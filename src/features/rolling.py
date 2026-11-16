@@ -8,9 +8,9 @@ from typing import Any
 import numpy as np
 import pandas as pd
 
-from src.config import CONFIG
-from src.data.market_data import Candle
-from src.features.spot_features import SPOT_FEATURE_COLUMNS, generate_spot_features
+from src.project_config import CONFIG
+from src.data.market_data_contracts import Candle
+from src.features.market_features import SPOT_FEATURE_COLUMNS, generate_spot_features
 
 
 class RollingFeatureBuilder:
