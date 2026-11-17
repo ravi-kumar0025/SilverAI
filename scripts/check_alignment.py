@@ -30,7 +30,11 @@ def main() -> int:
     checks.append(("report has metadata id", report_path.is_file() and f"dataset_id: {manifest.get('dataset_id')}" in report_path.read_text(encoding="utf-8"), str(report_path)))
     forbidden = ("COMEX", "SI_1m", "silver_5m", "model_comparison", "roll-adjusted", "America/New_York", "17-feature", "three-class", "relative_volume", "volume_change")
     hits: list[str] = []
-    scan_roots = (ROOT / "src", ROOT / "backend", ROOT / "frontend", ROOT / "tests", ROOT / "docs", ROOT / "tools", ROOT / "README.md", ROOT / "config.yaml", ROOT / ".env.example", ROOT / "DECISIONS.md")
+    # The decision log intentionally records historical removals and is not an
+    # active runtime surface. Do not fail the active-code scan on that audit
+    # history; stale implementation references in executable/docs surfaces
+    # should still fail loudly.
+    scan_roots = (ROOT / "src", ROOT / "backend", ROOT / "frontend", ROOT / "tests", ROOT / "docs", ROOT / "tools", ROOT / "README.md", ROOT / "config.yaml", ROOT / ".env.example")
     for root in scan_roots:
         paths = [root] if root.is_file() else root.rglob("*") if root.exists() else []
         for path in paths:

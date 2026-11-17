@@ -6,7 +6,7 @@
 
 The final project uses binary Up/Down labels for XAG/USD spot. The stored artifact and `metrics.json` select `H=12` candles, or 60 minutes on 5-minute data, with `k=0.3`. Stored calibrated walk-forward accuracy is 53.27% mean; stored raw holdout accuracy is 49.03% and calibrated holdout accuracy is 54.61% at the same AUC (0.507). The candidate is therefore not promoted as a reliable trading model.
 
-This is a deliberate evidence-based conclusion. The earlier SI result was a three-class UP/NEUTRAL/DOWN experiment and is not comparable to this binary spot result.
+This is a deliberate evidence-based conclusion. Earlier experiments used a different multiclass/futures contract and are not comparable to this binary XAG/USD spot result.
 
 ## Data quality
 
@@ -79,8 +79,9 @@ Separate-period evaluation, session/regime breakdowns, reliability plots, and co
 ## Reproduction
 
 ```powershell
-python -m pip install -r requirements.txt
-python tools/run_final_audit.py
-pytest -q
-python -m src.experiments.spot_dukascopy_study
+.\.venv\Scripts\python.exe tools/run_final_audit.py
+.\.venv\Scripts\python.exe scripts/check_alignment.py
+.\.venv\Scripts\python.exe -m pytest -q
 ```
+
+The stored report is reconciled evidence. The commands above verify the current checkout; rerunning study generation requires a new controlled experiment and must not reuse the permanently closed holdout.

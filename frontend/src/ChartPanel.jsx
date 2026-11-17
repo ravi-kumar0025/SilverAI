@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react'
+import React, { useEffect, useMemo, useRef, useState } from 'react'
 import { createSeriesMarkers } from './chartSignals.mjs'
 
 const money = value => value == null || !Number.isFinite(Number(value)) ? '—' : Number(value).toFixed(3)
@@ -22,13 +22,14 @@ function signalLabel(signal) {
   return signal === 'BULLISH' ? 'Bullish' : signal === 'BEARISH' ? 'Bearish' : 'Neutral'
 }
 
-export default function ChartPanel({ market, predictions, models, mode = 'historical' }) {
+export default function ChartPanel({ market, predictions, latestPrediction, models, mode = 'historical' }) {
   const [timeframe, setTimeframe] = useState(Number(models?.configuration?.candle_minutes || 0))
   const [range, setRange] = useState('4H')
   const [zoom, setZoom] = useState(1)
   const [offset, setOffset] = useState(0)
   const [hover, setHover] = useState(null)
   const [selected, setSelected] = useState(null)
+  const dragRef = useRef(null)
 
   useEffect(() => {
     if (models?.configuration?.candle_minutes) setTimeframe(Number(models.configuration.candle_minutes))
@@ -39,6 +40,17 @@ export default function ChartPanel({ market, predictions, models, mode = 'histor
     if (mode === 'live' && market?.forming_candle) candles.push(market.forming_candle)
     return aggregate(candles, timeframe)
   }, [market, timeframe, mode])
+  const chartPredictions = useMemo(() => {
+    const records = [...(predictions || [])]
+    if (latestPrediction) records.push(latestPrediction)
+    const seen = new Set()
+    return records.filter(record => {
+      const key = record?.prediction_id || `${record?.candle_timestamp || ''}:${record?.final_signal || ''}`
+      if (seen.has(key)) return false
+      seen.add(key)
+      return true
+    })
+  }, [predictions, latestPrediction])
   const rangeBars = { '1H': Math.max(1, Math.round(60 / timeframe)), '4H': Math.max(1, Math.round(240 / timeframe)), '1D': Math.max(1, Math.round(1440 / timeframe)), ALL: all.length }
   const visibleBars = Math.max(12, Math.min(all.length, Math.round((rangeBars[range] || 48) / zoom)))
   const start = Math.max(0, all.length - visibleBars - offset)
@@ -61,6 +73,52 @@ export default function ChartPanel({ market, predictions, models, mode = 'histor
   const sx = index => pad.l + index * step + step / 2
 
   const shift = amount => setOffset(Math.max(0, Math.min(Math.max(0, all.length - visibleBars), offset + amount)))
+  const clampOffset = value => Math.max(0, Math.min(Math.max(0, all.length - visibleBars), value))
+
+  const handleWheel = event => {
+    if (all.length <= 12) return
+    event.preventDefault()
+    const rect = event.currentTarget.getBoundingClientRect()
+    const pointerRatio = Math.max(0, Math.min(1, (event.clientX - rect.left) / rect.width))
+    const direction = event.deltaY < 0 ? 1 : -1
+    setZoom(currentZoom => {
+      const nextZoom = Math.max(1, Math.min(12, currentZoom + direction * 0.5))
+      const currentVisible = Math.max(12, Math.min(all.length, Math.round((rangeBars[range] || 48) / currentZoom)))
+      const nextVisible = Math.max(12, Math.min(all.length, Math.round((rangeBars[range] || 48) / nextZoom)))
+      const currentStart = Math.max(0, all.length - currentVisible - offset)
+      const anchorIndex = currentStart + pointerRatio * currentVisible
+      const nextStart = Math.max(0, Math.min(all.length - nextVisible, Math.round(anchorIndex - pointerRatio * nextVisible)))
+      setOffset(Math.max(0, all.length - nextVisible - nextStart))
+      return nextZoom
+    })
+  }
+
+  const handleChartKeyDown = event => {
+    if (event.key !== '+' && event.key !== '=' && event.key !== '-' && event.key !== '_') return
+    event.preventDefault()
+    setZoom(value => Math.max(1, Math.min(12, value + (event.key === '+' || event.key === '=' ? 0.5 : -0.5))))
+  }
+
+  const handlePointerDown = event => {
+    if (event.button !== 0) return
+    event.currentTarget.setPointerCapture?.(event.pointerId)
+    dragRef.current = { x: event.clientX, offset }
+    setSelected(null)
+  }
+
+  const handlePointerMove = event => {
+    if (!dragRef.current || !all.length) return
+    const rect = event.currentTarget.getBoundingClientRect()
+    const barsPerPixel = visibleBars / Math.max(rect.width, 1)
+    const deltaBars = (event.clientX - dragRef.current.x) * barsPerPixel
+    setOffset(clampOffset(dragRef.current.offset + deltaBars))
+  }
+
+  const stopDragging = event => {
+    if (!dragRef.current) return
+    event.currentTarget.releasePointerCapture?.(event.pointerId)
+    dragRef.current = null
+  }
   const active = selected || hover
   const activeIndex = active ? shown.findIndex(candle => candle.time === active.candle.time) : -1
   const tooltipX = activeIndex < 0 ? 0 : Math.min(sx(activeIndex) + 12, w - 230)
@@ -98,11 +156,12 @@ export default function ChartPanel({ market, predictions, models, mode = 'histor
               )}
             </select>
           </label>
-          <span className="toolbar-readout">
+        <span className="toolbar-readout">
             Forecast {models?.prediction_horizon_minutes == null ? 'Unavailable' : `${models.prediction_horizon_minutes}m`}
           </span>
+          <span className="chart-gesture-hint">Mouse wheel: zoom in/out · drag: pan</span>
           <div className="toolbar-divider" />
-          <button type="button" onClick={() => setZoom(value => Math.min(4, value + .5))}>Zoom +</button>
+          <button type="button" onClick={() => setZoom(value => Math.min(12, value + .5))}>Zoom +</button>
           <button type="button" onClick={() => setZoom(value => Math.max(1, value - .5))}>Zoom −</button>
         </div>
 
@@ -127,7 +186,17 @@ export default function ChartPanel({ market, predictions, models, mode = 'histor
       </div>
 
       {shown.length ? (
-        <div className="chart-wrap">
+        <div
+          className={`chart-wrap${dragRef.current ? ' is-dragging' : ''}`}
+          onWheel={handleWheel}
+          onPointerDown={handlePointerDown}
+          onPointerMove={handlePointerMove}
+          onPointerUp={stopDragging}
+          onPointerCancel={stopDragging}
+          onKeyDown={handleChartKeyDown}
+          tabIndex={0}
+          aria-label="Interactive XAG/USD chart. Use plus and minus keys or mouse wheel to zoom."
+        >
           <svg
             viewBox={`0 0 ${w} ${h}`}
             preserveAspectRatio="xMidYMid meet"
@@ -149,7 +218,7 @@ export default function ChartPanel({ market, predictions, models, mode = 'histor
             ))}
 
             {shown.map((candle, index) => {
-              const candleSignals = createSeriesMarkers(candle, predictions, timeframe)
+              const candleSignals = createSeriesMarkers(candle, chartPredictions, timeframe)
               const bullish = candle.close >= candle.open
               const bodyWidth = Math.max(4, step * 0.62)
               const timeLabel = index % labelEvery === 0 || index === shown.length - 1

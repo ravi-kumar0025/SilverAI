@@ -277,7 +277,7 @@ function Dashboard({ state, latest, busy, mode }) {
         text="XAG/USD spot with Dukascopy candles, model signals, and evaluation diagnostics."
       />
       <MarketOverview market={state.market} status={state.status} models={state.models} busy={busy} mode={mode} />
-      <FinalSignalChartPanel market={state.market} predictions={state.history} models={state.models} mode={mode} />
+      <FinalSignalChartPanel market={state.market} predictions={state.history} latestPrediction={latest} models={state.models} mode={mode} />
       <MarketInsightPanel insights={state.insights} />
       <div className="below-grid">
         <SignalPanel prediction={displayedLatest} models={state.models} />

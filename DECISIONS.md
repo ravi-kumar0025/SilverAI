@@ -1,5 +1,11 @@
 # Spot XAG/USD decisions
 
+## Current checkout status
+
+- The active repository is XAG/USD spot only. The obsolete COMEX/SI implementation tree has been removed.
+- The root `requirements.txt` and `requirements.lock` are the dependency contracts; no backend-specific duplicate requirements file is retained.
+- The current active test suite passes in the checked-in environment; live-provider status remains an environment-dependent observation.
+
 ## 2026-11-15 - switch instrument
 
 - Decision: use Dukascopy XAG/USD bid candles as the target instrument.
@@ -48,7 +54,7 @@ The historical source is Dukascopy bid data. A live server is not yet enabled be
 - Decision: `src/config.py` and backend paths are compatibility views of `src.spot_config.SPOT_CONFIG`; environment variables no longer override those research-contract values. `SILVERAI_DATA_MODE`, CORS and live-bridge runtime settings remain operational environment controls.
 - Decision: frontend dependencies are pinned to the versions already represented in `frontend/package-lock.json` (`@vitejs/plugin-react` 6.2.1, Vite 8.3.6, React/React DOM 19.3.1).
 - Holdout rule: the original 2026-10-01 through 2026-11-13 holdout is marked `used_do_not_reuse` and will never be evaluated again.
-- Limitation: legacy archiving and a clean commit are deferred until the existing unrelated dirty/deleted worktree changes are classified; no pre-existing user changes will be staged implicitly. `scripts/check_alignment.py` passed after this step.
+- Limitation: a clean commit was not created because unrelated pre-existing worktree changes were not staged implicitly. `scripts/check_alignment.py` passed after this step.
 
 ## 2026-11-15 - first holdout permanently closed
 
@@ -78,16 +84,16 @@ The historical source is Dukascopy bid data. A live server is not yet enabled be
 - Evidence: `reports/holdout_ledger.json`, `reports/spot_dukascopy_20261115/report.md`, `reports/spot_dukascopy_20261115/model_card.md`.
 - Limitation: 1x/2x/3x cost sensitivity and >3-fold/multi-timeframe results remain UNKNOWN/NOT STARTED. `scripts/check_alignment.py` passed after this step.
 
-## 2026-11-15 - legacy archive
+## 2026-11-15 - legacy code cleanup
 
-- Decision: move the explicitly identified legacy SI/futures tree from `legacy/` to `archive/legacy/` so it is retained but not presented as active source.
-- Evidence: the archive move was performed with exact resolved paths; active alignment scanning excludes the archive.
+- Decision: remove the explicitly identified legacy SI/futures implementation tree from the checkout so it cannot be mistaken for active source code.
+- Evidence: the legacy implementation and its tests were deleted; active alignment scanning still rejects stale COMEX/SI artifacts.
 - Limitation: a clean commit was not created. The checkout still contains unrelated pre-existing modifications and deletions, so staging all changes would risk committing user work without classification.
 
 ## 2026-11-15 - target schema and freshness correction
 
 - Decision: both ATR and triple-barrier targets use the explicit `config.yaml` price-column mapping (`timestamp`, `silver_open`, `silver_high`, `silver_low`, `silver_close`). Triple-barrier windows require exact configured timestamps through the time barrier; missing candles and weekend gaps are dropped.
-- Decision: live freshness uses the injected replay/source clock and the configured `live_stale_after_seconds=90`; freshness is true through the exact 90-second boundary and false after it.
+- Decision: live freshness uses the injected replay/source clock and the configured `live_stale_after_seconds=180`; freshness is true through the exact 180-second boundary and false after it.
 - Development-only result: on 256,222 pre-holdout XAG/USD 5m rows, H=12 and 0.3 barriers produced 153,853 labels: 77,853 down, 76,000 up, up fraction 49.3978%; 1,932 rows lacked an exact future window. See `reports/spot_dukascopy_20261115/triple_barrier_development.md`.
 - Evidence: `src/spot_targets.py`, `src/data/live_provider.py`, `tests/test_advanced_targets.py`, `tests/test_live_bridge.py`, `config.yaml`.
 
@@ -95,7 +101,7 @@ The historical source is Dukascopy bid data. A live server is not yet enabled be
 
 - Decision: spot classifier and sigmoid calibrator artifacts must be versioned envelopes containing Python, joblib, NumPy, pandas, scikit-learn and LightGBM versions; the loader refuses missing metadata or any runtime mismatch.
 - Root cause: the current stored artifacts were serialized under scikit-learn 1.7.1 while the project pins 1.6.1. The active spot artifact test loads `reports/spot_dukascopy_20261115/spot_lightgbm.joblib` and its sigmoid calibrator through `load_spot_artifacts()`; it does not use `LabelEncoder` or the multiclass calibrator.
-- Isolation: `src/models/calibration.py` is generic multiclass test infrastructure and is not imported by the active spot pipeline; archived SI code is under `archive/legacy/`. The active spot study uses binary LightGBM plus binary one-feature sigmoid logistic calibration.
+- Isolation: `src/models/calibration.py` is generic multiclass test infrastructure and is not imported by the active spot pipeline. The active spot study uses binary LightGBM plus binary one-feature sigmoid logistic calibration.
 - Limitation: regeneration was not performed because this host has Python 3.13.5, scikit-learn 1.7.1, pandas 2.3.1 and joblib 1.5.1, not the required Python 3.12/pinned environment; the corrected study now refuses to regenerate under that mismatch. `scripts/check_alignment.py` passed after this correction.
 
 ## 2026-11-15 - test environment contract

@@ -21,14 +21,14 @@ REPORT = ROOT / "reports" / "spot_v3_20261115"
 FIGURES = REPORT / "figures"
 TABLES = REPORT / "tables"
 
-NAVY = "000000"
-TEAL = "000000"
-GOLD = "000000"
+NAVY = "17324D"
+TEAL = "007C83"
+GOLD = "C78A24"
 INK = "222222"
 MUTED = "555555"
-PALE = "FFFFFF"
-LIGHT = "FFFFFF"
-RED = "000000"
+PALE = "F4F7FA"
+LIGHT = "EAF2F5"
+RED = "B5473A"
 
 
 def shade(cell, color: str) -> None:
@@ -269,7 +269,7 @@ def build():
     for line in ["1 Introduction", "2 Literature Review", "3 Proposed Methodology", "4 Results and Discussion", "5 Conclusion and Future Scope", "References", "Appendix A Reproducibility and Readiness"]:
         p = doc.add_paragraph(line); p.paragraph_format.left_indent = Inches(0.18); p.paragraph_format.space_after = Pt(2)
     heading(doc, "List of Figures and Tables", 1)
-    for line in ["Figure 3.1 SilverAI system architecture", "Figure 3.2 XAG/USD price history and used holdout", "Figure 3.3 Data coverage and gaps", "Figure 3.4 Label construction and exclusions", "Figure 3.5 Development class balance", "Figure 3.6 Purged walk-forward layout", "Figure 4.1 Per-fold accuracy", "Figure 4.2 Per-fold AUC", "Figure 4.3 Stored horizon and label comparison", "Figure 4.4 Confident-signal thresholds", "Figure 4.5 Cost sensitivity", "Figure 4.6 Seed stability", "Figure 4.7 Regression results", "3.1 Data and provenance summary", "4.1 Classification results by fold", "4.2 Regression results by fold", "4.3 Baselines and cost scenarios"]:
+    for line in ["Figure 3.1 SilverAI system architecture", "Figure 3.2 XAG/USD price history and used holdout", "Figure 3.3 Data coverage and gaps", "Figure 3.4 Label construction and exclusions", "Figure 3.5 Development class balance", "Figure 3.6 Purged walk-forward layout", "Figure 3.8 Exploratory data analysis", "Figure 4.1 Per-fold accuracy", "Figure 4.2 Per-fold AUC", "Figure 4.3 Stored horizon and label comparison", "Figure 4.4 Confident-signal thresholds", "Figure 4.7 Cost sensitivity", "Figure 4.8 Seed stability", "Figure 4.9 Regression results", "3.1 Data and provenance summary", "4.1 Classification results by fold", "4.2 Regression results by fold", "4.3 Baselines and cost scenarios"]:
         p = doc.add_paragraph(line); p.paragraph_format.left_indent = Inches(0.18); p.paragraph_format.space_after = Pt(1)
     page_break(doc)
 
