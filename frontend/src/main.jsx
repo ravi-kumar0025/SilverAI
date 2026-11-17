@@ -32,7 +32,7 @@ function App() {
   const [route, setRoute] = useState(location.hash.slice(1) || 'dashboard')
   const [mode, setMode] = useState(storedMode)
   const [liveUnavailable, setLiveUnavailable] = useState(false)
-  const [theme, setTheme] = useState(() => localStorage.getItem('silverai-theme') || 'light')
+
   const [state, setState] = useState({
     market: null, insights: null, status: null, models: null, prediction: null,
     history: [], metrics: null, paper: null, frozen: null, diagnostics: null
@@ -57,6 +57,22 @@ function App() {
     })
     if (failures.length) setError(failures.join(' · '))
     setBusy(false)
+  }
+
+  const clearTestingData = async () => {
+    if (!window.confirm('Clear all live-testing predictions, outcomes, signals, and paper-trading history? Models, historical datasets, validation results, and threshold files will remain unchanged.')) return
+    setBusy(true)
+    setError('')
+    try {
+      await api.clearTestingData()
+      // Remove the old session from the screen immediately. The following
+      // load repopulates only data that arrived after the reset.
+      setState(previous => ({ ...previous, prediction: null, history: [], insights: null, paper: null }))
+      await load()
+    } catch (error) {
+      setError(error?.message || 'Could not clear testing data.')
+      setBusy(false)
+    }
   }
 
   const switchMode = async checked => {
@@ -85,11 +101,6 @@ function App() {
   }, [])
 
   useEffect(() => {
-    document.documentElement.dataset.theme = theme
-    localStorage.setItem('silverai-theme', theme)
-  }, [theme])
-
-  useEffect(() => {
     try { localStorage.setItem('silverai-mode', mode) } catch { /* Storage is optional. */ }
   }, [mode])
 
@@ -98,14 +109,13 @@ function App() {
     let active = true
     const poll = async () => {
       try {
-        const [live, candles, latest, history] = await Promise.all([api.liveStatus(), api.candles(1000), api.latest(), api.predictionHistory(200)])
+        const [live, candles, latest, history, paper] = await Promise.all([api.liveStatus(), api.candles(1000), api.latest(), api.predictionHistory(200), api.paperTrading()])
         if (!live?.is_live) throw new Error('Live unavailable')
-        if (active) setState(previous => ({ ...previous, status: live, market: candles, prediction: latest, history: history?.predictions || previous.history }))
+        if (active) setState(previous => ({ ...previous, status: live, market: candles, prediction: latest, history: history?.predictions || previous.history, paper }))
       } catch {
         if (active) {
           setLiveUnavailable(true)
-          setMode('historical')
-          setError('Live unavailable; staying in Historical mode.')
+          setError('Live feed unavailable; waiting for a fresh candle.')
         }
       }
     }
@@ -114,6 +124,25 @@ function App() {
     return () => { active = false; clearInterval(timer) }
   }, [mode])
 
+  useEffect(() => {
+    // Paper status is independent from the chart mode. In particular, a
+    // running account must continue to mark-to-market while this page is open
+    // even if the user has the historical chart selected.
+    if (route !== 'paper') return undefined
+    let active = true
+    const pollPaper = async () => {
+      try {
+        const paper = await api.paperTrading()
+        if (active) setState(previous => ({ ...previous, paper }))
+      } catch (error) {
+        if (active) setError(error?.message || 'Paper-trading status unavailable.')
+      }
+    }
+    pollPaper()
+    const timer = setInterval(pollPaper, 2000)
+    return () => { active = false; clearInterval(timer) }
+  }, [route])
+
   const latest = state.prediction?.predictions?.at(-1) || state.prediction
 
   const pages = {
@@ -121,7 +150,7 @@ function App() {
     predictions: <Predictions state={state} latest={latest} />,
     analysis: <Analysis models={state.models} latest={latest} />,
     evaluation: <Evaluation metrics={state.metrics} />,
-    paper: <Paper paper={state.paper} />,
+    paper: <Paper paper={state.paper} onRefresh={load} onError={setError} />,
     model: <ModelInfo models={state.models} frozen={state.frozen} />,
     data: <Diagnostics state={state} />,
     settings: <Settings models={state.models} status={state.status} />
@@ -134,7 +163,7 @@ function App() {
           <span className="brand-mark">S</span>
           <span>
             <b>SilverAI</b>
-            <small>Market Intelligence</small>
+            <small>Research Terminal</small>
           </span>
         </a>
 
@@ -151,8 +180,8 @@ function App() {
             <span>{mode === 'live' ? 'LIVE' : 'HISTORICAL'}</span>
             <input type="checkbox" checked={mode === 'live'} onChange={event => switchMode(event.target.checked)} />
           </label>
-          <button className="theme" onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}>
-            {theme === 'dark' ? '☀' : '☾'}
+          <button className="clear-testing-nav" onClick={clearTestingData} disabled={busy}>
+            Clear Testing Data
           </button>
           <button className="refresh" onClick={load} disabled={busy}>
             {busy ? 'Updating…' : 'Refresh'}
@@ -497,7 +526,7 @@ function Analysis({ models, latest }) {
   )
 }
 
-function MetricTable({ rows, columns }) {
+function MetricTable({ rows, columns, emptyMessage = 'Evaluation reports are unavailable. Run the reproducible evaluation command to populate metrics.' }) {
   return rows?.length ? (
     <div className="table-scroll">
       <table>
@@ -516,7 +545,7 @@ function MetricTable({ rows, columns }) {
       </table>
     </div>
   ) : (
-    <Empty>Evaluation reports are unavailable. Run the reproducible evaluation command to populate metrics.</Empty>
+    <Empty>{emptyMessage}</Empty>
   )
 }
 
@@ -550,32 +579,58 @@ function Evaluation({ metrics }) {
   )
 }
 
-function Paper({ paper }) {
+function Paper({ paper, onRefresh, onError }) {
+  const [actionBusy, setActionBusy] = useState(false)
+  const action = async operation => {
+    setActionBusy(true)
+    try {
+      await operation()
+      await onRefresh()
+    } catch (error) {
+      onError(error?.message || 'Paper-trading action failed.')
+    } finally {
+      setActionBusy(false)
+    }
+  }
+  const reset = () => {
+    if (window.confirm('Reset the virtual paper account and delete its trade history? This does not clear prediction-testing records.')) action(() => api.resetPaperTrading())
+  }
   return (
     <>
       <PageHead
         kicker="PAPER TRADING"
         title="Paper trading"
-        text="No real orders. Results use final signals, outcomes, fees and slippage."
+        text="No real orders. The engine accepts only fresh live signals and closed candles."
       />
+      <div className="panel-actions">
+        <button className="button button-primary" disabled={actionBusy || paper?.status === 'running'} onClick={() => action(() => api.startPaperTrading())}>Start</button>
+        <button className="button" disabled={actionBusy || paper?.status !== 'running'} onClick={() => action(() => api.stopPaperTrading())}>Stop</button>
+        <button className="button button-danger" disabled={actionBusy || paper?.status === 'running'} onClick={reset}>Reset account</button>
+      </div>
       <div className="stats-grid">
+        <Stat label="STATUS" value={paper?.status ? paper.status.toUpperCase() : 'UNAVAILABLE'} />
+        <Stat label="LIVE PRICE" value={paper?.current_market_price == null ? '—' : Number(paper.current_market_price).toFixed(3)} />
+        <Stat label="EQUITY" value={paper?.current_equity == null ? '—' : paper.current_equity.toFixed(2)} />
         <Stat label="NET P&L" value={paper?.net_pnl == null ? '—' : paper.net_pnl.toFixed(2)} />
         <Stat label="TRADES" value={paper?.trade_count} />
-        <Stat label="WINS" value={paper?.win_count} />
+        <Stat label="WIN RATE" value={paper?.win_rate == null ? '—' : `${(paper.win_rate * 100).toFixed(1)}%`} />
         <Stat label="COSTS" value={paper?.total_costs == null ? '—' : paper.total_costs.toFixed(2)} />
       </div>
-      <Panel title="COST SENSITIVITY">
-        <MetricTable
-          rows={(paper?.cost_sensitivity || []).map(row => ({
-            costs: `${row.transaction_cost_bps}bps + ${row.slippage_bps}bps`,
-            trades: row.trade_count,
-            net_pnl: row.net_pnl
-          }))}
-          columns={['costs', 'trades', 'net_pnl']}
-        />
+      <Panel title="OPEN POSITIONS">
+        <MetricTable emptyMessage="No open paper positions." rows={(paper?.open_positions || []).map(row => ({
+          direction: row.direction, signal: row.signal, entry: row.entry_price,
+          notional: row.notional, since: date(row.entry_timestamp)
+        }))} columns={['direction', 'signal', 'entry', 'notional', 'since']} />
+      </Panel>
+      <Panel title="CLOSED TRADES">
+        <MetricTable emptyMessage="No closed paper trades yet." rows={(paper?.closed_trades || []).slice(0, 50).map(row => ({
+          direction: row.direction, signal: row.signal, entry: row.entry_price,
+          exit: row.exit_price, net_pnl: row.net_pnl, costs: row.costs, exit_reason: row.exit_reason
+        }))} columns={['direction', 'signal', 'entry', 'exit', 'net_pnl', 'costs', 'exit_reason']} />
       </Panel>
       <Panel title="ASSUMPTIONS">
-        <Row label="Mode" value={paper?.historical_simulation ? 'Historical simulation' : 'Unavailable'} />
+        <Row label="Mode" value={paper?.paper_only ? 'Paper only' : 'Unavailable'} />
+        <Row label="Last live update" value={date(paper?.current_market_timestamp)} />
         <Row label="Execution" value="Paper only · no real orders" />
       </Panel>
     </>

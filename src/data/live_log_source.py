@@ -67,5 +67,18 @@ class LiveLogSource:
         age = None if last is None else max(0.0, (now - last).total_seconds())
         return {"provider": "dukascopy-live-log", "data_mode": "live", "is_live": True, "fresh": age is not None and age <= SPOT_CONFIG.live_stale_after_seconds, "last_update": None if last is None else last.isoformat(), "age_seconds": age, "stale_after_seconds": SPOT_CONFIG.live_stale_after_seconds, "companion_missing": sorted({"xagusd", "xauusd", "eurusd"} - available)}
 
+    def clear(self) -> dict[str, Any]:
+        """Remove only the live-testing JSONL files and reset the tail cache."""
+        cleared: list[str] = []
+        self.root.mkdir(parents=True, exist_ok=True)
+        for symbol in ("xagusd", "xauusd", "eurusd"):
+            path = self.root / f"{symbol}_m1_raw.jsonl"
+            if path.exists():
+                path.write_text("", encoding="utf-8")
+                cleared.append(str(path))
+        self._offsets.clear()
+        self._latest.clear()
+        return {"files_cleared": cleared, "directory": str(self.root)}
+
 
 __all__ = ["LiveLogSource"]

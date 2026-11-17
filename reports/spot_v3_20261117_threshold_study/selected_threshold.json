@@ -1,0 +1,16 @@
+{
+  "selected": null,
+  "status": "no_defensible_threshold",
+  "selection_policy": "validation-only; positive net return after configured costs; >=30 non-overlapping trades; no negative fold net return; rank by total net return",
+  "threshold_units": "decimal log-return; 1 bp = 0.0001",
+  "cost_assumptions": {
+    "spread_bps": 2.0,
+    "slippage_bps": 1.0,
+    "round_trip_cost_bps": 6.0
+  },
+  "holdout": {
+    "status": "used_do_not_reuse",
+    "excluded_before": "2026-10-01 00:00:00+00:00",
+    "used_for_selection": false
+  }
+}

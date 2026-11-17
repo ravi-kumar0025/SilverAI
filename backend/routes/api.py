@@ -270,6 +270,35 @@ def paper_trading(request: Request) -> dict[str, Any]:
     return _service(request).paper_trading()
 
 
+@router.post("/paper-trading/start")
+def start_paper_trading(request: Request) -> dict[str, Any]:
+    try:
+        return _service(request).start_paper_trading()
+    except (RuntimeError, ValueError) as exc:
+        raise HTTPException(status_code=409, detail=str(exc)) from exc
+
+
+@router.post("/paper-trading/stop")
+def stop_paper_trading(request: Request) -> dict[str, Any]:
+    return _service(request).stop_paper_trading()
+
+
+@router.post("/paper-trading/reset")
+def reset_paper_trading(request: Request) -> dict[str, Any]:
+    try:
+        return _service(request).reset_paper_trading()
+    except ValueError as exc:
+        raise HTTPException(status_code=409, detail=str(exc)) from exc
+
+
+@router.post("/testing/clear")
+def clear_testing_data(request: Request) -> dict[str, Any]:
+    try:
+        return _service(request).clear_testing_data()
+    except ValueError as exc:
+        raise HTTPException(status_code=409, detail=str(exc)) from exc
+
+
 @router.post("/predictions/evaluate")
 def evaluate_predictions(request: Request) -> dict[str, Any]:
     """Replay the configured historical candles to settle eligible outcomes."""

@@ -100,6 +100,10 @@ class DukascopyRealtimeSource:
     def status(self, now: Any = None) -> dict[str, Any]:
         return self.state.as_dict(now)
 
+    def reset(self) -> None:
+        """Reset receiver counters and deduplication state for a new test run."""
+        self.state = LiveFeedState(stale_after_seconds=self.state.stale_after_seconds)
+
     def heartbeat(self, *, now: Any = None, connected: bool = True) -> dict[str, Any]:
         self.state.heartbeat(now)
         if connected:

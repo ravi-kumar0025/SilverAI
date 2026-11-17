@@ -76,13 +76,20 @@ class PredictionService:
         self.store.evaluate(outcome_candles)
         if any(frame.empty for frame in frames.values()):
             return
+        timestamp_sets = [set(pd.to_datetime(frame["timestamp"], utc=True).dropna()) for frame in frames.values()]
+        common_timestamps = set.intersection(*timestamp_sets)
+        if not common_timestamps:
+            return
+        latest_common_timestamp = max(common_timestamps)
         target = frames["xagusd"].set_index("timestamp").rename(columns=lambda name: f"silver_{name}")
         for symbol in ("xauusd", "eurusd"):
             companion = frames[symbol].set_index("timestamp").rename(columns=lambda name: f"{symbol}_{name}")
             target = target.join(companion, how="left")
         target = target.reset_index()
         features = generate_spot_features(target, SPOT_CONFIG.feature_groups)
-        latest = features.tail(1)
+        latest = features.loc[pd.to_datetime(features["timestamp"], utc=True) == latest_common_timestamp].tail(1)
+        if latest.empty:
+            return
         timestamp = str(latest.iloc[0]["timestamp"])
         if timestamp in self._live_scored:
             return
@@ -124,7 +131,15 @@ class PredictionService:
         ingest = getattr(provider, "ingest", None)
         if not callable(ingest):
             raise RuntimeError("The configured provider does not accept live candles.")
-        return ingest(candle)
+        result = ingest(candle)
+        # Keep the paper account marked to market even when model scoring is
+        # blocked by missing companion candles or a transient model error.
+        if result.get("accepted") and str(candle.get("symbol", "")).lower() == "xagusd":
+            try:
+                result["paper"] = self.store.paper_mark_price(candle["close"], candle["timestamp"])
+            except (TypeError, ValueError, OSError) as exc:
+                self._diagnostics.append({"kind": "paper_mark_failure", "error": str(exc)})
+        return result
 
     def live_heartbeat(self, *, connected: bool = True) -> dict[str, Any]:
         heartbeat = getattr(self.market_provider, "heartbeat", None)
@@ -193,7 +208,7 @@ class PredictionService:
             if finalized:
                 for observation, prediction in zip(observations, predictions):
                     try:
-                        self.store.record({
+                        saved = self.store.record({
                             **prediction,
                             "instrument": CONFIG.instrument,
                             "contract": CONFIG.symbol,
@@ -201,6 +216,13 @@ class PredictionService:
                             "candle_finalized": True,
                             "close_price": observation.get("close", observation.get("silver_close")),
                         })
+                        if finalized:
+                            live_status = self.market_status()
+                            self.store.paper_process(
+                                {**prediction, "prediction_id": saved["prediction_id"], "close_price": saved["close_price"], "prediction_timestamp": saved["candle_timestamp"]},
+                                live=bool(live_status.get("is_live")),
+                                fresh=bool(live_status.get("fresh")),
+                            )
                     except (TypeError, ValueError, OSError) as exc:
                         self._diagnostics.append({"kind": "persistence_failure", "error": str(exc)})
             result = {"batch": len(predictions) > 1, "predictions": predictions}
@@ -241,14 +263,34 @@ class PredictionService:
         return status
 
     def paper_trading(self) -> dict[str, Any]:
-        rows = self.store.list(status="evaluated")
-        result = evaluate_paper_trades(rows)
-        result["historical_simulation"] = True
-        result["cost_sensitivity"] = [
-            {key: value for key, value in scenario.items() if key != "trades"}
-            for scenario in paper_cost_sensitivity(rows)
-        ]
+        result = self.store.paper_status()
+        result["historical_simulation"] = False
+        result["cost_assumptions"] = {"spread_bps": SPOT_CONFIG.spread_bps, "slippage_bps": SPOT_CONFIG.slippage_bps}
         return result
+
+    def start_paper_trading(self, initial_balance: float | None = None) -> dict[str, Any]:
+        status = self.market_status()
+        if not status.get("is_live") or not status.get("fresh"):
+            raise RuntimeError("Paper trading requires a fresh live market feed.")
+        return self.store.paper_start(initial_balance)
+
+    def stop_paper_trading(self) -> dict[str, Any]:
+        return self.store.paper_stop()
+
+    def reset_paper_trading(self, initial_balance: float = 10_000.0) -> dict[str, Any]:
+        return self.store.paper_reset(initial_balance)
+
+    def clear_testing_data(self) -> dict[str, Any]:
+        result = self.store.clear_testing_data()
+        live_files = self._live_logs.clear() if DATA_MODE == "live" else {"files_cleared": [], "directory": str(self._live_logs.root)}
+        self._latest = None
+        self._live_scored.clear()
+        self._historical_frames = None
+        self._diagnostics.clear()
+        # Clearing test records must not disconnect an already-running live
+        # provider. The next closed candle should continue the same live
+        # session immediately after the UI reset.
+        return {**result, "live_testing_files_cleared": live_files["files_cleared"], "live_feed_state_reset": False}
 
     def evaluation_metrics(self) -> dict[str, Any]:
         rows = self.store.list(status="evaluated", limit=100000)
@@ -311,6 +353,7 @@ class PredictionService:
         except (FileNotFoundError, OSError, ValueError) as exc:
             result["cross_market"] = {"status": "unavailable", "reason": type(exc).__name__}
         return result
+
 
     def frozen_evaluation(self) -> dict[str, Any]:
         if not FROZEN_EVALUATION_PATH.exists():

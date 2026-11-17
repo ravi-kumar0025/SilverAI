@@ -141,3 +141,14 @@ def test_live_log_source_discards_forming_deduplicates_and_builds_complete_5m(tm
     assert candles.iloc[0].close == 50.04
     assert source.status()["fresh"] is False
 
+
+def test_live_log_source_clear_removes_testing_files_and_resets_cache(tmp_path):
+    path = tmp_path / "xagusd_m1_raw.jsonl"
+    path.write_text('{"recv_ms": 1800000600000, "candles": []}\n', encoding="utf-8")
+    source = LiveLogSource(tmp_path)
+    source.candles()
+    result = source.clear()
+    assert str(path) in result["files_cleared"]
+    assert path.read_text(encoding="utf-8") == ""
+    assert source.candles().empty
+

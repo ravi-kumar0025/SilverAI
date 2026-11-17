@@ -1,0 +1,117 @@
+{
+  "experiment_version": "spot_v3_20261117_threshold_study_v1",
+  "dataset_id": "4be8732dbab3aaa6",
+  "feature_schema": [
+    "ret_1",
+    "ret_5",
+    "ret_15",
+    "ret_60",
+    "range_pct",
+    "body_ratio",
+    "upper_wick",
+    "lower_wick",
+    "atr_14_pct",
+    "rv_20",
+    "vol_ratio",
+    "parkinson_20",
+    "rsi_14",
+    "macd_hist_c",
+    "bb_pctb",
+    "ema_dist_21",
+    "ema_dist_50",
+    "ema_dist_200",
+    "zscore_60",
+    "gold_ret_1",
+    "gold_ret_5",
+    "gold_ret_15",
+    "gsr",
+    "gsr_z",
+    "gsr_chg_5",
+    "eur_ret_5",
+    "lead_lag",
+    "corr_gold_50",
+    "hour_sin",
+    "hour_cos",
+    "dow_sin",
+    "dow_cos",
+    "is_overlap",
+    "mins_since_open"
+  ],
+  "target": "log(close[t+12]/close[t])",
+  "horizon_bars": 12,
+  "horizon_minutes": 60,
+  "thresholds_bps": [
+    2,
+    3,
+    4,
+    5,
+    6,
+    8,
+    10,
+    12,
+    15,
+    20
+  ],
+  "threshold_decimal_conversion": "bps / 10000",
+  "models": [
+    "mean",
+    "q10",
+    "q50",
+    "q90"
+  ],
+  "selection_sources": [
+    "mean",
+    "q50"
+  ],
+  "development_rows": 205437,
+  "prediction_rows": 82173,
+  "folds": [
+    {
+      "fold": 1,
+      "train_rows": 102712,
+      "validation_rows": 30815,
+      "train_end_timestamp": "2025-04-17T00:15:00+00:00",
+      "validation_start_timestamp": "2025-04-17T01:05:00+00:00",
+      "validation_end_timestamp": "2025-09-23T12:10:00+00:00",
+      "purge_bars": 3,
+      "embargo_bars": 3
+    },
+    {
+      "fold": 2,
+      "train_rows": 133528,
+      "validation_rows": 30815,
+      "train_end_timestamp": "2025-09-23T11:30:00+00:00",
+      "validation_start_timestamp": "2025-09-23T12:20:00+00:00",
+      "validation_end_timestamp": "2026-03-03T16:10:00+00:00",
+      "purge_bars": 3,
+      "embargo_bars": 3
+    },
+    {
+      "fold": 3,
+      "train_rows": 164343,
+      "validation_rows": 20543,
+      "train_end_timestamp": "2026-03-03T15:25:00+00:00",
+      "validation_start_timestamp": "2026-03-03T16:15:00+00:00",
+      "validation_end_timestamp": "2026-06-17T15:20:00+00:00",
+      "purge_bars": 3,
+      "embargo_bars": 3
+    }
+  ],
+  "config_sha256": "8419a0d1ff274b452d6b46a694ef28a4d0e6a42573e238c261a45bd1e0337952",
+  "selection": {
+    "selected": null,
+    "status": "no_defensible_threshold",
+    "selection_policy": "validation-only; positive net return after configured costs; >=30 non-overlapping trades; no negative fold net return; rank by total net return",
+    "threshold_units": "decimal log-return; 1 bp = 0.0001",
+    "cost_assumptions": {
+      "spread_bps": 2.0,
+      "slippage_bps": 1.0,
+      "round_trip_cost_bps": 6.0
+    },
+    "holdout": {
+      "status": "used_do_not_reuse",
+      "excluded_before": "2026-10-01 00:00:00+00:00",
+      "used_for_selection": false
+    }
+  }
+}
