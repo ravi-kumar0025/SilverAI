@@ -1,99 +1,64 @@
-# SilverAI — XAG/USD research terminal
+# SilverAI
 
-SilverAI is a research and presentation project for XAG/USD spot. It combines a FastAPI backend, a React/Vite market terminal, a reproducible Dukascopy data pipeline, and an evidence-oriented evaluation package.
+## XAG/USD research terminal
 
-The project is intentionally conservative about claims: historical data is labelled historical, live data is labelled live only when the configured provider is connected and fresh, and the model is not presented as a profitable or production-ready trading system.
+SilverAI is an evidence-oriented research platform for XAG/USD spot. It combines a causal market-data pipeline, a FastAPI prediction service, and a React/Vite financial terminal for historical analysis, controlled live-feed integration, and paper-only evaluation.
 
-## Evaluation snapshot
+> Research software, not financial advice. The checked-in model is not presented as profitable, production-ready, or suitable for automated execution.
 
-The checked-in artifacts describe the state of the repository at their generation time:
+## Project status
 
-| Area | Current evidence |
+| Area | Status |
 | --- | --- |
+| Historical application | Ready to run |
 | Instrument | XAG/USD spot (`XAGUSD_SPOT`) |
-| Historical source | Dukascopy bid OHLC, UTC, 1-minute files resampled to complete 5-minute candles |
-| Dataset | 2023-11-01 through 2026-11-13; dataset ID `4be8732dbab3aaa6` |
-| Model input | 34 ordered causal features across price action, volatility, trend/momentum, cross-market context, and UTC session context |
-| Selected forecast | Binary Up/Down study at a 60-minute horizon (`H=12`) |
-| Checked-in audit | 13 passed, 1 failed; overall static/report status `REVIEW` because `fig_3_7_feature_groups_heatmap.png` and `fig_4_5_reliability.png` are missing |
-| Live observation | The audit recorded a connected, fresh live-log observation at audit time; this is not a current or permanent readiness claim |
-| Trading status | Research and paper-trading infrastructure only; no profitability or production-trading claim |
+| Historical source | Dukascopy bid OHLC, UTC, no volume |
+| Model contract | 34 causal features; selected 60-minute horizon |
+| Verification | 59 Python tests, 4 frontend tests, frontend build passing |
+| Live mode | Conditional on an external provider and current feed verification |
 
-See the [readiness summary](reports/spot_v3_20261115/readiness_summary.md), [final audit](reports/spot_v3_20261115/final_audit.json), and [model card](reports/spot_v3_20261115/model_card.md) for supporting evidence and limitations.
+Historical mode has been smoke-tested through the backend API and serves real checked-in candles with `data_status: historical`. Live mode remains an integration path, not a production-readiness claim.
 
-## Current run readiness
+## What the project does
 
-The project is ready to run and evaluate in Historical mode. The following checks were completed in the current checkout:
+- Builds complete 5-minute candles from one-minute XAG/USD, XAU/USD, and EUR/USD bid data.
+- Generates a fixed 34-feature causal schema covering price action, volatility, trend/momentum, cross-market relationships, and UTC session context.
+- Evaluates binary Up/Down targets at 15-, 30-, and 60-minute candidate horizons using chronological validation.
+- Provides calibrated classifier probabilities, one-hour return estimates, confidence-based abstention, and explicit `NO_CLEAR_SIGNAL` states.
+- Persists confirmed closed-candle forecasts and evaluates outcomes only when complete future windows are available.
+- Exposes historical/live market status, diagnostics, paper-trading state, and model metadata through FastAPI.
+- Presents the workflow in a chart-first React/Vite terminal.
 
-| Check | Result |
-| --- | --- |
-| Backend import | Passed; FastAPI app exposes 28 routes |
-| Backend smoke test | `/api/health` returned 200 with `status: ok` |
-| Historical candle API | Returned 24 real candles with `data_status: historical` |
-| Alignment audit | Passed |
-| Python test suite | 59 passed |
-| Frontend tests | 4 passed |
-| Frontend production build | Passed with Vite |
+The source contains bid OHLC only. SilverAI does not invent volume or use synthetic volume features.
 
-The local `.env` sets `SILVERAI_DATA_MODE=live` and a live-provider module. To guarantee a safe historical evaluator run, set `SILVERAI_DATA_MODE=historical` in the backend terminal before starting Uvicorn; the process environment overrides the `.env` default.
+## Quick start
 
-The project is not certified as production-ready or profitable. Live mode remains conditional on a genuine provider connection, all three companion markets, closed-candle handling, freshness within 180 seconds, reconnect behavior, and persisted signal verification in the current environment.
-
-## What is included
-
-- A causal spot-data pipeline using `data/raw/dukascopy/{xagusd,xauusd,eurusd}_1m.csv`.
-- Complete-candle resampling at 5-minute, 15-minute, and 1-hour resolutions. A candle is used only after its source interval has closed.
-- A shared 34-feature schema used by research and API inference. The authoritative order is in [`src/features/spot_features.py`](src/features/spot_features.py).
-- ATR dead-zone binary targets across 15-, 30-, and 60-minute candidate horizons and multiple dead-zone multipliers.
-- Versioned classifier and regression artifacts, calibration support, prediction persistence, outcome evaluation, paper-trading state, and frozen-evaluation controls.
-- A React dashboard with historical/live labels, candlestick data, predictions, diagnostics, evaluation, model, and paper-trading views.
-- Read-only audit and alignment scripts for evaluator review.
-
-The source dataset has no volume. SilverAI does not invent volume and does not use it as a feature.
-
-## Repository map
-
-```text
-backend/                  FastAPI application and service layer
-frontend/                 React/Vite terminal
-src/data/                 Historical and live-provider data contracts
-src/features/             Causal rolling and cross-market features
-src/models/               Classifier, regression, calibration, and artifact contracts
-src/prediction/           Persistence, orchestration, signals, and scenarios
-src/evaluation/           Baselines, paper trading, selectivity, and frozen mode
-data/                     Canonical data and dataset manifest
-reports/                  Reproducibility and evaluation artifacts
-docs/                     API, architecture, methodology, and user guidance
-scripts/                  Dataset, live-feed, and verification helpers
-tools/                    Study and final-audit entry points
-```
-
-## Run the application
-
-From the repository root, use the checked-in virtual environment or an equivalent Python 3.12 environment.
+Requirements: Python 3.12, Node.js, npm, and the checked-in dependencies. Run these commands from the repository root.
 
 ```powershell
-# Terminal 1: backend; historical mode is the safe default
+# Terminal 1: start the backend in safe Historical mode
 $env:SILVERAI_DATA_MODE = "historical"
 .\.venv\Scripts\python.exe -m uvicorn backend.main:app --host 127.0.0.1 --port 8000
 
-# Terminal 2: frontend
+# Terminal 2: start the frontend
 Set-Location frontend
 npm run dev
 ```
 
-Open the Vite URL printed by the frontend. Historical mode serves real checked-in XAG/USD candles and reports `data_status: historical`.
+Open the Vite URL printed by the frontend. The backend is available at `http://127.0.0.1:8000` and its interactive API documentation is available at `/docs`.
 
-### Optional live mode
+Important: a local `.env` may override the default data mode. Set `SILVERAI_DATA_MODE=historical` explicitly for a reproducible evaluator run.
 
-Live mode requires an owner-supplied Dukascopy-compatible module and a running feed logger. It is an explicit opt-in and should be treated as unavailable until provider, companion symbols, closed-candle handling, freshness, and reconnect behavior are verified in the current environment.
+## Optional live mode
+
+Live mode requires an owner-supplied Dukascopy-compatible provider module. The bridge requests bid one-minute data for `xagusd`, `xauusd`, and `eurusd`, writes raw events to `data/live_log/`, and sends normalized closed candles to the backend.
 
 ```powershell
 # Terminal 1: backend
 $env:SILVERAI_DATA_MODE = "live"
 .\.venv\Scripts\python.exe -m uvicorn backend.main:app --host 127.0.0.1 --port 8000
 
-# Terminal 2: live logger; requires the configured external module
+# Terminal 2: provider bridge
 $env:SILVERAI_DUKASCOPY_MODULE = "dukascopy-node"
 node scripts/live_feed_logger.mjs
 
@@ -102,46 +67,57 @@ Set-Location frontend
 npm run dev
 ```
 
-The frontend falls back to Historical mode when live status is unavailable. Never interpret a historical candle or a stale live feed as a live signal.
+The system discards forming candles, de-duplicates events, requires companion markets for new scoring, and marks the feed stale after 180 seconds. Verify provider connection, companion availability, freshness, reconnect behavior, and persisted closed-candle predictions before describing live mode as verified.
 
 ## Verification
 
-These commands are read-only apart from normal test caches and generated audit output:
+Run the complete local checks:
 
 ```powershell
+# Backend, data, model, and report checks
 .\.venv\Scripts\python.exe -m pytest -q
 .\.venv\Scripts\python.exe scripts/check_alignment.py
-.\.venv\Scripts\python.exe scripts/final_verify.py
-
-# Static audit when no live backend/provider is running
 .\.venv\Scripts\python.exe scripts/final_verify.py --skip-live
 
+# Frontend checks
 Set-Location frontend
 npm test
 npm run build
 ```
 
-`check_alignment.py` checks active instrument identity, no-volume compliance, required artifacts, and manifest/report consistency. `final_verify.py` checks dataset hashes, the 34-feature artifact contract, regression artifacts, report figures, and the live endpoint when one is available. The final audit should be read as a timestamped observation, not a permanent readiness certificate.
+Use `scripts/final_verify.py` without `--skip-live` only when the backend and live endpoint are intentionally running. Its live result is a timestamped observation, not a permanent readiness certificate.
 
-Do not rerun model selection, threshold tuning, or holdout evaluation against the permanently closed holdout. New research requires an extended dataset and a newly frozen evaluation period.
+## Evidence and limitations
 
-## API and documentation
+The current dataset manifest identifies the checked-in corpus as `4be8732dbab3aaa6`, covering 2023-11-01 through 2026-11-13. The selected research artifact uses a 60-minute forecast horizon (`H=12`) and is marked development/research-only.
+
+The original final holdout is marked `used_do_not_reuse` and must not be reused for selection or threshold tuning. Missing or gapped future candles remain pending. The live bridge and paper-trading paths do not establish profitability or a completed five-day live evaluation.
+
+The stored report package includes an explicit readiness review; two indexed report figures remain unavailable. This limitation is preserved rather than hidden or replaced with fabricated output.
+
+## Repository layout
+
+```text
+backend/       FastAPI application, routes, and prediction service
+frontend/      React/Vite financial terminal
+src/           Data, features, models, prediction, and evaluation modules
+data/          Canonical Dukascopy files and dataset manifest
+reports/       Stored research, regression, threshold, and audit artifacts
+docs/          API, architecture, methodology, reproducibility, and user guide
+scripts/       Verification, live bridge, replay, manifest, and report helpers
+tools/         Study runners and final audit tools
+presentation/  Evaluator-facing presentation asset
+```
+
+## Documentation
 
 - [API reference](docs/api.md)
 - [Architecture](docs/architecture.md)
 - [Methodology](docs/methodology.md)
 - [Reproducibility](docs/reproducibility.md)
 - [User guide](docs/user_guide.md)
-- [Live-source decision and verification gate](docs/spot_live_source.md)
+- [Live-source verification gate](docs/spot_live_source.md)
 - [Project decisions](DECISIONS.md)
-
-Important endpoints include `GET /api/health`, `GET /api/market/candles`, `GET /api/market/status`, `GET /api/models`, `POST /api/predict/confirmed`, `GET /api/predictions`, `GET /api/evaluation/metrics`, and `GET /api/diagnostics`.
-
-## Data and model limitations
-
-- The historical corpus contains bid OHLC only; there is no volume field.
-- Missing or gapped future candles remain unevaluated rather than being silently filled.
-- Cross-market forward filling is bounded and XAG/USD is never fabricated.
-- The configured holdout is marked `used_do_not_reuse`; it must not be reused for model selection.
-- The checked-in model is development/research evidence. Its reported metrics do not establish live performance, profitability, or deployability.
-- The live bridge and paper-trading paths are safeguards and integration points, not evidence of a five-day live validation result.
+- [Evaluation report](reports/spot_dukascopy_20261115/report.md)
+- [Model card](reports/spot_dukascopy_20261115/model_card.md)
+- [Readiness summary](reports/spot_v3_20261115/readiness_summary.md)
